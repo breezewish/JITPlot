@@ -8,8 +8,6 @@
 using StupidPlot::App;
 using StupidPlot::Debug;
 
-App * app;
-
 BOOL CALLBACK PlotDialogProc(
     HWND hDlg,
     UINT message,
@@ -18,23 +16,24 @@ BOOL CALLBACK PlotDialogProc(
     )
 {
     UNREFERENCED_PARAMETER(hDlg);
-    UNREFERENCED_PARAMETER(wParam);
-    UNREFERENCED_PARAMETER(lParam);
 
     switch (message)
     {
+    case WM_INITDIALOG:
+        App::init(hDlg);
+        return true;
     case WM_SIZE:
     case WM_SIZING:
-        app->updateSize();
-        break;
+        App::updateSize();
+        return true;
     case WM_CLOSE:
         DestroyWindow(hDlg);
-        return TRUE;
+        return true;
     case WM_DESTROY:
         PostQuitMessage(0);
-        return TRUE;
-    case WM_PAINT:
-        Debug::output(L"%d winform.redraw\n", GetTickCount());
+        return true;
+    default:
+        App::handleEvent(message, wParam, lParam);
         break;
     }
 
@@ -65,8 +64,6 @@ int APIENTRY WinMain(
         NULL
         );
 
-    app = new App(hDlg);
-
     ShowWindow(hDlg, nCmdShow);
 
     while ((ret = GetMessageW(&msg, 0, 0, 0)) != 0)
@@ -82,7 +79,7 @@ int APIENTRY WinMain(
         }
     }
 
-    delete app;
+    App::terminate();
 
     return 0;
 }

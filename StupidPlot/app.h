@@ -2,58 +2,28 @@
 
 #include <windows.h>
 #include <gdiplus.h>
-#include "resource.h"
-#include "debug.h"
-#include "control.h"
-#include "canvas.h"
+
+#include <resource.h>
+#include <debug.h>
+#include <ui/control/control.h>
+#include <ui/control/checkbox.h>
+#include <ui/control/canvas.h>
+#include <ui/container.h>
+#include <ui/layout/layoutmanager.h>
+#include <ui/event/event.h>
+#include <ui/event/eventmanager.h>
 
 using namespace Gdiplus;
+using namespace StupidPlot::UI;
 
 namespace StupidPlot
 {
     class App
     {
-    protected:
-        GdiplusStartupInput gdiplusStartupInput;
-        ULONG_PTR           gdiplusToken;
-
-        HWND                hWnd;
-        Canvas              * canvas;
-
     public:
-        App(HWND _hWnd)
-        {
-            GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-
-            hWnd = _hWnd;
-            canvas = new Canvas(GetDlgItem(hWnd, IDC_STATIC_CANVAS));
-
-            updateSize();
-        }
-
-        ~App()
-        {
-            delete canvas;
-
-            GdiplusShutdown(gdiplusToken);
-        }
-
-        void updateSize()
-        {
-            RECT rect;
-            GetClientRect(hWnd, &rect);
-
-            HDWP hDefer;
-            hDefer = BeginDeferWindowPos(10);
-
-            DeferWindowPos(hDefer, canvas->getHWND(), NULL, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER);
-
-            EndDeferWindowPos(hDefer);
-        }
-
-        void paint()
-        {
-            // do nothing
-        }
+        static void init(HWND _hWnd);
+        static void terminate();
+        static void updateSize();
+        static BOOL handleEvent(UINT uMsg, WPARAM wParam, LPARAM lParam);
     };
 }
