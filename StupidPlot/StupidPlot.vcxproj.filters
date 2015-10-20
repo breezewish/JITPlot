@@ -25,6 +25,15 @@
     <Filter Include="头文件\ui\layout">
       <UniqueIdentifier>{df3c5fba-f370-4576-adaa-1b9d0f65a942}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\plot">
+      <UniqueIdentifier>{2d9607e6-aa5e-4099-87cf-d36bf9a2a08e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\plot\provider">
+      <UniqueIdentifier>{35001e23-b622-408e-893d-92aba7ff415e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\formula">
+      <UniqueIdentifier>{432316b4-4f2b-4d44-8664-23097d7ee8cd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winform.cpp">
@@ -76,6 +85,27 @@
     </ClInclude>
     <ClInclude Include="ui\container.h">
       <Filter>头文件\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\control\textbox.h">
+      <Filter>头文件\ui\control</Filter>
+    </ClInclude>
+    <ClInclude Include="plot\provider\gdiplusprovider.h">
+      <Filter>头文件\plot\provider</Filter>
+    </ClInclude>
+    <ClInclude Include="plot\provider\gdiprovider.h">
+      <Filter>头文件\plot\provider</Filter>
+    </ClInclude>
+    <ClInclude Include="plot\provider\provider.h">
+      <Filter>头文件\plot\provider</Filter>
+    </ClInclude>
+    <ClInclude Include="plot\plotdrawer.h">
+      <Filter>头文件\plot</Filter>
+    </ClInclude>
+    <ClInclude Include="plot\plotoptions.h">
+      <Filter>头文件\plot</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\formulaobject.h">
+      <Filter>头文件\formula</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -151,11 +151,18 @@
   <ItemGroup>
     <ClInclude Include="app.h" />
     <ClInclude Include="debug.h" />
+    <ClInclude Include="formula\formulaobject.h" />
+    <ClInclude Include="plot\plotdrawer.h" />
+    <ClInclude Include="plot\plotoptions.h" />
+    <ClInclude Include="plot\provider\gdiplusprovider.h" />
+    <ClInclude Include="plot\provider\gdiprovider.h" />
+    <ClInclude Include="plot\provider\provider.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="ui\container.h" />
     <ClInclude Include="ui\control\canvas.h" />
     <ClInclude Include="ui\control\checkbox.h" />
     <ClInclude Include="ui\control\control.h" />
+    <ClInclude Include="ui\control\textbox.h" />
     <ClInclude Include="ui\event\event.h" />
     <ClInclude Include="ui\event\eventmanager.h" />
     <ClInclude Include="ui\event\mouseevent.h" />
