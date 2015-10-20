@@ -180,16 +180,17 @@ namespace StupidPlot
                     return id;
                 }
 
-                void addEventHandler(int eventName, CONTROLEVENTHANDLER handler)
+                Control * addEventHandler(int eventName, CONTROLEVENTHANDLER handler)
                 {
                     handlers[eventName].push_back(handler);
+                    return this;
                 }
 
-                void dispatchEvent(int eventName, Event::Event * event)
+                Control * dispatchEvent(int eventName, Event::Event * event)
                 {
                     if (handlers.find(eventName) == handlers.end())
                     {
-                        return;
+                        return this;
                     }
                     for (CONTROLEVENTHANDLER handler : handlers[eventName])
                     {
@@ -197,11 +198,13 @@ namespace StupidPlot
                     }
 
                     delete event;
+                    return this;
                 }
 
-                void setEnabled(BOOL enable)
+                Control * setEnabled(BOOL enable)
                 {
                     EnableWindow(hWnd, enable);
+                    return this;
                 }
 
                 BOOL isEnabled()

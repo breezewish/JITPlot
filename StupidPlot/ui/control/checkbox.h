@@ -2,11 +2,7 @@
 
 #include <windows.h>
 
-#include <debug.h>
-
 #include <ui/control/control.h>
-#include <ui/event/event.h>
-#include <ui/event/rawevent.h>
 
 namespace StupidPlot
 {
@@ -23,14 +19,15 @@ namespace StupidPlot
 
                 BOOL isChecked()
                 {
-                    LRESULT checkStatus = SendMessageW(getHWND(), BM_GETCHECK, 0, 0);
+                    LRESULT checkStatus = SendMessageW(hWnd, BM_GETCHECK, 0, 0);
                     return (checkStatus == BST_CHECKED);
                 }
 
-                void setChecked(BOOL checked)
+                Checkbox * setChecked(BOOL checked)
                 {
                     WPARAM wParam = checked ? BST_CHECKED : BST_UNCHECKED;
-                    SendMessageW(getHWND(), BM_SETCHECK, wParam, 0);
+                    SendMessageW(hWnd, BM_SETCHECK, wParam, 0);
+                    return this;
                 }
             };
         }
