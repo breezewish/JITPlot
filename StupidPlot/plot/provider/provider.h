@@ -28,6 +28,14 @@ namespace StupidPlot
                     UNREFERENCED_PARAMETER(color);
                 }
 
+                virtual void drawGridLine(BOOL vertical, vector<int> points, int width, int height)
+                {
+                    UNREFERENCED_PARAMETER(vertical);
+                    UNREFERENCED_PARAMETER(points);
+                    UNREFERENCED_PARAMETER(width);
+                    UNREFERENCED_PARAMETER(height);
+                }
+
                 virtual void beginDraw()
                 {
                 }

@@ -32,6 +32,22 @@ namespace StupidPlot
                     g->DrawCurve(&pen, &_points[0], _points.size());
                 }
 
+                virtual void drawGridLine(BOOL vertical, vector<int> points, int width, int height)
+                {
+                    Gdiplus::Pen pen(Gdiplus::Color(128, 128, 128, 128), 1.0f);
+                    for (int p : points)
+                    {
+                        if (vertical)
+                        {
+                            g->DrawLine(&pen, 0, p, width, p);
+                        }
+                        else
+                        {
+                            g->DrawLine(&pen, p, 0, p, height);
+                        }
+                    }
+                }
+
                 virtual void beginDraw()
                 {
                     g = new Gdiplus::Graphics(hdc);
