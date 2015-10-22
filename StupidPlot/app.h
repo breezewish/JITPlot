@@ -4,7 +4,6 @@
 #include <gdiplus.h>
 
 #include <resource.h>
-#include <debug.h>
 #include <ui/control/control.h>
 #include <ui/control/checkbox.h>
 #include <ui/control/canvas.h>

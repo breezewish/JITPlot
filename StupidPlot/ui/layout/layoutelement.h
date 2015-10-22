@@ -2,8 +2,8 @@
 
 #include <windows.h>
 
+#include <util.h>
 #include <ui/control/control.h>
-#include <debug.h>
 
 namespace StupidPlot
 {

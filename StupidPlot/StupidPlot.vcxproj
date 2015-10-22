@@ -146,12 +146,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />
+    <ClCompile Include="formula\token.cpp" />
     <ClCompile Include="winform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h" />
-    <ClInclude Include="debug.h" />
-    <ClInclude Include="formula\formulaobject.h" />
+    <ClInclude Include="formula\compiler.h" />
+    <ClInclude Include="formula\expression.h" />
+    <ClInclude Include="formula\jit\functions.h" />
+    <ClInclude Include="formula\jit\functiontable.h" />
+    <ClInclude Include="formula\lexer.h" />
+    <ClInclude Include="formula\token.h" />
+    <ClInclude Include="formula\exception.h" />
+    <ClInclude Include="formula\parser.h" />
     <ClInclude Include="plot\plotdrawer.h" />
     <ClInclude Include="plot\plotoptions.h" />
     <ClInclude Include="plot\provider\gdiplusprovider.h" />
@@ -170,6 +177,7 @@
     <ClInclude Include="ui\event\redrawevent.h" />
     <ClInclude Include="ui\layout\layoutmanager.h" />
     <ClInclude Include="ui\layout\layoutelement.h" />
+    <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StupidPlot.rc" />

@@ -22,27 +22,10 @@ namespace StupidPlot
                     hdc = _hdc;
                 }
 
-                virtual void drawPlotLine(vector<Gdiplus::PointF> points, Gdiplus::Color color)
-                {
-                    UNREFERENCED_PARAMETER(points);
-                    UNREFERENCED_PARAMETER(color);
-                }
-
-                virtual void drawGridLine(BOOL vertical, vector<int> points, int width, int height)
-                {
-                    UNREFERENCED_PARAMETER(vertical);
-                    UNREFERENCED_PARAMETER(points);
-                    UNREFERENCED_PARAMETER(width);
-                    UNREFERENCED_PARAMETER(height);
-                }
-
-                virtual void beginDraw()
-                {
-                }
-
-                virtual void endDraw()
-                {
-                }
+                virtual void drawPlotLine(vector<Gdiplus::PointF> points, Gdiplus::Color color) = 0;
+                virtual void drawGridLine(BOOL vertical, vector<int> points, int width, int height) = 0;
+                virtual void beginDraw() = 0;
+                virtual void endDraw() = 0;
             };
         }
     }

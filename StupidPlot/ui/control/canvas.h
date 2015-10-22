@@ -6,7 +6,7 @@
 #include <ui/event/event.h>
 #include <plot/plotoptions.h>
 #include <plot/plotdrawer.h>
-#include <formula/formulaobject.h>
+#include <formula/expression.h>
 
 using namespace Gdiplus;
 
@@ -31,7 +31,7 @@ namespace StupidPlot
 
                     // TODO: update options from UI
                     options->formulaColors.push_back(Gdiplus::Color(255, 47, 197, 255));
-                    options->formulaObjects.push_back(new Formula::FormulaObject());
+                    options->formulaObjects.push_back(new Formula::Expression(L"sin(x+1)+1"));
 
                     addEventHandler(Event::EVENT_REDRAW, onRedraw);
                     redraw();

@@ -7,7 +7,7 @@
 #include <CommCtrl.h>
 #include <windows.h>
 
-#include <debug.h>
+#include <util.h>
 #include <ui/event/event.h>
 #include <ui/event/rawevent.h>
 #include <ui/event/redrawevent.h>
@@ -188,11 +188,12 @@ namespace StupidPlot
 
                 Control * dispatchEvent(int eventName, Event::Event * event)
                 {
-                    if (handlers.find(eventName) == handlers.end())
+                    auto registeredHandlers = handlers.find(eventName);
+                    if (registeredHandlers == handlers.end())
                     {
                         return this;
                     }
-                    for (CONTROLEVENTHANDLER handler : handlers[eventName])
+                    for (CONTROLEVENTHANDLER handler : registeredHandlers->second)
                     {
                         handler(this, event);
                     }

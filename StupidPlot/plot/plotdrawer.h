@@ -4,14 +4,13 @@
 #include <windows.h>
 #include <gdiplus.h>
 
-#include <formula/formulaobject.h>
+#include <formula/expression.h>
 #include <plot/plotoptions.h>
 #include <plot/provider/provider.h>
 #include <plot/provider/gdiprovider.h>
 #include <plot/provider/gdiplusprovider.h>
 
 using std::vector;
-using StupidPlot::Formula::FormulaObject;
 
 namespace StupidPlot
 {
@@ -47,7 +46,7 @@ namespace StupidPlot
                 return (y - (options->bottom)) / (options->top - options->bottom) * height;
             }
 
-            vector<Gdiplus::PointF> getFormulaPoints(FormulaObject * formula)
+            vector<Gdiplus::PointF> getFormulaPoints(Expression * formula)
             {
                 vector<Gdiplus::PointF> points;
                 for (int pos_x = 0; pos_x < width; ++pos_x)
@@ -99,6 +98,8 @@ namespace StupidPlot
 
             void draw(int canvasWidth, int canvasHeight)
             {
+                DWORD tStart = GetTickCount();
+
                 width = canvasWidth;
                 height = canvasHeight;
 
@@ -118,6 +119,12 @@ namespace StupidPlot
                 }
 
                 provider->endDraw();
+
+                DWORD tEnd = GetTickCount();
+                DWORD d = tEnd - tStart;
+                if (d == 0) d = 1;
+
+                Debug() << L"Draw: " << d << L", FPS = " << (1000 / d) >> Debug::writeln;
             }
         };
     }

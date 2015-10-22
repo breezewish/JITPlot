@@ -6,7 +6,6 @@
 #include "app.h"
 
 using StupidPlot::App;
-using StupidPlot::Debug;
 
 BOOL CALLBACK PlotDialogProc(
     HWND hDlg,

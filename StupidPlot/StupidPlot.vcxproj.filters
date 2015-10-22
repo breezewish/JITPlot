@@ -34,6 +34,12 @@
     <Filter Include="头文件\formula">
       <UniqueIdentifier>{432316b4-4f2b-4d44-8664-23097d7ee8cd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\formula">
+      <UniqueIdentifier>{275c66cb-600c-4ab2-beaf-eee5dfae6d8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\formula\jit">
+      <UniqueIdentifier>{2ac81fd2-4376-453a-9ca8-5d9c8cacab6c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winform.cpp">
@@ -42,11 +48,11 @@
     <ClCompile Include="app.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="formula\token.cpp">
+      <Filter>源文件\formula</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="debug.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="app.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -104,8 +110,32 @@
     <ClInclude Include="plot\plotoptions.h">
       <Filter>头文件\plot</Filter>
     </ClInclude>
-    <ClInclude Include="formula\formulaobject.h">
+    <ClInclude Include="formula\lexer.h">
       <Filter>头文件\formula</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\expression.h">
+      <Filter>头文件\formula</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\parser.h">
+      <Filter>头文件\formula</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\exception.h">
+      <Filter>头文件\formula</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\token.h">
+      <Filter>头文件\formula</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\compiler.h">
+      <Filter>头文件\formula</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\jit\functions.h">
+      <Filter>头文件\formula\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\jit\functiontable.h">
+      <Filter>头文件\formula\jit</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

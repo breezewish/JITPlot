@@ -4,10 +4,10 @@
 #include <windows.h>
 #include <gdiplus.h>
 
-#include <formula/formulaobject.h>
+#include <formula/expression.h>
 
 using std::vector;
-using StupidPlot::Formula::FormulaObject;
+using StupidPlot::Formula::Expression;
 
 namespace StupidPlot
 {
@@ -26,7 +26,7 @@ namespace StupidPlot
             int                     gridSpacing = 1;
 
             vector<Gdiplus::Color>  formulaColors;
-            vector<FormulaObject *> formulaObjects;
+            vector<Expression *>    formulaObjects;
         };
     }
 }
