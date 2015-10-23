@@ -26,42 +26,47 @@ namespace StupidPlot
             int                     width;
             int                     height;
 
-            double translateCanvasX(int x)
+            inline double translateCanvasX(int x)
             {
                 return (static_cast<double>(x) / width) * (options->right - options->left) + options->left;
             }
 
-            double translateCanvasY(int y)
+            inline double translateCanvasY(int y)
             {
                 return (static_cast<double>(y) / height) * (options->top - options->bottom) + options->top;
             }
 
-            double translateFormulaX(double x)
+            inline double translateFormulaX(double x)
             {
                 return (x - (options->left)) / (options->right - options->left) * width;
             }
 
-            double translateFormulaY(double y)
+            inline double translateFormulaY(double y)
             {
                 return (y - (options->bottom)) / (options->top - options->bottom) * height;
             }
 
-            vector<Gdiplus::PointF> getFormulaPoints(Expression * formula)
+            shared_ptr<vector<Gdiplus::PointF>> getFormulaPoints(Expression * formula)
             {
-                vector<Gdiplus::PointF> points;
+                auto ret = shared_ptr<vector<Gdiplus::PointF>>(new vector<Gdiplus::PointF>());
+                ret->reserve(width);
+
                 for (int pos_x = 0; pos_x < width; ++pos_x)
                 {
                     double x = translateCanvasX(pos_x);
-                    //double y = formula->evaluate(x);
-                    formula->setVar(L"x", x);
+                    formula->setVar(0, x);
                     double y = formula->eval();
                     double pos_y = translateFormulaY(y);
                     if (pos_y >= 0 && pos_y <= height)
                     {
-                        points.push_back(Gdiplus::PointF(static_cast<float>(pos_x), static_cast<float>(pos_y)));
+                        ret->push_back(Gdiplus::PointF(
+                            static_cast<float>(pos_x),
+                            static_cast<float>(pos_y)
+                            ));
                     }
                 }
-                return points;
+
+                return ret;
             }
 
             vector<int> getGridLines(BOOL vertical = false)

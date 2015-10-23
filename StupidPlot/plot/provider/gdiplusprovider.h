@@ -26,10 +26,10 @@ namespace StupidPlot
                 {
                 }
 
-                virtual void drawPlotLine(vector<Gdiplus::PointF> _points, Gdiplus::Color color)
+                virtual void drawPlotLine(shared_ptr<vector<Gdiplus::PointF>> _points, Gdiplus::Color color)
                 {
                     Gdiplus::Pen pen(color, 2.0f);
-                    g->DrawCurve(&pen, &_points[0], _points.size());
+                    g->DrawCurve(&pen, &_points->operator[](0), _points->size());
                 }
 
                 virtual void drawGridLine(BOOL vertical, vector<int> points, int width, int height)

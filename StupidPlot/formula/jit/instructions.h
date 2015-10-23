@@ -25,7 +25,7 @@ namespace StupidPlot
                 INS_SQRTSD_XMM_XMM,
 
                 INS_FLD_ST0_MEM,
-                INS_FST_MEM_ST0,
+                INS_FSTP_MEM_ST0,
 
                 INS_FSIN,
                 INS_FCOS,
@@ -104,7 +104,7 @@ namespace StupidPlot
                     case INS_FSIN:          insName = L"FSIN"; break;
                     case INS_FCOS:          insName = L"FCOS"; break;
                     case INS_FLD_ST0_MEM:   insName = L"FLD"; break;
-                    case INS_FST_MEM_ST0:   insName = L"FST"; break;
+                    case INS_FSTP_MEM_ST0:  insName = L"FSTP"; break;
                     case INS_RET:           insName = L"RET"; break;
                     }
                     for (auto param : params)

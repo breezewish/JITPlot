@@ -46,7 +46,7 @@ namespace StupidPlot
                 insgen->jit_sse_movsd_mem_xmm(mem, vXMM);
                 insgen->jit_x87_fld_st0_mem(mem);           // ST(0) = mem
                 insgen->jit_x87_fsin();                     // ST(0) = sin(ST(0)
-                insgen->jit_x87_fst_mem_st0(mem);           // mem = ST(0)
+                insgen->jit_x87_fstp_mem_st0(mem);          // mem = ST(0)
                 insgen->jit_sse_movsd_xmm_mem(retXMM, mem);
                 insgen->release_temp_mem();
             }
@@ -57,7 +57,7 @@ namespace StupidPlot
                 insgen->jit_sse_movsd_mem_xmm(mem, vXMM);
                 insgen->jit_x87_fld_st0_mem(mem);           // ST(0) = mem
                 insgen->jit_x87_fcos();                     // ST(0) = cos(ST(0)
-                insgen->jit_x87_fst_mem_st0(mem);           // mem = ST(0)
+                insgen->jit_x87_fstp_mem_st0(mem);          // mem = ST(0)
                 insgen->jit_sse_movsd_xmm_mem(retXMM, mem);
                 insgen->release_temp_mem();
             }

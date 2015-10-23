@@ -185,7 +185,7 @@ namespace StupidPlot
                     buffer[offset++] = byte(0x01);
                 }
 
-                static void ASM_FST_MEM_ST0(const Instruction & ins, char * buffer, int & offset)
+                static void ASM_FSTP_MEM_ST0(const Instruction & ins, char * buffer, int & offset)
                 {
                     ASSERT_OPERAND(ins, 1);
                     ASSERT_OPERAND_MEM(ins, 0);
@@ -193,16 +193,18 @@ namespace StupidPlot
                     // MOV ECX, addr
                     _ASM_MOV_ECX_IMM(buffer, offset, ins.params[0].value.mem.offsetInType);
 
-                    // FST QWORD PTR [ECX]
+                    // FSTP QWORD PTR [ECX]
                     buffer[offset++] = byte(0xDD);
-                    buffer[offset++] = byte(0x11);
+                    buffer[offset++] = byte(0x19);
                 }
 
                 static void ASM_RET(const Instruction & ins, char * buffer, int & offset)
                 {
                     ASSERT_OPERAND(ins, 0);
 
-                    buffer[offset++] = byte(0xC3);
+                    buffer[offset++] = byte(0xC2);
+                    buffer[offset++] = byte(0x00);
+                    buffer[offset++] = byte(0x00);
                 }
 
             public:
@@ -219,7 +221,7 @@ namespace StupidPlot
                     case INS_DIVSD_XMM_XMM:  ASM_DIVSD_XMM_XMM(ins, buffer, offset); break;
                     case INS_SQRTSD_XMM_XMM: ASM_SQRTSD_XMM_XMM(ins, buffer, offset); break;
                     case INS_FLD_ST0_MEM:    ASM_FLD_ST0_MEM(ins, buffer, offset); break;
-                    case INS_FST_MEM_ST0:    ASM_FST_MEM_ST0(ins, buffer, offset); break;
+                    case INS_FSTP_MEM_ST0:   ASM_FSTP_MEM_ST0(ins, buffer, offset); break;
                     case INS_FSIN:           ASM_FSIN(ins, buffer, offset); break;
                     case INS_FCOS:           ASM_FCOS(ins, buffer, offset); break;
                     case INS_RET:            ASM_RET(ins, buffer, offset); break;

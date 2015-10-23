@@ -66,14 +66,7 @@ namespace StupidPlot
                 tokens = Parser::getRPN(tokens);
                 cr = Compiler::compileRPN(tokens, _constVars, _dynamicVars);
 
-                // allocate memory for
-                /*
-                Debug::Debug() << exp >> Debug::writeln;
-                for (Instruction ins : insset)
-                {
-                Debug::Debug() << ins.toString() >> Debug::writeln;
-                }*/
-
+                // reserved size
                 n_dynamicVars = cr.dynamicVarOffsets.size();
                 n_constVars = cr.constantOffsets.size();
                 n_funcVars = cr.insgen->getReservedFuncConstantSize();
@@ -81,7 +74,7 @@ namespace StupidPlot
                 n_all = n_dynamicVars + n_constVars + n_funcVars + n_tempVars + 1;
 
                 // allocate continuous memory
-                pBuffer = new double(n_all);
+                pBuffer = new double[n_all];
                 pDynamicVars = pBuffer + 0;
                 pConstVars = pDynamicVars + n_dynamicVars;
                 pFuncVars = pConstVars + n_constVars;
@@ -122,12 +115,12 @@ namespace StupidPlot
                 VirtualProtect(pCode, codeLen, PAGE_EXECUTE_READ, &dwOldProtect);
                 Debug() << GetLastError() >> Debug::writeln;
 
-                delete codeBuf;
+                delete[] codeBuf;
             }
 
             ~Expression()
             {
-                delete pBuffer;
+                delete[] pBuffer;
                 pBuffer = NULL;
                 pDynamicVars = NULL;
                 pFuncVars = NULL;
@@ -137,73 +130,20 @@ namespace StupidPlot
                 VirtualFree(pCode, 0, MEM_RELEASE);
             }
 
-            void setVar(wstring name, double val)
+            int getDynamicVarOffset(wstring name)
             {
-                if (cr.dynamicVarOffsets.find(name) == cr.dynamicVarOffsets.end()) return;
-                pDynamicVars[cr.dynamicVarOffsets[name]] = val;
+                return cr.dynamicVarOffsets[name];
+            }
+
+            inline void setVar(int offset, double val)
+            {
+                pDynamicVars[offset] = val;
             }
 
             double eval()
             {
                 reinterpret_cast<void(*)()>(pCode)();
                 return *pRetVar;
-            }
-
-            double evaluate(double x)
-            {
-                stack<double> c;
-
-                for (auto pToken : tokens)
-                {
-                    if (pToken->is(TokenType::OPERAND))
-                    {
-                        auto _token = std::dynamic_pointer_cast<OperandToken>(pToken);
-                        if (_token->operandType == OperandType::OPERAND_CONST)
-                        {
-                            auto token = std::dynamic_pointer_cast<ConstantOperandToken>(_token);
-                            c.push(token->value);
-                        }
-                        else
-                        {
-                            c.push(x);
-                        }
-                    }
-                    else if (pToken->is(TokenType::OPERATOR))
-                    {
-                        double a, b;
-                        auto token = std::dynamic_pointer_cast<OperatorToken>(pToken);
-                        switch (token->op)
-                        {
-                        case OperatorType::OP_ADD:
-                            a = c.top(); c.pop();
-                            b = c.top(); c.pop();
-                            c.push(a + b);
-                            break;
-                        case OperatorType::OP_SUB:
-                            a = c.top(); c.pop();
-                            b = c.top(); c.pop();
-                            c.push(a - b);
-                            break;
-                        case OperatorType::OP_MUL:
-                            a = c.top(); c.pop();
-                            b = c.top(); c.pop();
-                            c.push(a * b);
-                            break;
-                        case OperatorType::OP_DIV:
-                            a = c.top(); c.pop();
-                            b = c.top(); c.pop();
-                            c.push(a / b);
-                            break;
-                        }
-                    }
-                    else if (pToken->is(TokenType::FUNC_CALL))
-                    {
-                        double v = c.top(); c.pop();
-                        c.push(std::sin(v));
-                    }
-                }
-
-                return c.top();
             }
         };
     }

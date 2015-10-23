@@ -159,9 +159,9 @@ namespace StupidPlot
                     instructions.push_back(ins);
                 }
 
-                void jit_x87_fst_mem_st0(MEM memDst)
+                void jit_x87_fstp_mem_st0(MEM memDst)
                 {
-                    Instruction ins(InstructionName::INS_FST_MEM_ST0);
+                    Instruction ins(InstructionName::INS_FSTP_MEM_ST0);
                     ins.params.push_back(InstructionParameter(memDst));
                     instructions.push_back(ins);
                 }
