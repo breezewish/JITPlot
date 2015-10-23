@@ -214,6 +214,7 @@ namespace StupidPlot
 
                 handleRemainingStack();
 
+                // convert FUNC_NAME, FUNC_ARGS => FUNC_CALL
                 mergeFunctionCall();
 
                 return output;

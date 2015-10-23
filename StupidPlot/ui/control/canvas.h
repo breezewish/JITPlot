@@ -8,6 +8,15 @@
 #include <plot/plotdrawer.h>
 #include <formula/expression.h>
 
+#include <map>
+#include <vector>
+#include <cmath>
+#include <string>
+
+using std::map;
+using std::vector;
+using std::wstring;
+
 using namespace Gdiplus;
 
 namespace StupidPlot
@@ -29,9 +38,15 @@ namespace StupidPlot
                     options = new Plot::PlotOptions();
                     drawer = new Plot::PlotDrawer(options, getDC());
 
+                    map<wstring, double> constVars;
+                    constVars[L"PI"] = 3.1415;
+
+                    vector<wstring> dynamicVars;
+                    dynamicVars.push_back(L"x");
+
                     // TODO: update options from UI
                     options->formulaColors.push_back(Gdiplus::Color(255, 47, 197, 255));
-                    options->formulaObjects.push_back(new Formula::Expression(L"sin(x+1)+1"));
+                    options->formulaObjects.push_back(new Formula::Expression(L"sin(x+1)+1", constVars, dynamicVars));
 
                     addEventHandler(Event::EVENT_REDRAW, onRedraw);
                     redraw();

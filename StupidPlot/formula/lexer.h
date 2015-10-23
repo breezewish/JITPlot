@@ -164,12 +164,13 @@ namespace StupidPlot
                     if (Token::isTokenOperator(*itr, OperatorType::OP_SUB))
                     {
                         // test previous token for the following cases
-                        // "-x", "(-x", ",-x"
+                        // "-x", "(-x", ",-x", "*-x", ...
                         auto prev = std::prev(itr);
                         if (
                             prev == tokens.end()
                             || (*prev)->is(TokenType::BR_LEFT)
                             || (*prev)->is(TokenType::COMMA)
+                            || (*prev)->is(TokenType::OPERATOR)
                             )
                         {
                             // for sub, change to neg

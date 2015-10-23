@@ -107,5 +107,14 @@ namespace StupidPlot
             {
             }
         };
+
+        class InvalidExpressionException : public Exception
+        {
+        public:
+            InvalidExpressionException()
+                : Exception(L"Invalid expression")
+            {
+            }
+        };
     }
 }

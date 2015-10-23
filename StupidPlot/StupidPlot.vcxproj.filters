@@ -137,6 +137,15 @@
     <ClInclude Include="formula\jit\functiontable.h">
       <Filter>头文件\formula\jit</Filter>
     </ClInclude>
+    <ClInclude Include="formula\jit\instructiongen.h">
+      <Filter>头文件\formula\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\jit\types.h">
+      <Filter>头文件\formula\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\jit\instructions.h">
+      <Filter>头文件\formula\jit</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StupidPlot.rc">

@@ -155,6 +155,9 @@
     <ClInclude Include="formula\expression.h" />
     <ClInclude Include="formula\jit\functions.h" />
     <ClInclude Include="formula\jit\functiontable.h" />
+    <ClInclude Include="formula\jit\instructiongen.h" />
+    <ClInclude Include="formula\jit\instructions.h" />
+    <ClInclude Include="formula\jit\types.h" />
     <ClInclude Include="formula\lexer.h" />
     <ClInclude Include="formula\token.h" />
     <ClInclude Include="formula\exception.h" />

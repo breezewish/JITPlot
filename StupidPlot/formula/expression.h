@@ -8,28 +8,132 @@
 #include <memory>
 #include <string>
 
+#include <windows.h>
+
 #include <formula/token.h>
 #include <formula/lexer.h>
 #include <formula/parser.h>
+#include <formula/compiler.h>
+#include <formula/jit/types.h>
+#include <formula/jit/instructions.h>
+#include <formula/jit/instructiongen.h>
 
 using std::wstring;
 using std::list;
 using std::stack;
+using std::map;
+using std::vector;
 using std::shared_ptr;
 
 namespace StupidPlot
 {
     namespace Formula
     {
+        using namespace JIT;
+
         class Expression
         {
         protected:
+            wstring                     exp;
             list<shared_ptr<Token>>     tokens;
+            CompiledResult              cr;
+
+            int                         n_dynamicVars;
+            int                         n_constVars;
+            int                         n_funcVars;
+            int                         n_tempVars;
+            int                         n_all;
+
+            double                      * pBuffer;
+            double                      * pDynamicVars;
+            double                      * pConstVars;
+            double                      * pFuncVars;
+            double                      * pTempVars;
+            double                      * pRetVar;
+
+            void                        * pCode;
+
         public:
-            Expression(wstring exp)
+            Expression(
+                wstring _exp,
+                map<wstring, double> _constVars,
+                vector<wstring> _dynamicVars
+                )
             {
+                exp = _exp;
+
                 tokens = Lexer::lex(exp);
                 tokens = Parser::getRPN(tokens);
+                cr = Compiler::compileRPN(tokens, _constVars, _dynamicVars);
+
+                // allocate memory for
+                /*
+                Debug::Debug() << exp >> Debug::writeln;
+                for (Instruction ins : insset)
+                {
+                Debug::Debug() << ins.toString() >> Debug::writeln;
+                }*/
+
+                n_dynamicVars = cr.dynamicVarOffsets.size();
+                n_constVars = cr.constantOffsets.size();
+                n_funcVars = cr.insgen->getReservedFuncConstantSize();
+                n_tempVars = cr.insgen->getReservedTempVarSize();
+                n_all = n_dynamicVars + n_constVars + n_funcVars + n_tempVars + 1;
+
+                // allocate continuous memory
+                pBuffer = new double(n_all);
+                pDynamicVars = pBuffer + 0;
+                pConstVars = pDynamicVars + n_dynamicVars;
+                pFuncVars = pConstVars + n_constVars;
+                pTempVars = pFuncVars + n_funcVars;
+                pRetVar = pTempVars + n_tempVars;
+
+                // fill 0.0
+                for (int i = 0; i < n_all; ++i)
+                {
+                    pBuffer[i] = 0.0;
+                }
+
+                // copy static constants
+                for (auto pair : cr.constantOffsets)
+                {
+                    pConstVars[pair.second] = pair.first;
+                }
+
+                // copy function constants
+                cr.insgen->copyFuncConstant(pFuncVars);
+
+                // generate machine code
+                vector<byte> machineCode = cr.insgen->generate(pDynamicVars, pConstVars, pFuncVars, pTempVars, pRetVar);
+
+                // write our code and then disable write permission
+                pCode = VirtualAlloc(NULL, machineCode.size(), MEM_COMMIT, PAGE_READWRITE);
+                CopyMemory(pCode, &machineCode[0], machineCode.size());
+                VirtualProtect(pCode, machineCode.size(), PAGE_EXECUTE_READ, NULL);
+            }
+
+            ~Expression()
+            {
+                delete pBuffer;
+                pBuffer = NULL;
+                pDynamicVars = NULL;
+                pFuncVars = NULL;
+                pTempVars = NULL;
+                pRetVar = NULL;
+
+                VirtualFree(pCode, 0, MEM_RELEASE);
+            }
+
+            void setVar(wstring name, double val)
+            {
+                if (cr.dynamicVarOffsets.find(name) == cr.dynamicVarOffsets.end()) return;
+                pDynamicVars[cr.dynamicVarOffsets[name]] = val;
+            }
+
+            double eval()
+            {
+                reinterpret_cast<void(*)()>(pCode)();
+                return *pRetVar;
             }
 
             double evaluate(double x)
@@ -89,135 +193,5 @@ namespace StupidPlot
                 return c.top();
             }
         };
-        /*
-        class FormulaNode
-        {
-        public:
-            virtual ~FormulaNode() = 0;
-            virtual double eval() = 0;
-        };
-
-        class ConstantFormulaNode : public FormulaNode
-        {
-        protected:
-            double val;
-        public:
-            ConstantFormulaNode(double _v) : FormulaNode()
-            {
-                val = _v;
-            }
-            virtual double eval()
-            {
-                return val;
-            }
-        };
-
-        class UnaryOperatorFormulaNode : public FormulaNode
-        {
-        protected:
-            FormulaNode * node;
-        public:
-            UnaryOperatorFormulaNode(FormulaNode * _node) : FormulaNode()
-            {
-                node = _node;
-            }
-            virtual ~UnaryOperatorFormulaNode()
-            {
-                delete node;
-            }
-            virtual double eval() = 0;
-        };
-
-        class BinaryOperatorFormulaNode : public FormulaNode
-        {
-        protected:
-            FormulaNode * left;
-            FormulaNode * right;
-        public:
-            BinaryOperatorFormulaNode(FormulaNode * _left, FormulaNode * _right) : FormulaNode()
-            {
-                left = _left;
-                right = _right;
-            }
-            virtual ~BinaryOperatorFormulaNode()
-            {
-                delete left;
-                delete right;
-            }
-            virtual double eval() = 0;
-        };
-
-        class NegateFormulaNode : public UnaryOperatorFormulaNode
-        {
-        public:
-            NegateFormulaNode(FormulaNode * _node) : UnaryOperatorFormulaNode(_node)
-            {
-            }
-            virtual double eval()
-            {
-                return -node->eval();
-            }
-        };
-
-        class AddFormulaNode : public BinaryOperatorFormulaNode
-        {
-        public:
-            AddFormulaNode(FormulaNode * _l, FormulaNode * _r) : BinaryOperatorFormulaNode(_l, _r)
-            {
-            }
-            virtual double eval()
-            {
-                return left->eval() + right->eval();
-            }
-        };
-
-        class SubtractFormulaNode : public BinaryOperatorFormulaNode
-        {
-        public:
-            SubtractFormulaNode(FormulaNode * _l, FormulaNode * _r) : BinaryOperatorFormulaNode(_l, _r)
-            {
-            }
-            virtual double eval()
-            {
-                return left->eval() - right->eval();
-            }
-        };
-
-        class MultiplyFormulaNode : public BinaryOperatorFormulaNode
-        {
-        public:
-            MultiplyFormulaNode(FormulaNode * _l, FormulaNode * _r) : BinaryOperatorFormulaNode(_l, _r)
-            {
-            }
-            virtual double eval()
-            {
-                return left->eval() * right->eval();
-            }
-        };
-
-        class DivideFormulaNode : public BinaryOperatorFormulaNode
-        {
-        public:
-            DivideFormulaNode(FormulaNode * _l, FormulaNode * _r) : BinaryOperatorFormulaNode(_l, _r)
-            {
-            }
-            virtual double eval()
-            {
-                return left->eval() / right->eval();
-            }
-        };
-
-        class PowerFormulaNode : public BinaryOperatorFormulaNode
-        {
-        public:
-            PowerFormulaNode(FormulaNode * _l, FormulaNode * _r) : BinaryOperatorFormulaNode(_l, _r)
-            {
-            }
-            virtual double eval()
-            {
-                return std::pow(left->eval(), right->eval());
-            }
-        };
-        */
     }
 }
