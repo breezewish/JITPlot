@@ -28,6 +28,7 @@ namespace StupidPlot
 
                 virtual void drawPlotLine(shared_ptr<vector<Gdiplus::PointF>> _points, Gdiplus::Color color)
                 {
+                    if (_points->size() == 0) return;
                     Gdiplus::Pen pen(color, 2.0f);
                     g->DrawCurve(&pen, &_points->operator[](0), _points->size());
                 }

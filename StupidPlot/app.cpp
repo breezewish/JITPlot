@@ -14,7 +14,7 @@ Control::Checkbox        * checkShowGrid;
 Control::Control         * editGridSize;
 Control::Canvas          * canvas;
 
-void CheckShowGrid_onClick(Control::Control * _control, Event::Event *_event);
+void CheckShowGrid_onClick(Control::Control * _control, shared_ptr<Event::Event> _event);
 void setup();
 
 void StupidPlot::App::init(HWND _hWnd)
@@ -79,7 +79,7 @@ void setup()
     checkShowGrid->setChecked(true);
 }
 
-void CheckShowGrid_onClick(Control::Control * _control, Event::Event * _event)
+void CheckShowGrid_onClick(Control::Control * _control, shared_ptr<Event::Event> _event)
 {
     UNREFERENCED_PARAMETER(_control);
     UNREFERENCED_PARAMETER(_event);

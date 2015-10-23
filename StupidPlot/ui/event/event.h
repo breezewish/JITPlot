@@ -3,6 +3,8 @@
 #include <windows.h>
 #include <string>
 
+using std::wstring;
+
 namespace StupidPlot
 {
     namespace UI
@@ -18,10 +20,10 @@ namespace StupidPlot
             class Event
             {
             protected:
-                std::wstring name;
+                wstring name;
 
             public:
-                Event(std::wstring _name)
+                Event(wstring _name)
                 {
                     name = _name;
                 }
@@ -30,7 +32,7 @@ namespace StupidPlot
                 {
                 }
 
-                std::wstring toString()
+                wstring toString()
                 {
                     return name;
                 }

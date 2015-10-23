@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <memory>
 
 #include <CommCtrl.h>
 #include <windows.h>
@@ -15,7 +16,7 @@
 
 using std::vector;
 using std::map;
-using std::string;
+using std::shared_ptr;
 
 namespace StupidPlot
 {
@@ -27,7 +28,7 @@ namespace StupidPlot
 
             typedef void(*CONTROLEVENTHANDLER)(
                 Control * control,
-                Event::Event * event
+                shared_ptr<Event::Event> event
                 );
 
             class Control
@@ -57,7 +58,7 @@ namespace StupidPlot
                     UNREFERENCED_PARAMETER(uIdSubclass);
 
                     Control * control = reinterpret_cast<Control *>(dwRefData);
-                    control->dispatchEvent(Event::EVENT_MESSAGE, new Event::RawEvent(uMsg, wParam, lParam));
+                    control->dispatchEvent(Event::EVENT_MESSAGE, shared_ptr<Event::Event>(new Event::RawEvent(uMsg, wParam, lParam)));
 
                     switch (uMsg)
                     {
@@ -69,11 +70,11 @@ namespace StupidPlot
                             control->resizeDoubleBuffer();
                             InvalidateRect(control->hWnd, NULL, false);
                         }
-                        control->dispatchEvent(Event::EVENT_REDRAW, new Event::RawEvent(uMsg, wParam, lParam));
+                        control->dispatchEvent(Event::EVENT_REDRAW, shared_ptr<Event::Event>(new Event::RawEvent(uMsg, wParam, lParam)));
                         break;
                     case WM_PAINT:
                         control->updateDoubleBuffer();
-                        control->dispatchEvent(Event::EVENT_PAINT, new Event::RawEvent(uMsg, wParam, lParam));
+                        control->dispatchEvent(Event::EVENT_PAINT, shared_ptr<Event::Event>(new Event::RawEvent(uMsg, wParam, lParam)));
                         break;
                     }
 
@@ -130,7 +131,7 @@ namespace StupidPlot
                     HGDIOBJ oldBitmap = SelectObject(memDC, newBitmap);
                     DeleteObject(oldBitmap);
 
-                    dispatchEvent(Event::EVENT_REDRAW, new Event::RedrawEvent());
+                    dispatchEvent(Event::EVENT_REDRAW, shared_ptr<Event::Event>(new Event::RedrawEvent()));
                 }
 
                 void updateDoubleBuffer()
@@ -186,7 +187,7 @@ namespace StupidPlot
                     return this;
                 }
 
-                Control * dispatchEvent(int eventName, Event::Event * event)
+                Control * dispatchEvent(int eventName, shared_ptr<Event::Event> event)
                 {
                     auto registeredHandlers = handlers.find(eventName);
                     if (registeredHandlers == handlers.end())
@@ -198,7 +199,6 @@ namespace StupidPlot
                         handler(this, event);
                     }
 
-                    delete event;
                     return this;
                 }
 

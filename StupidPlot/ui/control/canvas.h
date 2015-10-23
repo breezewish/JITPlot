@@ -46,7 +46,7 @@ namespace StupidPlot
 
                     // TODO: update options from UI
                     options->formulaColors.push_back(Gdiplus::Color(255, 47, 197, 255));
-                    options->formulaObjects.push_back(new Formula::Expression(L"x+1", constVars, dynamicVars));
+                    options->formulaObjects.push_back(new Formula::Expression(L"sin(x+1)", constVars, dynamicVars));
 
                     addEventHandler(Event::EVENT_REDRAW, onRedraw);
                     redraw();
@@ -59,7 +59,7 @@ namespace StupidPlot
                     delete drawer;
                 }
 
-                static void onRedraw(Control * _control, Event::Event *_event)
+                static void onRedraw(Control * _control, shared_ptr<Event::Event> _event)
                 {
                     UNREFERENCED_PARAMETER(_event);
 

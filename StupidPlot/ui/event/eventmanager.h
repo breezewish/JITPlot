@@ -2,9 +2,12 @@
 
 #include <windows.h>
 #include <string>
+#include <memory>
 
 #include <ui/control/control.h>
 #include <ui/container.h>
+
+using std::shared_ptr;
 
 namespace StupidPlot
 {
@@ -40,7 +43,7 @@ namespace StupidPlot
                         switch (wmEvent)
                         {
                         case BN_CLICKED:
-                            control->dispatchEvent(EVENT_CLICK, new MouseEvent());
+                            control->dispatchEvent(EVENT_CLICK, shared_ptr<Event>(new MouseEvent()));
                             break;
                         }
 
