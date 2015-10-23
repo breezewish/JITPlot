@@ -6,6 +6,7 @@
 #include <formula/jit/types.h>
 #include <formula/jit/instructions.h>
 #include <formula/jit/functiontable.h>
+#include <formula/jit/assembler.h>
 
 using std::vector;
 using std::map;
@@ -177,26 +178,30 @@ namespace StupidPlot
                     instructions.push_back(ins);
                 }
 
-                vector<byte> generate(
-                    double * pDynamicVars,
-                    double * pConstVars,
-                    double * pFuncVars,
-                    double * pTempVars,
-                    double * pRetVar
+                void jit_x86_ret()
+                {
+                    Instruction ins(InstructionName::INS_RET);
+                    instructions.push_back(ins);
+                }
+
+                void generate(
+                    char * buffer,
+                    int & codeLength,
+                    const BufferPosition & bufferPos
                     )
                 {
-                    UNREFERENCED_PARAMETER(pDynamicVars);
-                    UNREFERENCED_PARAMETER(pConstVars);
-                    UNREFERENCED_PARAMETER(pFuncVars);
-                    UNREFERENCED_PARAMETER(pTempVars);
-                    UNREFERENCED_PARAMETER(pRetVar);
+                    jit_sse_movsd_mem_xmm(MEM(MemoryPositionType::RETURN_VAR, 0), XMM(0));
+                    jit_x86_ret();
 
-                    vector<byte> ret;
-                    ret.push_back(0xCC);
-                    ret.push_back(0xCC);
-                    ret.push_back(0xCC);
-                    ret.push_back(0xCC);
-                    return ret;
+                    codeLength = 0;
+                    for (auto itr = instructions.begin(); itr != instructions.end(); itr++)
+                    {
+                        itr->resolveMemoryAddress(bufferPos);
+                    }
+                    for (auto ins : instructions)
+                    {
+                        Assembler::assemble(ins, buffer, codeLength);
+                    }
                 }
             };
         }

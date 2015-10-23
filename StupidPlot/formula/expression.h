@@ -104,12 +104,25 @@ namespace StupidPlot
                 cr.insgen->copyFuncConstant(pFuncVars);
 
                 // generate machine code
-                vector<byte> machineCode = cr.insgen->generate(pDynamicVars, pConstVars, pFuncVars, pTempVars, pRetVar);
+                BufferPosition bpos;
+                bpos.pConstVars = pConstVars;
+                bpos.pDynamicVars = pDynamicVars;
+                bpos.pFuncVars = pFuncVars;
+                bpos.pRetVar = pRetVar;
+                bpos.pTempVars = pTempVars;
+
+                char * codeBuf = new char[4 * 1024];   // allocate 4K
+                int codeLen;
+                cr.insgen->generate(codeBuf, codeLen, bpos);
 
                 // write our code and then disable write permission
-                pCode = VirtualAlloc(NULL, machineCode.size(), MEM_COMMIT, PAGE_READWRITE);
-                CopyMemory(pCode, &machineCode[0], machineCode.size());
-                VirtualProtect(pCode, machineCode.size(), PAGE_EXECUTE_READ, NULL);
+                pCode = VirtualAlloc(NULL, codeLen, MEM_COMMIT, PAGE_READWRITE);
+                CopyMemory(pCode, codeBuf, codeLen);
+                DWORD dwOldProtect;
+                VirtualProtect(pCode, codeLen, PAGE_EXECUTE_READ, &dwOldProtect);
+                Debug() << GetLastError() >> Debug::writeln;
+
+                delete codeBuf;
             }
 
             ~Expression()

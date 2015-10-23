@@ -29,6 +29,8 @@ namespace StupidPlot
 
                 INS_FSIN,
                 INS_FCOS,
+
+                INS_RET,
             };
 
             enum InstructionParameterType
@@ -60,14 +62,22 @@ namespace StupidPlot
                 }
                 wstring toString()
                 {
-                    if (type == InstructionParameterType::INS_PARAM_MEM)
+                    switch (type)
                     {
+                    case InstructionParameterType::INS_PARAM_MEM:
                         return value.mem.toString();
-                    }
-                    else
-                    {
+                    case InstructionParameterType::INS_PARAM_XMM:
                         return value.xmm.toString();
                     }
+                }
+                bool resolveMemoryAddressIfApplicable(const BufferPosition & bufferPos)
+                {
+                    if (type == InstructionParameterType::INS_PARAM_MEM)
+                    {
+                        value.mem.resolve(bufferPos);
+                        return true;
+                    }
+                    return false;
                 }
             };
 
@@ -91,16 +101,24 @@ namespace StupidPlot
                     case INS_SUBSD_XMM_XMM: insName = L"SUBSD"; break;
                     case INS_MULSD_XMM_XMM: insName = L"MULSD"; break;
                     case INS_DIVSD_XMM_XMM: insName = L"DIVSD"; break;
-                    case INS_FSIN: insName = L"FSIN"; break;
-                    case INS_FCOS: insName = L"FCOS"; break;
-                    case INS_FLD_ST0_MEM: insName = L"FLD"; break;
-                    case INS_FST_MEM_ST0: insName = L"FST"; break;
+                    case INS_FSIN:          insName = L"FSIN"; break;
+                    case INS_FCOS:          insName = L"FCOS"; break;
+                    case INS_FLD_ST0_MEM:   insName = L"FLD"; break;
+                    case INS_FST_MEM_ST0:   insName = L"FST"; break;
+                    case INS_RET:           insName = L"RET"; break;
                     }
                     for (auto param : params)
                     {
                         insName += L" " + param.toString();
                     }
                     return insName;
+                }
+                void resolveMemoryAddress(const BufferPosition & bufferPos)
+                {
+                    for (auto itr = params.begin(); itr != params.end(); itr++)
+                    {
+                        itr->resolveMemoryAddressIfApplicable(bufferPos);
+                    }
                 }
             };
         }

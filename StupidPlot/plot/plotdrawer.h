@@ -52,9 +52,9 @@ namespace StupidPlot
                 for (int pos_x = 0; pos_x < width; ++pos_x)
                 {
                     double x = translateCanvasX(pos_x);
-                    double y = formula->evaluate(x);
+                    //double y = formula->evaluate(x);
                     formula->setVar(L"x", x);
-                    formula->eval();
+                    double y = formula->eval();
                     double pos_y = translateFormulaY(y);
                     if (pos_y >= 0 && pos_y <= height)
                     {

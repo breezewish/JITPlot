@@ -153,6 +153,7 @@
     <ClInclude Include="app.h" />
     <ClInclude Include="formula\compiler.h" />
     <ClInclude Include="formula\expression.h" />
+    <ClInclude Include="formula\jit\assembler.h" />
     <ClInclude Include="formula\jit\functions.h" />
     <ClInclude Include="formula\jit\functiontable.h" />
     <ClInclude Include="formula\jit\instructiongen.h" />
