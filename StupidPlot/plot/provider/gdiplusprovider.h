@@ -15,6 +15,7 @@ namespace StupidPlot
             class GdiPlusProvider : public Provider
             {
             protected:
+                int                     width, height;
                 Gdiplus::Graphics       * g = NULL;
 
             public:
@@ -33,7 +34,7 @@ namespace StupidPlot
                     g->DrawCurve(&pen, &_points->operator[](0), _points->size());
                 }
 
-                virtual void drawGridLine(BOOL vertical, vector<int> points, int width, int height)
+                virtual void drawGridLine(BOOL vertical, vector<int> points)
                 {
                     Gdiplus::Pen pen(Gdiplus::Color(128, 128, 128, 128), 1.0f);
                     for (int p : points)
@@ -49,8 +50,10 @@ namespace StupidPlot
                     }
                 }
 
-                virtual void beginDraw()
+                virtual void beginDraw(int w, int h)
                 {
+                    width = w;
+                    height = h;
                     g = new Gdiplus::Graphics(hdc);
                     g->SetSmoothingMode(Gdiplus::SmoothingMode::SmoothingModeAntiAlias);
                     g->SetTextRenderingHint(Gdiplus::TextRenderingHint::TextRenderingHintClearTypeGridFit);

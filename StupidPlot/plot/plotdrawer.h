@@ -18,13 +18,23 @@ namespace StupidPlot
     {
         class PlotDrawer
         {
-        protected:
+        public:
             HDC                     hdc;
             PlotOptions             * options = NULL;
             Provider::Provider      * provider = NULL;
 
             int                     width;
             int                     height;
+
+            inline double translateCanvasW(int w)
+            {
+                return (static_cast<double>(w) / width) * (options->right - options->left);
+            }
+
+            inline double translateCanvasH(int h)
+            {
+                return (static_cast<double>(h) / height) * (options->top - options->bottom);
+            }
 
             inline double translateCanvasX(int x)
             {
@@ -46,10 +56,10 @@ namespace StupidPlot
                 return (y - (options->bottom)) / (options->top - options->bottom) * height;
             }
 
-            shared_ptr<vector<Gdiplus::PointF>> getFormulaPoints(Expression * formula)
+            void drawPlotLine(Expression * formula, Gdiplus::Color color)
             {
-                auto ret = shared_ptr<vector<Gdiplus::PointF>>(new vector<Gdiplus::PointF>());
-                ret->reserve(width);
+                int length = 0;
+                auto points = shared_ptr<Provider::POINTF>(new Provider::POINTF[width], array_deleter<Provider::POINTF>());
 
                 for (int pos_x = 0; pos_x < width; ++pos_x)
                 {
@@ -59,22 +69,26 @@ namespace StupidPlot
                     double pos_y = translateFormulaY(y);
                     if (pos_y >= 0 && pos_y <= height)
                     {
-                        ret->push_back(Gdiplus::PointF(
-                            static_cast<float>(pos_x),
-                            static_cast<float>(pos_y)
-                            ));
+                        points.get()[length].x = static_cast<float>(pos_x);
+                        points.get()[length].y = static_cast<float>(pos_y);
+                        length++;
                     }
                 }
 
-                return ret;
+                provider->drawPlotLine(points, length, color);
             }
 
-            vector<int> getGridLines(BOOL vertical = false)
+            void drawGridLine(BOOL vertical)
             {
-                vector<int> points;
-                int lastDrawScreenPos = -100;
                 int min = static_cast<int>(vertical ? options->bottom : options->left);
                 int max = static_cast<int>(vertical ? options->top : options->right);
+                int sz = ((max - min + 1) / options->gridSpacing) + 1;
+
+                int length = 0;
+                auto points = shared_ptr<int>(new int[sz], array_deleter<int>());
+
+                int lastDrawScreenPos = -100;
+
                 for (int p = min; p < max; ++p)
                 {
                     if (p % options->gridSpacing == 0)
@@ -82,20 +96,21 @@ namespace StupidPlot
                         int canvasPos = static_cast<int>(vertical ? translateFormulaY(p) : translateFormulaX(p));
                         if (canvasPos - lastDrawScreenPos >= 10)
                         {
-                            points.push_back(canvasPos);
+                            points.get()[length] = canvasPos;
+                            length++;
                             lastDrawScreenPos = canvasPos;
                         }
                     }
                 }
-                return points;
+
+                provider->drawGridLine(vertical, points, length);
             }
 
-        public:
             PlotDrawer(PlotOptions * _options, HDC _hdc)
             {
                 options = _options;
                 hdc = _hdc;
-                provider = new Provider::GdiPlusProvider(hdc);
+                provider = new Provider::GdiProvider(hdc);
             }
 
             ~PlotDrawer()
@@ -105,33 +120,22 @@ namespace StupidPlot
 
             void draw(int canvasWidth, int canvasHeight)
             {
-                DWORD tStart = GetTickCount();
-
                 width = canvasWidth;
                 height = canvasHeight;
 
-                provider->beginDraw();
+                provider->beginDraw(width, height);
 
                 // Draw grid lines
-                provider->drawGridLine(false, getGridLines(false), width, height);
-                provider->drawGridLine(true, getGridLines(true), width, height);
+                drawGridLine(false);
+                drawGridLine(true);
 
                 // Draw formulas
                 for (size_t i = 0; i < options->formulaObjects.size(); ++i)
                 {
-                    provider->drawPlotLine(
-                        getFormulaPoints(options->formulaObjects[i]),
-                        options->formulaColors[i]
-                        );
+                    drawPlotLine(options->formulaObjects[i], options->formulaColors[i]);
                 }
 
                 provider->endDraw();
-
-                DWORD tEnd = GetTickCount();
-                DWORD d = tEnd - tStart;
-                if (d == 0) d = 1;
-
-                Debug() << L"Draw: " << d << L", FPS = " << (1000 / d) >> Debug::writeln;
             }
         };
     }

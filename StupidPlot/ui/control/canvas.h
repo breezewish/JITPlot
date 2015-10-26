@@ -28,6 +28,10 @@ namespace StupidPlot
             class Canvas : public Control
             {
             protected:
+                double              sl, st, sr, sb;
+                int                 sx, sy;
+                bool                moving;
+
                 Plot::PlotOptions   * options;
                 Plot::PlotDrawer    * drawer;
 
@@ -46,9 +50,13 @@ namespace StupidPlot
 
                     // TODO: update options from UI
                     options->formulaColors.push_back(Gdiplus::Color(255, 47, 197, 255));
-                    options->formulaObjects.push_back(new Formula::Expression(L"sin(x+1)", constVars, dynamicVars));
+                    options->formulaObjects.push_back(new Formula::Expression(L"(sin(x+1)+5)/5", constVars, dynamicVars));
 
                     addEventHandler(Event::EVENT_REDRAW, onRedraw);
+                    addEventHandler(Event::EVENT_MOUSEDOWN, onMouseDown);
+                    addEventHandler(Event::EVENT_MOUSEUP, onMouseUp);
+                    addEventHandler(Event::EVENT_MOUSEMOVE, onMouseMove);
+
                     redraw();
                 }
 
@@ -67,9 +75,55 @@ namespace StupidPlot
                     canvas->redraw();
                 }
 
+                static void onMouseDown(Control * _control, shared_ptr<Event::Event> _event)
+                {
+                    auto canvas = dynamic_cast<Canvas *>(_control);
+                    auto event = std::dynamic_pointer_cast<Event::MouseEvent>(_event);
+
+                    SetCapture(_control->getHWND());
+
+                    canvas->moving = true;
+                    canvas->sl = canvas->options->left;
+                    canvas->st = canvas->options->top;
+                    canvas->sr = canvas->options->right;
+                    canvas->sb = canvas->options->bottom;
+                    canvas->sx = event->x;
+                    canvas->sy = event->y;
+                }
+
+                static void onMouseUp(Control * _control, shared_ptr<Event::Event> _event)
+                {
+                    auto canvas = dynamic_cast<Canvas *>(_control);
+                    auto event = std::dynamic_pointer_cast<Event::MouseEvent>(_event);
+
+                    canvas->moving = false;
+
+                    ReleaseCapture();
+                }
+
+                static void onMouseMove(Control * _control, shared_ptr<Event::Event> _event)
+                {
+                    auto canvas = dynamic_cast<Canvas *>(_control);
+                    auto event = std::dynamic_pointer_cast<Event::MouseEvent>(_event);
+
+                    if (!canvas->moving) return;
+
+                    int dx = event->x - canvas->sx;
+                    int dy = event->y - canvas->sy;
+                    double dmx = canvas->drawer->translateCanvasW(dx);
+                    double dmy = canvas->drawer->translateCanvasH(dy);
+
+                    canvas->options->left = canvas->sl - dmx;
+                    canvas->options->right = canvas->sr - dmx;
+                    canvas->options->top = canvas->st - dmy;
+                    canvas->options->bottom = canvas->sb - dmy;
+                    canvas->redraw();
+                }
+
                 void redraw()
                 {
                     drawer->draw(width, height);
+                    updateDoubleBuffer();
                 }
             };
         }

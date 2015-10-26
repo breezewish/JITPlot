@@ -16,6 +16,9 @@ namespace StupidPlot
             static const int EVENT_PAINT = 2;
             static const int EVENT_RESIZE = 3;
             static const int EVENT_MESSAGE = 4;
+            static const int EVENT_MOUSEDOWN = 5;
+            static const int EVENT_MOUSEMOVE = 6;
+            static const int EVENT_MOUSEUP = 7;
 
             class Event
             {

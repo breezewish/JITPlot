@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <string>
 #include <memory>
 
@@ -15,7 +15,7 @@
 #include <ui/event/mouseevent.h>
 
 using std::vector;
-using std::map;
+using std::unordered_map;
 using std::shared_ptr;
 
 namespace StupidPlot
@@ -44,7 +44,7 @@ namespace StupidPlot
                 LONG    width;
                 LONG    height;
 
-                map<int, vector<CONTROLEVENTHANDLER>> handlers;
+                unordered_map<int, vector<CONTROLEVENTHANDLER>> handlers;
 
                 static LRESULT CALLBACK ctrlProc(
                     HWND hWnd,
@@ -62,6 +62,17 @@ namespace StupidPlot
 
                     switch (uMsg)
                     {
+                    case WM_NCHITTEST:
+                        return HTCLIENT;
+                    case WM_LBUTTONDOWN:
+                        control->dispatchEvent(Event::EVENT_MOUSEDOWN, shared_ptr<Event::Event>(new Event::MouseEvent(wParam, lParam)));
+                        break;
+                    case WM_LBUTTONUP:
+                        control->dispatchEvent(Event::EVENT_MOUSEUP, shared_ptr<Event::Event>(new Event::MouseEvent(wParam, lParam)));
+                        break;
+                    case WM_MOUSEMOVE:
+                        control->dispatchEvent(Event::EVENT_MOUSEMOVE, shared_ptr<Event::Event>(new Event::MouseEvent(wParam, lParam)));
+                        break;
                     case WM_SIZE:
                     case WM_SIZING:
                         control->resize();

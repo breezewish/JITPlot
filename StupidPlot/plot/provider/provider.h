@@ -12,6 +12,12 @@ namespace StupidPlot
     {
         namespace Provider
         {
+            struct POINTF
+            {
+                float x;
+                float y;
+            };
+
             class Provider
             {
             protected:
@@ -22,9 +28,9 @@ namespace StupidPlot
                     hdc = _hdc;
                 }
 
-                virtual void drawPlotLine(shared_ptr<vector<Gdiplus::PointF>> points, Gdiplus::Color color) = 0;
-                virtual void drawGridLine(BOOL vertical, vector<int> points, int width, int height) = 0;
-                virtual void beginDraw() = 0;
+                virtual void drawGridLine(BOOL vertical, const shared_ptr<int> & points, int length) = 0;
+                virtual void drawPlotLine(const shared_ptr<POINTF> & points, int length, Gdiplus::Color color) = 0;
+                virtual void beginDraw(int w, int h) = 0;
                 virtual void endDraw() = 0;
             };
         }

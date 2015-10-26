@@ -10,6 +10,15 @@ using std::wstringstream;
 
 namespace StupidPlot
 {
+    template< typename T >
+    struct array_deleter
+    {
+        void operator ()(T const * p)
+        {
+            delete[] p;
+        }
+    };
+
     class Util
     {
     public:
