@@ -35,10 +35,12 @@ namespace StupidPlot
             map<double, int>            constantOffsets;
         };
 
+        typedef std::shared_ptr<CompiledResult> CompiledResultPtr;
+
         class Compiler
         {
         public:
-            static CompiledResult compileRPN(
+            static CompiledResultPtr compileRPN(
                 list<shared_ptr<Token>> tokens,     // tokens
                 map<wstring, double> & constVars,   // constant variables (name => value)
                 vector<wstring> dynamicVars         // runtime variables, like 'x' (name)
@@ -205,11 +207,11 @@ namespace StupidPlot
                     }
                 }
 
-                CompiledResult ret;
-                ret.insgen = insgen;
-                ret.constantOffsets = constantOffsets;
-                ret.dynamicVarOffsets = dynamicVarOffsets;
-                return ret;
+                CompiledResult * ret = new CompiledResult();
+                ret->insgen = insgen;
+                ret->constantOffsets = constantOffsets;
+                ret->dynamicVarOffsets = dynamicVarOffsets;
+                return CompiledResultPtr(ret);
             };
         };
     }

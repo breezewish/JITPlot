@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <windows.h>
 
 #include <util.h>
@@ -164,6 +166,8 @@ namespace StupidPlot
                     return true;
                 }
             };
+
+            typedef std::shared_ptr<LayoutElement> LayoutElementPtr;
         }
     }
 }

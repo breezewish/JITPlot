@@ -10,17 +10,20 @@
 
 #include <map>
 #include <vector>
-#include <cmath>
 #include <string>
+#include <memory>
 
 using std::map;
 using std::vector;
 using std::wstring;
+using std::shared_ptr;
 
 using namespace Gdiplus;
 
 namespace StupidPlot
 {
+    using Formula::Expression;
+
     namespace UI
     {
         namespace Control
@@ -32,25 +35,22 @@ namespace StupidPlot
                 int                 sx, sy;
                 bool                moving;
 
-                Plot::PlotOptions   * options;
-                Plot::PlotDrawer    * drawer;
+                Plot::PlotOptionsPtr options;
+                Plot::PlotDrawerPtr  drawer;
 
             public:
 
                 Canvas(HWND _hWnd, int _id) : Control(_hWnd, _id, true)
                 {
-                    options = new Plot::PlotOptions();
-                    drawer = new Plot::PlotDrawer(options, getDC());
-
-                    map<wstring, double> constVars;
-                    constVars[L"PI"] = 3.1415;
-
-                    vector<wstring> dynamicVars;
-                    dynamicVars.push_back(L"x");
+                    options = Plot::PlotOptionsPtr(new Plot::PlotOptions());
+                    drawer = Plot::PlotDrawerPtr(new Plot::PlotDrawer(options, getDC()));
 
                     // TODO: update options from UI
+                    map<wstring, double> constants;
+                    constants[L"PI"] = 3.1415927;
+
                     options->formulaColors.push_back(Gdiplus::Color(255, 47, 197, 255));
-                    options->formulaObjects.push_back(new Formula::Expression(L"(sin(x+1)+5)/5", constVars, dynamicVars));
+                    options->formulaObjects.push_back(shared_ptr<Expression>(new Expression(L"(sin(x+1)+5)/5", constants)));
 
                     addEventHandler(Event::EVENT_REDRAW, onRedraw);
                     addEventHandler(Event::EVENT_MOUSEDOWN, onMouseDown);
@@ -58,13 +58,6 @@ namespace StupidPlot
                     addEventHandler(Event::EVENT_MOUSEMOVE, onMouseMove);
 
                     redraw();
-                }
-
-                ~Canvas()
-                {
-                    delete options->formulaObjects[0];
-                    delete options;
-                    delete drawer;
                 }
 
                 static void onRedraw(Control * _control, shared_ptr<Event::Event> _event)

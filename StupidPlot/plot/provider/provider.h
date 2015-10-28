@@ -33,6 +33,8 @@ namespace StupidPlot
                 virtual void beginDraw(int w, int h) = 0;
                 virtual void endDraw() = 0;
             };
+
+            typedef std::shared_ptr<Provider> ProviderPtr;
         }
     }
 }

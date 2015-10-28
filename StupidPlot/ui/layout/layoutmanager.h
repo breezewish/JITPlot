@@ -1,7 +1,9 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 #include <unordered_map>
+
 #include <windows.h>
 
 #include <ui/container.h>
@@ -71,6 +73,8 @@ namespace StupidPlot
                     return this;
                 }
             };
+
+            typedef std::shared_ptr<LayoutManager> LayoutManagerPtr;
         }
     }
 }

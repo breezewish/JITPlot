@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <memory>
+
 #include <windows.h>
 #include <gdiplus.h>
 
@@ -16,12 +18,14 @@ namespace StupidPlot
 {
     namespace Plot
     {
+        using Provider::ProviderPtr;
+
         class PlotDrawer
         {
         public:
             HDC                     hdc;
-            PlotOptions             * options = NULL;
-            Provider::Provider      * provider = NULL;
+            PlotOptionsPtr          options = NULL;
+            ProviderPtr             provider = NULL;
 
             int                     width;
             int                     height;
@@ -56,7 +60,7 @@ namespace StupidPlot
                 return (y - (options->bottom)) / (options->top - options->bottom) * height;
             }
 
-            void drawPlotLine(Expression * formula, Gdiplus::Color color)
+            void drawPlotLine(const ExpressionPtr & formula, Gdiplus::Color color)
             {
                 int length = 0;
                 auto points = shared_ptr<Provider::POINTF>(new Provider::POINTF[width], array_deleter<Provider::POINTF>());
@@ -64,8 +68,7 @@ namespace StupidPlot
                 for (int pos_x = 0; pos_x < width; ++pos_x)
                 {
                     double x = translateCanvasX(pos_x);
-                    formula->setVar(0, x);
-                    double y = formula->eval();
+                    double y = formula->eval(x);
                     double pos_y = translateFormulaY(y);
                     if (pos_y >= 0 && pos_y <= height)
                     {
@@ -106,16 +109,11 @@ namespace StupidPlot
                 provider->drawGridLine(vertical, points, length);
             }
 
-            PlotDrawer(PlotOptions * _options, HDC _hdc)
+            PlotDrawer(const PlotOptionsPtr & _options, HDC _hdc)
             {
                 options = _options;
                 hdc = _hdc;
-                provider = new Provider::GdiProvider(hdc);
-            }
-
-            ~PlotDrawer()
-            {
-                delete provider;
+                provider = ProviderPtr(new Provider::GdiProvider(hdc));
             }
 
             void draw(int canvasWidth, int canvasHeight)
@@ -138,5 +136,7 @@ namespace StupidPlot
                 provider->endDraw();
             }
         };
+
+        typedef std::shared_ptr<PlotDrawer> PlotDrawerPtr;
     }
 }

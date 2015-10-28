@@ -1,18 +1,22 @@
 #pragma once
 
 #include <vector>
+#include <memory>
+
 #include <windows.h>
 #include <gdiplus.h>
 
 #include <formula/expression.h>
 
+using std::shared_ptr;
 using std::vector;
-using StupidPlot::Formula::Expression;
 
 namespace StupidPlot
 {
     namespace Plot
     {
+        using Formula::ExpressionPtr;
+
         class PlotOptions
         {
         public:
@@ -25,8 +29,10 @@ namespace StupidPlot
 
             int                     gridSpacing = 1;
 
-            vector<Gdiplus::Color>  formulaColors;
-            vector<Expression *>    formulaObjects;
+            vector<Gdiplus::Color>     formulaColors;
+            vector<ExpressionPtr>      formulaObjects;
         };
+
+        typedef std::shared_ptr<PlotOptions> PlotOptionsPtr;
     }
 }
