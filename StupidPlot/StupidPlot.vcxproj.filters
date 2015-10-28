@@ -113,9 +113,6 @@
     <ClInclude Include="formula\lexer.h">
       <Filter>头文件\formula</Filter>
     </ClInclude>
-    <ClInclude Include="formula\expression.h">
-      <Filter>头文件\formula</Filter>
-    </ClInclude>
     <ClInclude Include="formula\parser.h">
       <Filter>头文件\formula</Filter>
     </ClInclude>
@@ -151,6 +148,12 @@
     </ClInclude>
     <ClInclude Include="formula\jit\executable.h">
       <Filter>头文件\formula\jit</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\exp.h">
+      <Filter>头文件\formula</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\expdrawer.h">
+      <Filter>头文件\formula</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <gdiplus.h>
 
-#include <formula/expression.h>
+#include <formula/expdrawer.h>
 
 using std::shared_ptr;
 using std::vector;
@@ -15,7 +15,7 @@ namespace StupidPlot
 {
     namespace Plot
     {
-        using Formula::ExpressionPtr;
+        using Formula::ExpDrawerPtr;
 
         class PlotOptions
         {
@@ -29,8 +29,8 @@ namespace StupidPlot
 
             int                     gridSpacing = 1;
 
-            vector<Gdiplus::Color>     formulaColors;
-            vector<ExpressionPtr>      formulaObjects;
+            vector<Gdiplus::Color>  formulaColors;
+            vector<ExpDrawerPtr>    formulaObjects;
         };
 
         typedef std::shared_ptr<PlotOptions> PlotOptionsPtr;

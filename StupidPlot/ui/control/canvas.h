@@ -6,7 +6,7 @@
 #include <ui/event/event.h>
 #include <plot/plotoptions.h>
 #include <plot/plotdrawer.h>
-#include <formula/expression.h>
+#include <formula/expdrawer.h>
 
 #include <map>
 #include <vector>
@@ -22,7 +22,8 @@ using namespace Gdiplus;
 
 namespace StupidPlot
 {
-    using Formula::Expression;
+    using Formula::ExpDrawer;
+    using Formula::ExpDrawerPtr;
 
     namespace UI
     {
@@ -50,7 +51,7 @@ namespace StupidPlot
                     constants[L"PI"] = 3.1415927;
 
                     options->formulaColors.push_back(Gdiplus::Color(255, 47, 197, 255));
-                    options->formulaObjects.push_back(shared_ptr<Expression>(new Expression(L"(sin(x+1)+5)/5", constants)));
+                    options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"1/x", constants)));
 
                     addEventHandler(Event::EVENT_REDRAW, onRedraw);
                     addEventHandler(Event::EVENT_MOUSEDOWN, onMouseDown);

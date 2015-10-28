@@ -207,11 +207,11 @@ namespace StupidPlot
                     }
                 }
 
-                CompiledResult * ret = new CompiledResult();
+                auto ret = CompiledResultPtr(new CompiledResult());
                 ret->insgen = insgen;
                 ret->constantOffsets = constantOffsets;
                 ret->dynamicVarOffsets = dynamicVarOffsets;
-                return CompiledResultPtr(ret);
+                return ret;
             };
         };
     }

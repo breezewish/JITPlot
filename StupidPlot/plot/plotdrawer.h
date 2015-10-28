@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <gdiplus.h>
 
-#include <formula/expression.h>
+#include <formula/expdrawer.h>
 #include <plot/plotoptions.h>
 #include <plot/provider/provider.h>
 #include <plot/provider/gdiprovider.h>
@@ -60,22 +60,19 @@ namespace StupidPlot
                 return (y - (options->bottom)) / (options->top - options->bottom) * height;
             }
 
-            void drawPlotLine(const ExpressionPtr & formula, Gdiplus::Color color)
+            void drawPlotLine(const ExpDrawerPtr & formulaDrawer, Gdiplus::Color color)
             {
                 int length = 0;
                 auto points = shared_ptr<Provider::POINTF>(new Provider::POINTF[width], array_deleter<Provider::POINTF>());
 
-                for (int pos_x = 0; pos_x < width; ++pos_x)
+                auto formulaPoints = formulaDrawer->evalAndTransform(options->left, options->right, options->bottom, options->top);
+                auto pt = points.get();
+
+                for (int i = 0; i < width; ++i)
                 {
-                    double x = translateCanvasX(pos_x);
-                    double y = formula->eval(x);
-                    double pos_y = translateFormulaY(y);
-                    if (pos_y >= 0 && pos_y <= height)
-                    {
-                        points.get()[length].x = static_cast<float>(pos_x);
-                        points.get()[length].y = static_cast<float>(pos_y);
-                        length++;
-                    }
+                    pt[length].x = static_cast<float>(i);
+                    pt[length].y = static_cast<float>(formulaPoints[i]);
+                    length++;
                 }
 
                 provider->drawPlotLine(points, length, color);
@@ -118,6 +115,14 @@ namespace StupidPlot
 
             void draw(int canvasWidth, int canvasHeight)
             {
+                if (width != canvasWidth || height != canvasHeight)
+                {
+                    for (auto formula : options->formulaObjects)
+                    {
+                        formula->setViewportSize(canvasWidth, canvasHeight);
+                    }
+                }
+
                 width = canvasWidth;
                 height = canvasHeight;
 

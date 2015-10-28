@@ -152,7 +152,8 @@
   <ItemGroup>
     <ClInclude Include="app.h" />
     <ClInclude Include="formula\compiler.h" />
-    <ClInclude Include="formula\expression.h" />
+    <ClInclude Include="formula\exp.h" />
+    <ClInclude Include="formula\expdrawer.h" />
     <ClInclude Include="formula\jit\assembler.h" />
     <ClInclude Include="formula\jit\executable.h" />
     <ClInclude Include="formula\jit\functions.h" />

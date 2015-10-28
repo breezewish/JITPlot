@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 #include <windows.h>
 #include <plot/provider/provider.h>
 
@@ -26,13 +28,38 @@ namespace StupidPlot
                 {
                     if (length == 0) return;
 
+                    float ALLOWED_MIN = -4.0F * height;
+                    float ALLOWED_MAX = +4.0F * height;
+
                     HPEN pen = CreatePen(PS_SOLID, 2, color.ToCOLORREF());
                     HGDIOBJ oldPen = SelectObject(hdc, pen);
 
-                    MoveToEx(hdc, static_cast<int>(points.get()[0].x), static_cast<int>(points.get()[0].y), NULL);
+                    bool start = true;
+                    bool breakPoint = false;
+
+                    auto pt = points.get();
+
                     for (int i = 1; i < length; ++i)
                     {
-                        LineTo(hdc, static_cast<int>(points.get()[i].x), static_cast<int>(points.get()[i].y));
+                        if (std::isnan(pt[i].y) || pt[i].y < ALLOWED_MIN || pt[i].y > ALLOWED_MAX)
+                        {
+                            breakPoint = true;
+                            start = true;
+                        }
+                        else
+                        {
+                            breakPoint = false;
+                        }
+
+                        if (start)
+                        {
+                            MoveToEx(hdc, static_cast<int>(pt[i].x), static_cast<int>(pt[i].y), NULL);
+                            if (!breakPoint) start = false;
+                        }
+                        else
+                        {
+                            LineTo(hdc, static_cast<int>(pt[i].x), static_cast<int>(pt[i].y));
+                        }
                     }
 
                     SelectObject(hdc, oldPen);
