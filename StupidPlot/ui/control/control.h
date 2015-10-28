@@ -28,7 +28,7 @@ namespace StupidPlot
 
             typedef void(*CONTROLEVENTHANDLER)(
                 Control * control,
-                shared_ptr<Event::Event> event
+                const Event::EventPtr & event
                 );
 
             class Control
@@ -58,20 +58,20 @@ namespace StupidPlot
                     UNREFERENCED_PARAMETER(uIdSubclass);
 
                     Control * control = reinterpret_cast<Control *>(dwRefData);
-                    control->dispatchEvent(Event::EVENT_MESSAGE, shared_ptr<Event::Event>(new Event::RawEvent(uMsg, wParam, lParam)));
+                    control->dispatchEvent(Event::EVENT_MESSAGE, Event::EventPtr(new Event::RawEvent(uMsg, wParam, lParam)));
 
                     switch (uMsg)
                     {
                     case WM_NCHITTEST:
                         return HTCLIENT;
                     case WM_LBUTTONDOWN:
-                        control->dispatchEvent(Event::EVENT_MOUSEDOWN, shared_ptr<Event::Event>(new Event::MouseEvent(wParam, lParam)));
+                        control->dispatchEvent(Event::EVENT_MOUSEDOWN, Event::EventPtr(new Event::MouseEvent(wParam, lParam)));
                         break;
                     case WM_LBUTTONUP:
-                        control->dispatchEvent(Event::EVENT_MOUSEUP, shared_ptr<Event::Event>(new Event::MouseEvent(wParam, lParam)));
+                        control->dispatchEvent(Event::EVENT_MOUSEUP, Event::EventPtr(new Event::MouseEvent(wParam, lParam)));
                         break;
                     case WM_MOUSEMOVE:
-                        control->dispatchEvent(Event::EVENT_MOUSEMOVE, shared_ptr<Event::Event>(new Event::MouseEvent(wParam, lParam)));
+                        control->dispatchEvent(Event::EVENT_MOUSEMOVE, Event::EventPtr(new Event::MouseEvent(wParam, lParam)));
                         break;
                     case WM_SIZE:
                     case WM_SIZING:
@@ -81,11 +81,11 @@ namespace StupidPlot
                             control->resizeDoubleBuffer();
                             InvalidateRect(control->hWnd, NULL, false);
                         }
-                        control->dispatchEvent(Event::EVENT_REDRAW, shared_ptr<Event::Event>(new Event::RawEvent(uMsg, wParam, lParam)));
+                        control->dispatchEvent(Event::EVENT_REDRAW, Event::EventPtr(new Event::RawEvent(uMsg, wParam, lParam)));
                         break;
                     case WM_PAINT:
                         control->updateDoubleBuffer();
-                        control->dispatchEvent(Event::EVENT_PAINT, shared_ptr<Event::Event>(new Event::RawEvent(uMsg, wParam, lParam)));
+                        control->dispatchEvent(Event::EVENT_PAINT, Event::EventPtr(new Event::RawEvent(uMsg, wParam, lParam)));
                         break;
                     }
 
@@ -142,7 +142,7 @@ namespace StupidPlot
                     HGDIOBJ oldBitmap = SelectObject(memDC, newBitmap);
                     DeleteObject(oldBitmap);
 
-                    dispatchEvent(Event::EVENT_REDRAW, shared_ptr<Event::Event>(new Event::RedrawEvent()));
+                    dispatchEvent(Event::EVENT_REDRAW, Event::EventPtr(new Event::RedrawEvent()));
                 }
 
                 void updateDoubleBuffer()
@@ -198,7 +198,7 @@ namespace StupidPlot
                     return this;
                 }
 
-                Control * dispatchEvent(int eventName, shared_ptr<Event::Event> event)
+                Control * dispatchEvent(int eventName, const Event::EventPtr event)
                 {
                     auto registeredHandlers = handlers.find(eventName);
                     if (registeredHandlers == handlers.end())

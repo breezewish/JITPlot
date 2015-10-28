@@ -1,7 +1,9 @@
 #pragma once
 
-#include <windows.h>
 #include <string>
+#include <memory>
+
+#include <windows.h>
 
 using std::wstring;
 
@@ -40,6 +42,8 @@ namespace StupidPlot
                     return name;
                 }
             };
+
+            typedef std::shared_ptr<Event> EventPtr;
         }
     }
 }

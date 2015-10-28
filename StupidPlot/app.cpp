@@ -1,20 +1,25 @@
 #include <app.h>
 
-GdiplusStartupInput      gdiplusStartupInput;
-ULONG_PTR                gdiplusToken;
+using Layout::LayoutManager;
+using Layout::LayoutManagerPtr;
+using Event::EventManager;
+using Event::EventManagerPtr;
 
-HWND                     hWnd;
+GdiplusStartupInput     gdiplusStartupInput;
+ULONG_PTR               gdiplusToken;
 
-Container                * container;
-Layout::LayoutManager    * lm;
-Event::EventManager      * em;
+HWND                    hWnd;
 
-Control::Control         * groupCanvas;
-Control::Checkbox        * checkShowGrid;
-Control::Control         * editGridSize;
-Control::Canvas          * canvas;
+ContainerPtr            container;
+LayoutManagerPtr        lm;
+EventManagerPtr         em;
 
-void CheckShowGrid_onClick(Control::Control * _control, shared_ptr<Event::Event> _event);
+Control::Control        * groupCanvas;
+Control::Checkbox       * checkShowGrid;
+Control::Control        * editGridSize;
+Control::Canvas         * canvas;
+
+void CheckShowGrid_onClick(Control::Control * _control, const Event::EventPtr & _event);
 void setup();
 
 void StupidPlot::App::init(HWND _hWnd)
@@ -23,9 +28,9 @@ void StupidPlot::App::init(HWND _hWnd)
 
     hWnd = _hWnd;
 
-    container = new Container();
-    lm = new Layout::LayoutManager(hWnd);
-    em = new Event::EventManager(container);
+    container = ContainerPtr(new Container());
+    lm = LayoutManagerPtr(new LayoutManager(hWnd));
+    em = EventManagerPtr(new EventManager(container));
 
     canvas = new Control::Canvas(hWnd, IDC_STATIC_CANVAS);
     groupCanvas = new Control::Control(hWnd, IDC_STATIC_GROUP_CANVAS);
@@ -55,10 +60,6 @@ void StupidPlot::App::terminate()
     if (groupCanvas) delete groupCanvas;
     if (canvas) delete canvas;
 
-    if (lm) delete lm;
-    if (em) delete em;
-    if (container) delete container;
-
     GdiplusShutdown(gdiplusToken);
 }
 
@@ -79,7 +80,7 @@ void setup()
     checkShowGrid->setChecked(true);
 }
 
-void CheckShowGrid_onClick(Control::Control * _control, shared_ptr<Event::Event> _event)
+void CheckShowGrid_onClick(Control::Control * _control, const Event::EventPtr & _event)
 {
     UNREFERENCED_PARAMETER(_control);
     UNREFERENCED_PARAMETER(_event);

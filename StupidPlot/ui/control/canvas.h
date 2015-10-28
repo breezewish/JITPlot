@@ -61,7 +61,7 @@ namespace StupidPlot
                     redraw();
                 }
 
-                static void onRedraw(Control * _control, shared_ptr<Event::Event> _event)
+                static void onRedraw(Control * _control, const Event::EventPtr & _event)
                 {
                     UNREFERENCED_PARAMETER(_event);
 
@@ -69,7 +69,7 @@ namespace StupidPlot
                     canvas->redraw();
                 }
 
-                static void onMouseDown(Control * _control, shared_ptr<Event::Event> _event)
+                static void onMouseDown(Control * _control, const Event::EventPtr & _event)
                 {
                     auto canvas = dynamic_cast<Canvas *>(_control);
                     auto event = std::dynamic_pointer_cast<Event::MouseEvent>(_event);
@@ -85,7 +85,7 @@ namespace StupidPlot
                     canvas->sy = event->y;
                 }
 
-                static void onMouseUp(Control * _control, shared_ptr<Event::Event> _event)
+                static void onMouseUp(Control * _control, const Event::EventPtr & _event)
                 {
                     auto canvas = dynamic_cast<Canvas *>(_control);
                     auto event = std::dynamic_pointer_cast<Event::MouseEvent>(_event);
@@ -95,7 +95,7 @@ namespace StupidPlot
                     ReleaseCapture();
                 }
 
-                static void onMouseMove(Control * _control, shared_ptr<Event::Event> _event)
+                static void onMouseMove(Control * _control, const Event::EventPtr & _event)
                 {
                     auto canvas = dynamic_cast<Canvas *>(_control);
                     auto event = std::dynamic_pointer_cast<Event::MouseEvent>(_event);

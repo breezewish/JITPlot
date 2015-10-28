@@ -6,7 +6,6 @@
 
 #include <formula/exp.h>
 
-using std::shared_ptr;
 using std::wstring;
 
 namespace StupidPlot
@@ -77,6 +76,6 @@ namespace StupidPlot
             }
         };
 
-        typedef shared_ptr<ExpDrawer> ExpDrawerPtr;
+        typedef std::shared_ptr<ExpDrawer> ExpDrawerPtr;
     }
 }

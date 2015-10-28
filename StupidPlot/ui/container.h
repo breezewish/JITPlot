@@ -1,8 +1,10 @@
 #pragma once
 
-#include <windows.h>
 #include <vector>
 #include <unordered_map>
+#include <memory>
+
+#include <windows.h>
 
 #include <ui/control/control.h>
 
@@ -39,5 +41,7 @@ namespace StupidPlot
                 return id2control[id];
             }
         };
+
+        typedef std::shared_ptr<Container> ContainerPtr;
     }
 }

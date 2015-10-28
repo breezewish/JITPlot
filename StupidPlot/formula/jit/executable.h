@@ -28,7 +28,7 @@ namespace StupidPlot
             class Executable
             {
             protected:
-                shared_ptr<CompiledResult>  cr;
+                const CompiledResultPtr     & cr;
 
                 int                         n_dynamicVars;
                 int                         n_constVars;
@@ -46,10 +46,8 @@ namespace StupidPlot
                 void                        * pCode;
 
             public:
-                Executable(const shared_ptr<CompiledResult> & _cr)
+                Executable(const CompiledResultPtr & _cr) : cr(_cr)
                 {
-                    cr = _cr;
-
                     // reserved size
                     n_dynamicVars = _cr->dynamicVarOffsets.size();
                     n_constVars = _cr->constantOffsets.size();

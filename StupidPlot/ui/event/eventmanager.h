@@ -18,11 +18,10 @@ namespace StupidPlot
             class EventManager
             {
             protected:
-                Container * container = NULL;
+                const ContainerPtr & container = NULL;
             public:
-                EventManager(Container * _container)
+                EventManager(const ContainerPtr & _container) : container(_container)
                 {
-                    container = _container;
                 }
 
                 // Window messages
@@ -43,7 +42,7 @@ namespace StupidPlot
                         switch (wmEvent)
                         {
                         case BN_CLICKED:
-                            control->dispatchEvent(EVENT_CLICK, shared_ptr<Event>(new MouseEvent()));
+                            control->dispatchEvent(EVENT_CLICK, EventPtr(new MouseEvent()));
                             break;
                         }
 
@@ -52,6 +51,8 @@ namespace StupidPlot
                     return false;
                 }
             };
+
+            typedef std::shared_ptr<EventManager> EventManagerPtr;
         }
     }
 }
