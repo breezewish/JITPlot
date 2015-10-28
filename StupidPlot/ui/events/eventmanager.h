@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 
+#include <ui/events/event.h>
 #include <ui/control/control.h>
 #include <ui/container.h>
 
@@ -13,7 +14,7 @@ namespace StupidPlot
 {
     namespace UI
     {
-        namespace Event
+        namespace Events
         {
             class EventManager
             {
@@ -42,7 +43,7 @@ namespace StupidPlot
                         switch (wmEvent)
                         {
                         case BN_CLICKED:
-                            control->dispatchEvent(EVENT_CLICK, EventPtr(new MouseEvent()));
+                            control->dispatchEvent(EventName::EVENT_CLICK, EventPtr(new MouseEvent()));
                             break;
                         }
 

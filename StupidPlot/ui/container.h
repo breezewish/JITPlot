@@ -28,7 +28,7 @@ namespace StupidPlot
             Container * addControl(Control::Control * control)
             {
                 controls.push_back(control);
-                id2control[control->getId()] = control;
+                id2control[control->id] = control;
                 return this;
             }
 

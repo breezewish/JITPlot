@@ -3,7 +3,7 @@
 #include <gdiplus.h>
 
 #include <ui/control/control.h>
-#include <ui/event/event.h>
+#include <ui/events/event.h>
 #include <plot/plotoptions.h>
 #include <plot/plotdrawer.h>
 #include <formula/expdrawer.h>
@@ -27,6 +27,8 @@ namespace StupidPlot
 
     namespace UI
     {
+        using namespace Events;
+
         namespace Control
         {
             class Canvas : public Control
@@ -41,10 +43,10 @@ namespace StupidPlot
 
             public:
 
-                Canvas(HWND _hWnd, int _id) : Control(_hWnd, _id, true)
+                Canvas(HWND _hWnd, int _id) : Control(_hWnd, _id)
                 {
                     options = Plot::PlotOptionsPtr(new Plot::PlotOptions());
-                    drawer = Plot::PlotDrawerPtr(new Plot::PlotDrawer(options, getDC()));
+                    drawer = Plot::PlotDrawerPtr(new Plot::PlotDrawer(options, hDC));
 
                     // TODO: update options from UI
                     map<wstring, double> constants;
@@ -53,15 +55,15 @@ namespace StupidPlot
                     options->formulaColors.push_back(Gdiplus::Color(255, 47, 197, 255));
                     options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"1/x", constants)));
 
-                    addEventHandler(Event::EVENT_REDRAW, onRedraw);
-                    addEventHandler(Event::EVENT_MOUSEDOWN, onMouseDown);
-                    addEventHandler(Event::EVENT_MOUSEUP, onMouseUp);
-                    addEventHandler(Event::EVENT_MOUSEMOVE, onMouseMove);
+                    addEventHandler(EventName::EVENT_REDRAWBUFFER, onRedraw);
+                    addEventHandler(EventName::EVENT_MOUSEDOWN, onMouseDown);
+                    addEventHandler(EventName::EVENT_MOUSEUP, onMouseUp);
+                    addEventHandler(EventName::EVENT_MOUSEMOVE, onMouseMove);
 
                     redraw();
                 }
 
-                static void onRedraw(Control * _control, const Event::EventPtr & _event)
+                static void onRedraw(Control * _control, const EventPtr & _event)
                 {
                     UNREFERENCED_PARAMETER(_event);
 
@@ -69,12 +71,12 @@ namespace StupidPlot
                     canvas->redraw();
                 }
 
-                static void onMouseDown(Control * _control, const Event::EventPtr & _event)
+                static void onMouseDown(Control * _control, const EventPtr & _event)
                 {
                     auto canvas = dynamic_cast<Canvas *>(_control);
-                    auto event = std::dynamic_pointer_cast<Event::MouseEvent>(_event);
+                    auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
 
-                    SetCapture(_control->getHWND());
+                    SetCapture(_control->hWnd);
 
                     canvas->moving = true;
                     canvas->sl = canvas->options->left;
@@ -85,20 +87,20 @@ namespace StupidPlot
                     canvas->sy = event->y;
                 }
 
-                static void onMouseUp(Control * _control, const Event::EventPtr & _event)
+                static void onMouseUp(Control * _control, const EventPtr & _event)
                 {
                     auto canvas = dynamic_cast<Canvas *>(_control);
-                    auto event = std::dynamic_pointer_cast<Event::MouseEvent>(_event);
+                    auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
 
                     canvas->moving = false;
 
                     ReleaseCapture();
                 }
 
-                static void onMouseMove(Control * _control, const Event::EventPtr & _event)
+                static void onMouseMove(Control * _control, const EventPtr & _event)
                 {
                     auto canvas = dynamic_cast<Canvas *>(_control);
-                    auto event = std::dynamic_pointer_cast<Event::MouseEvent>(_event);
+                    auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
 
                     if (!canvas->moving) return;
 
@@ -117,7 +119,7 @@ namespace StupidPlot
                 void redraw()
                 {
                     drawer->draw(width, height);
-                    updateDoubleBuffer();
+                    //updateDoubleBuffer();
                 }
             };
         }

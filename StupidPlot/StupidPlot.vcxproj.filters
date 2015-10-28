@@ -19,9 +19,6 @@
     <Filter Include="头文件\ui\control">
       <UniqueIdentifier>{09d09d4b-8047-4574-adbf-deb21a0a291b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\ui\event">
-      <UniqueIdentifier>{5a605467-e5cd-4bf3-847e-d01eae67f36c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\ui\layout">
       <UniqueIdentifier>{df3c5fba-f370-4576-adaa-1b9d0f65a942}</UniqueIdentifier>
     </Filter>
@@ -39,6 +36,9 @@
     </Filter>
     <Filter Include="头文件\formula\jit">
       <UniqueIdentifier>{2ac81fd2-4376-453a-9ca8-5d9c8cacab6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\ui\events">
+      <UniqueIdentifier>{5a605467-e5cd-4bf3-847e-d01eae67f36c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -68,23 +68,8 @@
     <ClInclude Include="ui\control\control.h">
       <Filter>头文件\ui\control</Filter>
     </ClInclude>
-    <ClInclude Include="ui\event\rawevent.h">
-      <Filter>头文件\ui\event</Filter>
-    </ClInclude>
-    <ClInclude Include="ui\event\redrawevent.h">
-      <Filter>头文件\ui\event</Filter>
-    </ClInclude>
     <ClInclude Include="ui\layout\layoutelement.h">
       <Filter>头文件\ui\layout</Filter>
-    </ClInclude>
-    <ClInclude Include="ui\event\event.h">
-      <Filter>头文件\ui\event</Filter>
-    </ClInclude>
-    <ClInclude Include="ui\event\mouseevent.h">
-      <Filter>头文件\ui\event</Filter>
-    </ClInclude>
-    <ClInclude Include="ui\event\eventmanager.h">
-      <Filter>头文件\ui\event</Filter>
     </ClInclude>
     <ClInclude Include="ui\layout\layoutmanager.h">
       <Filter>头文件\ui\layout</Filter>
@@ -154,6 +139,21 @@
     </ClInclude>
     <ClInclude Include="formula\expdrawer.h">
       <Filter>头文件\formula</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\control\bufferedcanvas.h">
+      <Filter>头文件\ui\control</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\events\event.h">
+      <Filter>头文件\ui\events</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\events\eventmanager.h">
+      <Filter>头文件\ui\events</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\events\mouseevent.h">
+      <Filter>头文件\ui\events</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\events\rawevent.h">
+      <Filter>头文件\ui\events</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

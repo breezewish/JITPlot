@@ -9,8 +9,8 @@
 #include <ui/control/canvas.h>
 #include <ui/container.h>
 #include <ui/layout/layoutmanager.h>
-#include <ui/event/event.h>
-#include <ui/event/eventmanager.h>
+#include <ui/events/event.h>
+#include <ui/events/eventmanager.h>
 
 using namespace Gdiplus;
 using namespace StupidPlot::UI;

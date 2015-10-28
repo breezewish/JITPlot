@@ -1,9 +1,7 @@
 #include <app.h>
 
-using Layout::LayoutManager;
-using Layout::LayoutManagerPtr;
-using Event::EventManager;
-using Event::EventManagerPtr;
+using namespace Layout;
+using namespace Events;
 
 GdiplusStartupInput     gdiplusStartupInput;
 ULONG_PTR               gdiplusToken;
@@ -19,7 +17,7 @@ Control::Checkbox       * checkShowGrid;
 Control::Control        * editGridSize;
 Control::Canvas         * canvas;
 
-void CheckShowGrid_onClick(Control::Control * _control, const Event::EventPtr & _event);
+void CheckShowGrid_onClick(Control::Control * _control, const EventPtr & _event);
 void setup();
 
 void StupidPlot::App::init(HWND _hWnd)
@@ -76,11 +74,11 @@ BOOL StupidPlot::App::handleEvent(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void setup()
 {
-    checkShowGrid->addEventHandler(Event::EVENT_CLICK, CheckShowGrid_onClick);
+    checkShowGrid->addEventHandler(EventName::EVENT_CLICK, CheckShowGrid_onClick);
     checkShowGrid->setChecked(true);
 }
 
-void CheckShowGrid_onClick(Control::Control * _control, const Event::EventPtr & _event)
+void CheckShowGrid_onClick(Control::Control * _control, const EventPtr & _event)
 {
     UNREFERENCED_PARAMETER(_control);
     UNREFERENCED_PARAMETER(_event);

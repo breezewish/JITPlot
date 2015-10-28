@@ -3,13 +3,13 @@
 #include <windows.h>
 #include <string>
 
-#include <ui/event/event.h>
+#include <ui/events/event.h>
 
 namespace StupidPlot
 {
     namespace UI
     {
-        namespace Event
+        namespace Events
         {
             class RawEvent : public Event
             {
@@ -18,7 +18,7 @@ namespace StupidPlot
                 WPARAM      wParam;
                 LPARAM      lParam;
 
-                RawEvent(UINT _uMsg, WPARAM _wParam, LPARAM _lParam) : Event(L"RawEvent")
+                RawEvent(UINT _uMsg, WPARAM _wParam, LPARAM _lParam) : Event(EventType::RAW)
                 {
                     uMsg = _uMsg;
                     wParam = _wParam;

@@ -4,13 +4,13 @@
 #include <windowsx.h>
 #include <string>
 
-#include <ui/event/event.h>
+#include <ui/events/event.h>
 
 namespace StupidPlot
 {
     namespace UI
     {
-        namespace Event
+        namespace Events
         {
             class MouseEvent : public Event
             {
@@ -18,11 +18,11 @@ namespace StupidPlot
                 int x;
                 int y;
 
-                MouseEvent() : Event(L"MouseEvent")
+                MouseEvent() : Event(EventType::MOUSE)
                 {
                 }
 
-                MouseEvent(WPARAM wParam, LPARAM lParam) : Event(L"MouseEvent")
+                MouseEvent(WPARAM wParam, LPARAM lParam) : Event(EventType::MOUSE)
                 {
                     UNREFERENCED_PARAMETER(wParam);
                     x = GET_X_LPARAM(lParam);
