@@ -2,7 +2,7 @@
 
 #include <gdiplus.h>
 
-#include <ui/control/control.h>
+#include <ui/controls/control.h>
 #include <ui/events/event.h>
 #include <plot/plotoptions.h>
 #include <plot/plotdrawer.h>
@@ -29,7 +29,7 @@ namespace StupidPlot
     {
         using namespace Events;
 
-        namespace Control
+        namespace Controls
         {
             class Canvas : public Control
             {

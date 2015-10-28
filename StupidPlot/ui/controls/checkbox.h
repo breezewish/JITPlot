@@ -2,13 +2,13 @@
 
 #include <windows.h>
 
-#include <ui/control/control.h>
+#include <ui/controls/control.h>
 
 namespace StupidPlot
 {
     namespace UI
     {
-        namespace Control
+        namespace Controls
         {
             class Checkbox : public Control
             {

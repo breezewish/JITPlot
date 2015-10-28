@@ -16,9 +16,6 @@
     <Filter Include="头文件\ui">
       <UniqueIdentifier>{10b68242-878b-4681-9b03-f1b1d7767607}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\ui\control">
-      <UniqueIdentifier>{09d09d4b-8047-4574-adbf-deb21a0a291b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\ui\layout">
       <UniqueIdentifier>{df3c5fba-f370-4576-adaa-1b9d0f65a942}</UniqueIdentifier>
     </Filter>
@@ -40,6 +37,9 @@
     <Filter Include="头文件\ui\events">
       <UniqueIdentifier>{5a605467-e5cd-4bf3-847e-d01eae67f36c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\ui\controls">
+      <UniqueIdentifier>{09d09d4b-8047-4574-adbf-deb21a0a291b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winform.cpp">
@@ -59,15 +59,6 @@
     <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ui\control\canvas.h">
-      <Filter>头文件\ui\control</Filter>
-    </ClInclude>
-    <ClInclude Include="ui\control\checkbox.h">
-      <Filter>头文件\ui\control</Filter>
-    </ClInclude>
-    <ClInclude Include="ui\control\control.h">
-      <Filter>头文件\ui\control</Filter>
-    </ClInclude>
     <ClInclude Include="ui\layout\layoutelement.h">
       <Filter>头文件\ui\layout</Filter>
     </ClInclude>
@@ -76,9 +67,6 @@
     </ClInclude>
     <ClInclude Include="ui\container.h">
       <Filter>头文件\ui</Filter>
-    </ClInclude>
-    <ClInclude Include="ui\control\textbox.h">
-      <Filter>头文件\ui\control</Filter>
     </ClInclude>
     <ClInclude Include="plot\provider\gdiplusprovider.h">
       <Filter>头文件\plot\provider</Filter>
@@ -140,9 +128,6 @@
     <ClInclude Include="formula\expdrawer.h">
       <Filter>头文件\formula</Filter>
     </ClInclude>
-    <ClInclude Include="ui\control\bufferedcanvas.h">
-      <Filter>头文件\ui\control</Filter>
-    </ClInclude>
     <ClInclude Include="ui\events\event.h">
       <Filter>头文件\ui\events</Filter>
     </ClInclude>
@@ -154,6 +139,21 @@
     </ClInclude>
     <ClInclude Include="ui\events\rawevent.h">
       <Filter>头文件\ui\events</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\controls\bufferedcanvas.h">
+      <Filter>头文件\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\controls\canvas.h">
+      <Filter>头文件\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\controls\checkbox.h">
+      <Filter>头文件\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\controls\control.h">
+      <Filter>头文件\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\controls\textbox.h">
+      <Filter>头文件\ui\controls</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

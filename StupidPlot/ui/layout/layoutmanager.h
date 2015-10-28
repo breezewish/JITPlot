@@ -7,7 +7,7 @@
 #include <windows.h>
 
 #include <ui/container.h>
-#include <ui/control/control.h>
+#include <ui/controls/control.h>
 #include <ui/layout/layoutelement.h>
 
 using std::vector;
@@ -17,6 +17,8 @@ namespace StupidPlot
 {
     namespace UI
     {
+        using namespace Controls;
+
         namespace Layout
         {
             class LayoutManager
@@ -64,7 +66,7 @@ namespace StupidPlot
                     EndDeferWindowPos(hDefer);
                 }
 
-                LayoutManager * enableMagnet(Control::Control * control, BOOL mLeft = true, BOOL mTop = true, BOOL mRight = false, BOOL mBottom = false)
+                LayoutManager * enableMagnet(Control * control, BOOL mLeft = true, BOOL mTop = true, BOOL mRight = false, BOOL mBottom = false)
                 {
                     LayoutElement * element = new LayoutElement(control);
                     element->setMagnet(mLeft, mTop, mRight, mBottom);

@@ -1,6 +1,7 @@
 #include <app.h>
 
 using namespace Layout;
+using namespace Controls;
 using namespace Events;
 
 GdiplusStartupInput     gdiplusStartupInput;
@@ -12,12 +13,12 @@ ContainerPtr            container;
 LayoutManagerPtr        lm;
 EventManagerPtr         em;
 
-Control::Control        * groupCanvas;
-Control::Checkbox       * checkShowGrid;
-Control::Control        * editGridSize;
-Control::Canvas         * canvas;
+Control                 * groupCanvas;
+Checkbox                * checkShowGrid;
+Control                 * editGridSize;
+Canvas                  * canvas;
 
-void CheckShowGrid_onClick(Control::Control * _control, const EventPtr & _event);
+void CheckShowGrid_onClick(Control * _control, const EventPtr & _event);
 void setup();
 
 void StupidPlot::App::init(HWND _hWnd)
@@ -30,10 +31,10 @@ void StupidPlot::App::init(HWND _hWnd)
     lm = LayoutManagerPtr(new LayoutManager(hWnd));
     em = EventManagerPtr(new EventManager(container));
 
-    canvas = new Control::Canvas(hWnd, IDC_STATIC_CANVAS);
-    groupCanvas = new Control::Control(hWnd, IDC_STATIC_GROUP_CANVAS);
-    checkShowGrid = new Control::Checkbox(hWnd, IDC_CHECK_SHOW_GRID);
-    editGridSize = new Control::Control(hWnd, IDC_EDIT_GRID_SIZE);
+    canvas = new Canvas(hWnd, IDC_STATIC_CANVAS);
+    groupCanvas = new Control(hWnd, IDC_STATIC_GROUP_CANVAS);
+    checkShowGrid = new Checkbox(hWnd, IDC_CHECK_SHOW_GRID);
+    editGridSize = new Control(hWnd, IDC_EDIT_GRID_SIZE);
 
     container
         ->addControl(canvas)
@@ -78,7 +79,7 @@ void setup()
     checkShowGrid->setChecked(true);
 }
 
-void CheckShowGrid_onClick(Control::Control * _control, const EventPtr & _event)
+void CheckShowGrid_onClick(Control * _control, const EventPtr & _event)
 {
     UNREFERENCED_PARAMETER(_control);
     UNREFERENCED_PARAMETER(_event);

@@ -23,7 +23,7 @@ namespace StupidPlot
     {
         using namespace Events;
 
-        namespace Control
+        namespace Controls
         {
             class Control;
 

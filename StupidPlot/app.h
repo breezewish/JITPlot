@@ -4,9 +4,9 @@
 #include <gdiplus.h>
 
 #include <resource.h>
-#include <ui/control/control.h>
-#include <ui/control/checkbox.h>
-#include <ui/control/canvas.h>
+#include <ui/controls/control.h>
+#include <ui/controls/checkbox.h>
+#include <ui/controls/canvas.h>
 #include <ui/container.h>
 #include <ui/layout/layoutmanager.h>
 #include <ui/events/event.h>

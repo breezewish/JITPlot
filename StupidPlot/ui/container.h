@@ -6,7 +6,7 @@
 
 #include <windows.h>
 
-#include <ui/control/control.h>
+#include <ui/controls/control.h>
 
 using std::vector;
 using std::unordered_map;
@@ -15,24 +15,26 @@ namespace StupidPlot
 {
     namespace UI
     {
+        using namespace Controls;
+
         class Container
         {
         protected:
             // all controls in the container
-            vector<Control::Control *>              controls;
+            vector<Control *>              controls;
 
             // hash map to find the control from control_id
-            unordered_map<int, Control::Control *>  id2control;
+            unordered_map<int, Control *>  id2control;
 
         public:
-            Container * addControl(Control::Control * control)
+            Container * addControl(Control * control)
             {
                 controls.push_back(control);
                 id2control[control->id] = control;
                 return this;
             }
 
-            Control::Control * getControlById(int id)
+            Control * getControlById(int id)
             {
                 if (id2control.find(id) == id2control.end())
                 {

@@ -3,7 +3,7 @@
 #include <windows.h>
 #include <gdiplus.h>
 
-#include <ui/control/control.h>
+#include <ui/controls/control.h>
 
 using namespace Gdiplus;
 
@@ -11,7 +11,7 @@ namespace StupidPlot
 {
     namespace UI
     {
-        namespace Control
+        namespace Controls
         {
             const int BUFFER_ENLARGE = 2;
 

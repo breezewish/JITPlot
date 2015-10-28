@@ -3,7 +3,7 @@
 #include <string>
 #include <windows.h>
 
-#include <ui/control/control.h>
+#include <ui/controls/control.h>
 
 using std::wstring;
 
@@ -11,7 +11,7 @@ namespace StupidPlot
 {
     namespace UI
     {
-        namespace Control
+        namespace Controls
         {
             class Textbox : public Control
             {

@@ -5,7 +5,7 @@
 #include <windows.h>
 
 #include <util.h>
-#include <ui/control/control.h>
+#include <ui/controls/control.h>
 
 namespace StupidPlot
 {
@@ -17,7 +17,7 @@ namespace StupidPlot
             {
             protected:
                 BOOL                isEmpty;
-                Control::Control    * control;
+                Control             * control;
 
                 BOOL                mLeft, mTop, mRight, mBottom;
 
@@ -30,7 +30,7 @@ namespace StupidPlot
                     isEmpty = true;
                 }
 
-                LayoutElement(Control::Control * _control)
+                LayoutElement(Control * _control)
                 {
                     control = _control;
                     isEmpty = false;

@@ -5,7 +5,7 @@
 #include <memory>
 
 #include <ui/events/event.h>
-#include <ui/control/control.h>
+#include <ui/controls/control.h>
 #include <ui/container.h>
 
 using std::shared_ptr;
@@ -35,7 +35,7 @@ namespace StupidPlot
                     case WM_COMMAND:
                         // get the source control
                         int id = LOWORD(wParam);
-                        Control::Control * control = container->getControlById(id);
+                        Control * control = container->getControlById(id);
                         if (!control) break;
 
                         // is mouse click?
