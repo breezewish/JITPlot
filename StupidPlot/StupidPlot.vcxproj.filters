@@ -77,12 +77,6 @@
     <ClInclude Include="plot\provider\provider.h">
       <Filter>头文件\plot\provider</Filter>
     </ClInclude>
-    <ClInclude Include="plot\plotdrawer.h">
-      <Filter>头文件\plot</Filter>
-    </ClInclude>
-    <ClInclude Include="plot\plotoptions.h">
-      <Filter>头文件\plot</Filter>
-    </ClInclude>
     <ClInclude Include="formula\lexer.h">
       <Filter>头文件\formula</Filter>
     </ClInclude>
@@ -157,6 +151,12 @@
     </ClInclude>
     <ClInclude Include="ui\events\mousewheelevent.h">
       <Filter>头文件\ui\events</Filter>
+    </ClInclude>
+    <ClInclude Include="plot\drawer.h">
+      <Filter>头文件\plot</Filter>
+    </ClInclude>
+    <ClInclude Include="plot\optionbag.h">
+      <Filter>头文件\plot</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

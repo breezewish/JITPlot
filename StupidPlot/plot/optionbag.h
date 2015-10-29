@@ -17,7 +17,7 @@ namespace StupidPlot
     {
         using Formula::ExpDrawerPtr;
 
-        class PlotOptions
+        class OptionBag
         {
         public:
             double                  drawLeft, drawRight, drawTop, drawBottom;
@@ -30,7 +30,7 @@ namespace StupidPlot
             vector<Gdiplus::Color>  formulaColors;
             vector<ExpDrawerPtr>    formulaObjects;
 
-            PlotOptions()
+            OptionBag()
             {
                 vpLeft = -5.0;
                 vpRight = 5.0;
@@ -53,6 +53,6 @@ namespace StupidPlot
             }
         };
 
-        typedef std::shared_ptr<PlotOptions> PlotOptionsPtr;
+        typedef std::shared_ptr<OptionBag> PlotOptionsPtr;
     }
 }

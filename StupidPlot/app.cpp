@@ -11,8 +11,8 @@
 #include <ui/layout/layoutmanager.h>
 #include <ui/events/event.h>
 #include <ui/events/eventmanager.h>
-#include <plot/plotdrawer.h>
-#include <plot/plotoptions.h>
+#include <plot/drawer.h>
+#include <plot/optionbag.h>
 #include <formula/exp.h>
 #include <formula/expdrawer.h>
 
@@ -166,7 +166,7 @@ namespace StupidPlot
     {
         mathConstants[L"PI"] = std::atan(1) * 4;
 
-        options = PlotOptionsPtr(new PlotOptions());
+        options = PlotOptionsPtr(new OptionBag());
         options->calculateEnlargedBounary(CANVAS_ENLARGE);
 
         options->formulaColors.push_back(Color(255, 47, 197, 255));
@@ -176,7 +176,7 @@ namespace StupidPlot
         options->formulaColors.push_back(Color(255, 47, 197, 0));
         options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"(x*10)/5", mathConstants)));*/
 
-        drawer = PlotDrawerPtr(new PlotDrawer(options, canvas->memDC));
+        drawer = PlotDrawerPtr(new Drawer(options, canvas->memDC));
         drawer->setCanvasSize(canvas->canvasW, canvas->canvasH);
 
         checkShowGrid->addEventHandler(EventName::EVENT_CLICK, CheckShowGrid_onClick);

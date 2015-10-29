@@ -7,7 +7,7 @@
 #include <gdiplus.h>
 
 #include <formula/expdrawer.h>
-#include <plot/plotoptions.h>
+#include <plot/optionbag.h>
 #include <plot/provider/provider.h>
 #include <plot/provider/gdiprovider.h>
 #include <plot/provider/gdiplusprovider.h>
@@ -20,7 +20,7 @@ namespace StupidPlot
     {
         using Provider::ProviderPtr;
 
-        class PlotDrawer
+        class Drawer
         {
         public:
             HDC                     hdc;
@@ -106,7 +106,7 @@ namespace StupidPlot
                 provider->drawGridLine(vertical, points, length);
             }
 
-            PlotDrawer(const PlotOptionsPtr & _options, HDC _hdc)
+            Drawer(const PlotOptionsPtr & _options, HDC _hdc)
             {
                 options = _options;
                 hdc = _hdc;
@@ -146,6 +146,6 @@ namespace StupidPlot
             }
         };
 
-        typedef std::shared_ptr<PlotDrawer> PlotDrawerPtr;
+        typedef std::shared_ptr<Drawer> PlotDrawerPtr;
     }
 }

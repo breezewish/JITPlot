@@ -124,6 +124,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>gdiplus.lib;ComCtl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'"</AdditionalManifestDependencies>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -142,6 +143,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>gdiplus.lib;ComCtl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'"</AdditionalManifestDependencies>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -165,8 +167,8 @@
     <ClInclude Include="formula\token.h" />
     <ClInclude Include="formula\exception.h" />
     <ClInclude Include="formula\parser.h" />
-    <ClInclude Include="plot\plotdrawer.h" />
-    <ClInclude Include="plot\plotoptions.h" />
+    <ClInclude Include="plot\drawer.h" />
+    <ClInclude Include="plot\optionbag.h" />
     <ClInclude Include="plot\provider\gdiplusprovider.h" />
     <ClInclude Include="plot\provider\gdiprovider.h" />
     <ClInclude Include="plot\provider\provider.h" />
