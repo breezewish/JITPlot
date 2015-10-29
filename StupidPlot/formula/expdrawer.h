@@ -34,7 +34,7 @@ namespace StupidPlot
                 expression = ExpressionPtr(new Expression(_exp, _constVars));
             }
 
-            void setViewportSize(int _width, int _height)
+            void setCanvasSize(int _width, int _height)
             {
                 width = _width;
                 height = _height;

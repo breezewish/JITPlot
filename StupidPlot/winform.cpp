@@ -1,9 +1,9 @@
 #include <windows.h>
 #include <CommCtrl.h>
 #include <tchar.h>
-#include "resource.h"
 
-#include "app.h"
+#include <resource.h>
+#include <app.h>
 
 using StupidPlot::App;
 

@@ -155,6 +155,9 @@
     <ClInclude Include="ui\controls\textbox.h">
       <Filter>头文件\ui\controls</Filter>
     </ClInclude>
+    <ClInclude Include="ui\events\canvasmoveevent.h">
+      <Filter>头文件\ui\events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StupidPlot.rc">

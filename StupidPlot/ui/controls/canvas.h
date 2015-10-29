@@ -79,10 +79,10 @@ namespace StupidPlot
                     SetCapture(_control->hWnd);
 
                     canvas->moving = true;
-                    canvas->sl = canvas->options->left;
-                    canvas->st = canvas->options->top;
-                    canvas->sr = canvas->options->right;
-                    canvas->sb = canvas->options->bottom;
+                    canvas->sl = canvas->options->drawLeft;
+                    canvas->st = canvas->options->drawTop;
+                    canvas->sr = canvas->options->drawRight;
+                    canvas->sb = canvas->options->drawBottom;
                     canvas->sx = event->x;
                     canvas->sy = event->y;
                 }
@@ -109,10 +109,10 @@ namespace StupidPlot
                     double dmx = canvas->drawer->translateCanvasW(dx);
                     double dmy = canvas->drawer->translateCanvasH(dy);
 
-                    canvas->options->left = canvas->sl - dmx;
-                    canvas->options->right = canvas->sr - dmx;
-                    canvas->options->top = canvas->st - dmy;
-                    canvas->options->bottom = canvas->sb - dmy;
+                    canvas->options->drawLeft = canvas->sl - dmx;
+                    canvas->options->drawRight = canvas->sr - dmx;
+                    canvas->options->drawTop = canvas->st - dmy;
+                    canvas->options->drawBottom = canvas->sb - dmy;
                     canvas->redraw();
                 }
 

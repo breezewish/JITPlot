@@ -14,7 +14,7 @@ namespace StupidPlot
             class GdiProvider : public Provider
             {
             protected:
-                int width, height;
+                int canvasWidth, canvasHeight;
             public:
                 GdiProvider(HDC _hdc) : Provider(_hdc)
                 {
@@ -28,8 +28,8 @@ namespace StupidPlot
                 {
                     if (length == 0) return;
 
-                    float ALLOWED_MIN = -4.0F * height;
-                    float ALLOWED_MAX = +4.0F * height;
+                    float ALLOWED_MIN = -2.0F * canvasHeight;
+                    float ALLOWED_MAX = +2.0F * canvasHeight;
 
                     HPEN pen = CreatePen(PS_SOLID, 2, color.ToCOLORREF());
                     HGDIOBJ oldPen = SelectObject(hdc, pen);
@@ -68,7 +68,7 @@ namespace StupidPlot
 
                 virtual void drawGridLine(BOOL vertical, const shared_ptr<int> & points, int length)
                 {
-                    HPEN pen = CreatePen(PS_SOLID, 1, RGB(200, 200, 200));
+                    HPEN pen = CreatePen(PS_SOLID, 2, RGB(233, 233, 233));
                     HGDIOBJ oldPen = SelectObject(hdc, pen);
 
                     for (int i = 0; i < length; ++i)
@@ -78,12 +78,12 @@ namespace StupidPlot
                         if (vertical)
                         {
                             MoveToEx(hdc, 0, p, NULL);
-                            LineTo(hdc, width, p);
+                            LineTo(hdc, canvasWidth, p);
                         }
                         else
                         {
                             MoveToEx(hdc, p, 0, NULL);
-                            LineTo(hdc, p, height);
+                            LineTo(hdc, p, canvasHeight);
                         }
                     }
 
@@ -91,13 +91,13 @@ namespace StupidPlot
                     DeleteObject(pen);
                 }
 
-                virtual void beginDraw(int w, int h)
+                virtual void beginDraw(int cw, int ch)
                 {
-                    width = w;
-                    height = h;
+                    canvasWidth = cw;
+                    canvasHeight = ch;
                     HBRUSH background = CreateSolidBrush(RGB(255, 255, 255));
                     HGDIOBJ oldBackground = SelectObject(hdc, background);
-                    Rectangle(hdc, 0, 0, width, height);
+                    Rectangle(hdc, 0, 0, canvasWidth, canvasHeight);
                     SelectObject(hdc, oldBackground);
                     DeleteObject(background);
                 }

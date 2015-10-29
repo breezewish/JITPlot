@@ -20,10 +20,8 @@ namespace StupidPlot
         class PlotOptions
         {
         public:
-            double                  left = -30.0;
-            double                  right = 30.0;
-            double                  top = 5.0;
-            double                  bottom = -5.0;
+            double                  drawLeft, drawRight, drawTop, drawBottom;
+            double                  vpLeft, vpRight, vpTop, vpBottom;
 
             bool                    keepRatio = false;
 
@@ -31,6 +29,28 @@ namespace StupidPlot
 
             vector<Gdiplus::Color>  formulaColors;
             vector<ExpDrawerPtr>    formulaObjects;
+
+            PlotOptions()
+            {
+                vpLeft = -5.0;
+                vpRight = 5.0;
+                vpTop = 5.0;
+                vpBottom = -5.0;
+                drawLeft = vpLeft;
+                drawTop = vpTop;
+                drawRight = vpRight;
+                drawBottom = vpBottom;
+            }
+
+            void calculateEnlargedBounary(double enlargeFactor)
+            {
+                double vpW = vpRight - vpLeft;
+                double vpH = vpTop - vpBottom;
+                drawLeft = vpLeft - (enlargeFactor - 1) * vpW / 2;
+                drawRight = drawLeft + vpW * enlargeFactor;
+                drawBottom = vpBottom - (enlargeFactor - 1) * vpH / 2;
+                drawTop = drawBottom + vpH * enlargeFactor;
+            }
         };
 
         typedef std::shared_ptr<PlotOptions> PlotOptionsPtr;

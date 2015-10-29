@@ -32,40 +32,40 @@ namespace StupidPlot
 
             inline double translateCanvasW(int w)
             {
-                return (static_cast<double>(w) / width) * (options->right - options->left);
+                return (static_cast<double>(w) / width) * (options->drawRight - options->drawLeft);
             }
 
             inline double translateCanvasH(int h)
             {
-                return (static_cast<double>(h) / height) * (options->top - options->bottom);
+                return (static_cast<double>(h) / height) * (options->drawTop - options->drawBottom);
             }
 
             inline double translateCanvasX(int x)
             {
-                return (static_cast<double>(x) / width) * (options->right - options->left) + options->left;
+                return translateCanvasW(x) + options->drawLeft;
             }
 
             inline double translateCanvasY(int y)
             {
-                return (static_cast<double>(y) / height) * (options->top - options->bottom) + options->top;
+                return translateCanvasH(y) + options->drawTop;
             }
 
             inline double translateFormulaX(double x)
             {
-                return (x - (options->left)) / (options->right - options->left) * width;
+                return (x - (options->drawLeft)) / (options->drawRight - options->drawLeft) * width;
             }
 
             inline double translateFormulaY(double y)
             {
-                return (y - (options->bottom)) / (options->top - options->bottom) * height;
+                return (y - (options->drawBottom)) / (options->drawTop - options->drawBottom) * height;
             }
 
-            void drawPlotLine(const ExpDrawerPtr & formulaDrawer, Gdiplus::Color color)
+            inline void drawPlotLine(const ExpDrawerPtr & formulaDrawer, Gdiplus::Color color)
             {
                 int length = 0;
                 auto points = shared_ptr<Provider::POINTF>(new Provider::POINTF[width], array_deleter<Provider::POINTF>());
 
-                auto formulaPoints = formulaDrawer->evalAndTransform(options->left, options->right, options->bottom, options->top);
+                auto formulaPoints = formulaDrawer->evalAndTransform(options->drawLeft, options->drawRight, options->drawBottom, options->drawTop);
                 auto pt = points.get();
 
                 for (int i = 0; i < width; ++i)
@@ -78,10 +78,10 @@ namespace StupidPlot
                 provider->drawPlotLine(points, length, color);
             }
 
-            void drawGridLine(BOOL vertical)
+            inline void drawGridLine(BOOL vertical)
             {
-                int min = static_cast<int>(vertical ? options->bottom : options->left);
-                int max = static_cast<int>(vertical ? options->top : options->right);
+                int min = static_cast<int>(vertical ? options->drawBottom : options->drawLeft);
+                int max = static_cast<int>(vertical ? options->drawTop : options->drawRight);
                 int sz = ((max - min + 1) / options->gridSpacing) + 1;
 
                 int length = 0;
@@ -113,20 +113,24 @@ namespace StupidPlot
                 provider = ProviderPtr(new Provider::GdiProvider(hdc));
             }
 
-            void draw(int canvasWidth, int canvasHeight)
+            inline void setCanvasSize(int w, int h)
             {
-                if (width != canvasWidth || height != canvasHeight)
+                if (width != w || height != h)
                 {
                     for (auto formula : options->formulaObjects)
                     {
-                        formula->setViewportSize(canvasWidth, canvasHeight);
+                        formula->setCanvasSize(w, h);
                     }
                 }
 
-                width = canvasWidth;
-                height = canvasHeight;
+                width = w;
+                height = h;
+            }
 
-                provider->beginDraw(width, height);
+            inline void draw(int canvasWidth, int canvasHeight)
+            {
+                setCanvasSize(canvasWidth, canvasHeight);
+                provider->beginDraw(canvasWidth, canvasHeight);
 
                 // Draw grid lines
                 drawGridLine(false);

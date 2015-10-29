@@ -24,6 +24,9 @@ namespace StupidPlot
                 EVENT_MOUSEDOWN,
                 EVENT_MOUSEMOVE,
                 EVENT_MOUSEUP,
+                EVENT_CANVAS_BEGINMOVE,
+                EVENT_CANVAS_ENDMOVE,
+                EVENT_CANVAS_MOVE,
             };
 
             enum class EventType

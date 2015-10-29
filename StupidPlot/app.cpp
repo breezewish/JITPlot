@@ -1,87 +1,182 @@
+#include <map>
+#include <string>
+#include <cmath>
+
 #include <app.h>
+#include <resource.h>
+#include <ui/controls/control.h>
+#include <ui/controls/checkbox.h>
+#include <ui/controls/bufferedcanvas.h>
+#include <ui/container.h>
+#include <ui/layout/layoutmanager.h>
+#include <ui/events/event.h>
+#include <ui/events/eventmanager.h>
+#include <plot/plotdrawer.h>
+#include <plot/plotoptions.h>
+#include <formula/exp.h>
+#include <formula/expdrawer.h>
 
-using namespace Layout;
-using namespace Controls;
-using namespace Events;
-
-GdiplusStartupInput     gdiplusStartupInput;
-ULONG_PTR               gdiplusToken;
-
-HWND                    hWnd;
-
-ContainerPtr            container;
-LayoutManagerPtr        lm;
-EventManagerPtr         em;
-
-Control                 * groupCanvas;
-Checkbox                * checkShowGrid;
-Control                 * editGridSize;
-Canvas                  * canvas;
-
-void CheckShowGrid_onClick(Control * _control, const EventPtr & _event);
-void setup();
-
-void StupidPlot::App::init(HWND _hWnd)
+namespace StupidPlot
 {
-    GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+    using std::map;
+    using std::wstring;
 
-    hWnd = _hWnd;
+    using namespace Gdiplus;
+    using namespace UI;
+    using namespace Layout;
+    using namespace Controls;
+    using namespace Events;
+    using namespace Plot;
+    using namespace Formula;
 
-    container = ContainerPtr(new Container());
-    lm = LayoutManagerPtr(new LayoutManager(hWnd));
-    em = EventManagerPtr(new EventManager(container));
+    const double CANVAS_ENLARGE = 2.0;
 
-    canvas = new Canvas(hWnd, IDC_STATIC_CANVAS);
-    groupCanvas = new Control(hWnd, IDC_STATIC_GROUP_CANVAS);
-    checkShowGrid = new Checkbox(hWnd, IDC_CHECK_SHOW_GRID);
-    editGridSize = new Control(hWnd, IDC_EDIT_GRID_SIZE);
+    map<wstring, double>    mathConstants;
 
-    container
-        ->addControl(canvas)
-        ->addControl(groupCanvas)
-        ->addControl(checkShowGrid)
-        ->addControl(editGridSize);
+    GdiplusStartupInput     gdiplusStartupInput;
+    ULONG_PTR               gdiplusToken;
 
-    lm
-        ->enableMagnet(canvas, true, true, true, true)
-        ->enableMagnet(groupCanvas, false, true, true, false)
-        ->enableMagnet(checkShowGrid, false, true, true, false)
-        ->enableMagnet(editGridSize, false, true, true, false);
+    HWND                    hWnd;
 
-    updateSize();
-    setup();
-}
+    ContainerPtr            container;
+    LayoutManagerPtr        lm;
+    EventManagerPtr         em;
 
-void StupidPlot::App::terminate()
-{
-    if (editGridSize) delete editGridSize;
-    if (checkShowGrid) delete checkShowGrid;
-    if (groupCanvas) delete groupCanvas;
-    if (canvas) delete canvas;
+    Control                 * groupCanvas;
+    Checkbox                * checkShowGrid;
+    Control                 * editGridSize;
+    BufferedCanvas          * canvas;
 
-    GdiplusShutdown(gdiplusToken);
-}
+    PlotOptionsPtr          options;
+    PlotDrawerPtr           drawer;
+    double                  initialLeft, initialRight, initialTop, initialBottom;
 
-void StupidPlot::App::updateSize()
-{
-    lm->updateSize();
-    lm->relayout();
-}
+    void setup();
 
-BOOL StupidPlot::App::handleEvent(UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    return em->handle(uMsg, wParam, lParam);
-}
+    void App::init(HWND _hWnd)
+    {
+        GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
-void setup()
-{
-    checkShowGrid->addEventHandler(EventName::EVENT_CLICK, CheckShowGrid_onClick);
-    checkShowGrid->setChecked(true);
-}
+        hWnd = _hWnd;
 
-void CheckShowGrid_onClick(Control * _control, const EventPtr & _event)
-{
-    UNREFERENCED_PARAMETER(_control);
-    UNREFERENCED_PARAMETER(_event);
-    editGridSize->setEnabled(checkShowGrid->isChecked());
+        container = ContainerPtr(new Container());
+        lm = LayoutManagerPtr(new LayoutManager(hWnd));
+        em = EventManagerPtr(new EventManager(container));
+
+        canvas = new BufferedCanvas(hWnd, IDC_STATIC_CANVAS, CANVAS_ENLARGE);
+        groupCanvas = new Control(hWnd, IDC_STATIC_GROUP_CANVAS);
+        checkShowGrid = new Checkbox(hWnd, IDC_CHECK_SHOW_GRID);
+        editGridSize = new Control(hWnd, IDC_EDIT_GRID_SIZE);
+
+        container
+            ->addControl(canvas)
+            ->addControl(groupCanvas)
+            ->addControl(checkShowGrid)
+            ->addControl(editGridSize);
+
+        lm
+            ->enableMagnet(canvas, true, true, true, true)
+            ->enableMagnet(groupCanvas, false, true, true, false)
+            ->enableMagnet(checkShowGrid, false, true, true, false)
+            ->enableMagnet(editGridSize, false, true, true, false);
+
+        updateSize();
+        setup();
+    }
+
+    void App::terminate()
+    {
+        if (editGridSize) delete editGridSize;
+        if (checkShowGrid) delete checkShowGrid;
+        if (groupCanvas) delete groupCanvas;
+        if (canvas) delete canvas;
+
+        GdiplusShutdown(gdiplusToken);
+    }
+
+    void App::updateSize()
+    {
+        lm->updateSize();
+        lm->relayout();
+    }
+
+    BOOL App::handleEvent(UINT uMsg, WPARAM wParam, LPARAM lParam)
+    {
+        return em->handle(uMsg, wParam, lParam);
+    }
+
+    inline void CheckShowGrid_onClick(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        editGridSize->setEnabled(checkShowGrid->isChecked());
+    }
+
+    inline void PlotCanvas_onRedrawBuffer(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        // We need to make sure that vp x <-> formula left
+        double dx = drawer->translateCanvasW(canvas->vpX);
+        double dy = drawer->translateCanvasH(canvas->vpY);
+        double w = drawer->translateCanvasW(canvas->canvasW);
+        double h = drawer->translateCanvasH(canvas->canvasH);
+        options->drawLeft = options->vpLeft - dx;
+        options->drawBottom = options->vpBottom - dy;
+        options->drawRight = options->drawLeft + w;
+        options->drawTop = options->drawBottom + h;
+        //Debug::Debug() << L"REDRAW drawLeft=" << options->drawLeft << L" drawTop=" << options->drawTop >> Debug::writeln;
+        //Debug::Debug() << L"REDRAW vpLeft=" << options->vpLeft << L" vpTop=" << options->vpTop >> Debug::writeln;
+        drawer->draw(canvas->canvasW, canvas->canvasH);
+    }
+
+    inline void PlotCanvas_onCanvasBeginMove(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        initialLeft = options->vpLeft;
+        initialRight = options->vpRight;
+        initialTop = options->vpTop;
+        initialBottom = options->vpBottom;
+    }
+
+    inline void PlotCanvas_onCanvasMove(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        auto event = std::dynamic_pointer_cast<CanvasMoveEvent>(_event);
+
+        double dx = drawer->translateCanvasW(event->dx);
+        double dy = drawer->translateCanvasH(event->dy);
+        options->vpLeft = initialLeft - dx;
+        options->vpRight = initialRight - dx;
+        options->vpTop = initialTop - dy;
+        options->vpBottom = initialBottom - dy;
+        //        Debug::Debug() << L"MOVE edx=" << event->dx << L" edy=" << event->dy << L" dx=" << dx << L" dy=" << dy << L" vpLeft=" << options->vpLeft << L" vpRight=" << options->vpRight << L" vpTop=" << options->vpTop << L" vpBottom=" << options->vpBottom >> Debug::writeln;
+        //        Debug::Debug() << L"Canvas width=" << canvas->canvasW << L" height=" << canvas->canvasH >> Debug::writeln;
+        //        Debug::Debug() << L"VP width=" << canvas->width << L" height=" << canvas->height >> Debug::writeln;
+    }
+
+    void setup()
+    {
+        mathConstants[L"PI"] = std::atan(1) * 4;
+
+        options = PlotOptionsPtr(new PlotOptions());
+        options->calculateEnlargedBounary(CANVAS_ENLARGE);
+        options->formulaColors.push_back(Color(255, 47, 197, 255));
+        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"1/x", mathConstants)));
+
+        drawer = PlotDrawerPtr(new PlotDrawer(options, canvas->memDC));
+        drawer->setCanvasSize(canvas->canvasW, canvas->canvasH);
+
+        checkShowGrid->addEventHandler(EventName::EVENT_CLICK, CheckShowGrid_onClick);
+        checkShowGrid->setChecked(true);
+
+        canvas->addEventHandler(EventName::EVENT_REDRAWBUFFER, PlotCanvas_onRedrawBuffer);
+        canvas->addEventHandler(EventName::EVENT_CANVAS_BEGINMOVE, PlotCanvas_onCanvasBeginMove);
+        canvas->addEventHandler(EventName::EVENT_CANVAS_MOVE, PlotCanvas_onCanvasMove);
+        canvas->forceRedraw();
+    }
 }

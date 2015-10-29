@@ -67,34 +67,23 @@ namespace StupidPlot
                         control->dispatchEvent(EventName::EVENT_MOUSEMOVE, EventPtr(new MouseEvent(wParam, lParam)));
                         break;
                     case WM_SIZE:
-                        control->dispatchEvent(EventName::EVENT_RESIZING, EventPtr(new Event()));
-                        /*
-                    case WM_SIZE:
-                    case WM_SIZING:
-                        control->resize();
-                        if (control->enableDoubleBuffer)
-                        {
-                            control->resizeDoubleBuffer();
-                            InvalidateRect(control->hWnd, NULL, false);
-                        }
-                        control->dispatchEvent(Event::EVENT_REDRAW, Event::EventPtr(new Event::RawEvent(uMsg, wParam, lParam)));
+                        control->updateSize();
+                        control->dispatchEvent(EventName::EVENT_RESIZE, EventPtr(new Event()));
                         break;
                     case WM_PAINT:
-                        control->updateDoubleBuffer();
-                        control->dispatchEvent(Event::EVENT_PAINT, Event::EventPtr(new Event::RawEvent(uMsg, wParam, lParam)));
+                        control->dispatchEvent(EventName::EVENT_PAINT, EventPtr(new Event()));
                         break;
-                        */
                     }
 
                     return DefSubclassProc(hWnd, uMsg, wParam, lParam);
                 }
 
-                void initSubclass()
+                inline void initSubclass()
                 {
                     SetWindowSubclass(hWnd, ctrlProc, 0, reinterpret_cast<DWORD_PTR>(this));
                 }
 
-                void resize()
+                inline void updateSize()
                 {
                     RECT rect;
                     GetWindowRect(hWnd, &rect);
@@ -118,7 +107,7 @@ namespace StupidPlot
                     hWnd = GetDlgItem(_hWnd, id);
                     hDC = GetDC(hWnd);
 
-                    resize();
+                    updateSize();
                     initSubclass();
                 }
 
@@ -126,13 +115,13 @@ namespace StupidPlot
                 {
                 }
 
-                Control * addEventHandler(EventName eventName, CONTROLEVENTHANDLER handler)
+                inline Control * addEventHandler(EventName eventName, CONTROLEVENTHANDLER handler)
                 {
                     handlers[eventName].push_back(handler);
                     return this;
                 }
 
-                Control * dispatchEvent(EventName eventName, const EventPtr & event)
+                inline Control * dispatchEvent(EventName eventName, const EventPtr & event)
                 {
                     auto registeredHandlers = handlers.find(eventName);
                     if (registeredHandlers == handlers.end())
@@ -147,13 +136,13 @@ namespace StupidPlot
                     return this;
                 }
 
-                Control * setEnabled(BOOL enable)
+                inline Control * setEnabled(BOOL enable)
                 {
                     EnableWindow(hWnd, enable);
                     return this;
                 }
 
-                BOOL isEnabled()
+                inline BOOL isEnabled()
                 {
                     return IsWindowEnabled(hWnd);
                 }
