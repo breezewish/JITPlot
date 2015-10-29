@@ -127,8 +127,6 @@ namespace StupidPlot
         options->drawBottom = options->vpBottom - dy;
         options->drawRight = options->drawLeft + w;
         options->drawTop = options->drawBottom + h;
-        //Debug::Debug() << L"REDRAW drawLeft=" << options->drawLeft << L" drawTop=" << options->drawTop >> Debug::writeln;
-        //Debug::Debug() << L"REDRAW vpLeft=" << options->vpLeft << L" vpTop=" << options->vpTop >> Debug::writeln;
         drawer->draw(canvas->canvasW, canvas->canvasH);
     }
 
@@ -154,9 +152,6 @@ namespace StupidPlot
         options->vpRight = initialRight - dx;
         options->vpTop = initialTop - dy;
         options->vpBottom = initialBottom - dy;
-        //        Debug::Debug() << L"MOVE edx=" << event->dx << L" edy=" << event->dy << L" dx=" << dx << L" dy=" << dy << L" vpLeft=" << options->vpLeft << L" vpRight=" << options->vpRight << L" vpTop=" << options->vpTop << L" vpBottom=" << options->vpBottom >> Debug::writeln;
-        //        Debug::Debug() << L"Canvas width=" << canvas->canvasW << L" height=" << canvas->canvasH >> Debug::writeln;
-        //        Debug::Debug() << L"VP width=" << canvas->width << L" height=" << canvas->height >> Debug::writeln;
     }
 
     void setup()
@@ -166,7 +161,7 @@ namespace StupidPlot
         options = PlotOptionsPtr(new PlotOptions());
         options->calculateEnlargedBounary(CANVAS_ENLARGE);
         options->formulaColors.push_back(Color(255, 47, 197, 255));
-        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"1/x", mathConstants)));
+        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"sin(x)", mathConstants)));
 
         drawer = PlotDrawerPtr(new PlotDrawer(options, canvas->memDC));
         drawer->setCanvasSize(canvas->canvasW, canvas->canvasH);

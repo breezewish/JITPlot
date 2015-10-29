@@ -76,7 +76,7 @@ namespace StupidPlot
                     }
                     else if (xMin < evalXMin)
                     {
-                        // move back
+                        // move right
                         int offset = static_cast<int>(std::round((evalXMin - xMin) / newInterval));
                         memcpy(&evalCache[offset], &evalCache[0], (n - offset) * sizeof(double));
                         // eval
@@ -89,11 +89,11 @@ namespace StupidPlot
                     }
                     else
                     {
-                        // move forward
+                        // move left
                         int offset = static_cast<int>(std::round((xMax - evalXMax) / newInterval));
                         memcpy(&evalCache[0], &evalCache[offset], (n - offset) * sizeof(double));
                         // eval
-                        double x = xMax + newInterval;
+                        double x = evalXMax + newInterval;
                         for (int i = n - offset; i < n; ++i)
                         {
                             evalCache[i] = eval(x);
