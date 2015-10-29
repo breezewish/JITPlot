@@ -154,14 +154,27 @@ namespace StupidPlot
         options->vpBottom = initialBottom - dy;
     }
 
+    inline void PlotCanvas_onMouseWheel(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        auto event = std::dynamic_pointer_cast<MouseWheelEvent>(_event);
+
+        Debug::Debug() << event->delta >> Debug::writeln;
+    }
+
     void setup()
     {
         mathConstants[L"PI"] = std::atan(1) * 4;
 
         options = PlotOptionsPtr(new PlotOptions());
         options->calculateEnlargedBounary(CANVAS_ENLARGE);
+
         options->formulaColors.push_back(Color(255, 47, 197, 255));
-        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"sin(x)", mathConstants)));
+        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"(sin(x+1)+1)/2", mathConstants)));
+        /*options->formulaColors.push_back(Color(255, 255, 197, 255));
+        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"(cos(x-1)-1)/2", mathConstants)));
+        options->formulaColors.push_back(Color(255, 47, 197, 0));
+        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"(x*10)/5", mathConstants)));*/
 
         drawer = PlotDrawerPtr(new PlotDrawer(options, canvas->memDC));
         drawer->setCanvasSize(canvas->canvasW, canvas->canvasH);
@@ -169,9 +182,10 @@ namespace StupidPlot
         checkShowGrid->addEventHandler(EventName::EVENT_CLICK, CheckShowGrid_onClick);
         checkShowGrid->setChecked(true);
 
-        canvas->addEventHandler(EventName::EVENT_REDRAWBUFFER, PlotCanvas_onRedrawBuffer);
+        canvas->addEventHandler(EventName::EVENT_BUFFER_REDRAW, PlotCanvas_onRedrawBuffer);
         canvas->addEventHandler(EventName::EVENT_CANVAS_BEGINMOVE, PlotCanvas_onCanvasBeginMove);
         canvas->addEventHandler(EventName::EVENT_CANVAS_MOVE, PlotCanvas_onCanvasMove);
+        canvas->addEventHandler(EventName::EVENT_MOUSEWHEEL, PlotCanvas_onMouseWheel);
         canvas->forceRedraw();
     }
 }

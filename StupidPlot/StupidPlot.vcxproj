@@ -173,7 +173,6 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ui\container.h" />
     <ClInclude Include="ui\controls\bufferedcanvas.h" />
-    <ClInclude Include="ui\controls\canvas.h" />
     <ClInclude Include="ui\controls\checkbox.h" />
     <ClInclude Include="ui\controls\control.h" />
     <ClInclude Include="ui\controls\textbox.h" />
@@ -181,6 +180,7 @@
     <ClInclude Include="ui\events\event.h" />
     <ClInclude Include="ui\events\eventmanager.h" />
     <ClInclude Include="ui\events\mouseevent.h" />
+    <ClInclude Include="ui\events\mousewheelevent.h" />
     <ClInclude Include="ui\events\rawevent.h" />
     <ClInclude Include="ui\layout\layoutmanager.h" />
     <ClInclude Include="ui\layout\layoutelement.h" />

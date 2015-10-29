@@ -143,9 +143,6 @@
     <ClInclude Include="ui\controls\bufferedcanvas.h">
       <Filter>头文件\ui\controls</Filter>
     </ClInclude>
-    <ClInclude Include="ui\controls\canvas.h">
-      <Filter>头文件\ui\controls</Filter>
-    </ClInclude>
     <ClInclude Include="ui\controls\checkbox.h">
       <Filter>头文件\ui\controls</Filter>
     </ClInclude>
@@ -156,6 +153,9 @@
       <Filter>头文件\ui\controls</Filter>
     </ClInclude>
     <ClInclude Include="ui\events\canvasmoveevent.h">
+      <Filter>头文件\ui\events</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\events\mousewheelevent.h">
       <Filter>头文件\ui\events</Filter>
     </ClInclude>
   </ItemGroup>

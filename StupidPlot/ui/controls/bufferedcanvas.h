@@ -156,7 +156,7 @@ namespace StupidPlot
 
                 void forceRedraw()
                 {
-                    dispatchEvent(EventName::EVENT_REDRAWBUFFER, EventPtr(new Event()));
+                    dispatchEvent(EventName::EVENT_BUFFER_REDRAW, EventPtr(new Event()));
                     forceCopyBuffer();
                 }
             };

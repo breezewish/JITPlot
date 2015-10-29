@@ -13,9 +13,9 @@ namespace StupidPlot
     {
         namespace Events
         {
-            enum class EventName
+            enum class EventName : size_t
             {
-                EVENT_REDRAWBUFFER,
+                EVENT_BUFFER_REDRAW,
                 EVENT_CLICK,
                 EVENT_PAINT,
                 EVENT_RESIZING,
@@ -24,9 +24,12 @@ namespace StupidPlot
                 EVENT_MOUSEDOWN,
                 EVENT_MOUSEMOVE,
                 EVENT_MOUSEUP,
+                EVENT_MOUSEWHEEL,
                 EVENT_CANVAS_BEGINMOVE,
                 EVENT_CANVAS_ENDMOVE,
                 EVENT_CANVAS_MOVE,
+
+                EVENT_LAST
             };
 
             enum class EventType

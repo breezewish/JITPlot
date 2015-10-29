@@ -17,6 +17,9 @@ namespace StupidPlot
     {
         using namespace Controls;
 
+        const int CONTROLS_ID_START = 1000;
+        const int MAX_CONTROLS = 50;
+
         class Container
         {
         protected:
@@ -24,23 +27,32 @@ namespace StupidPlot
             vector<Control *>              controls;
 
             // hash map to find the control from control_id
-            unordered_map<int, Control *>  id2control;
+            Control                        *id2control[MAX_CONTROLS];
 
         public:
+            Container()
+            {
+                for (int i = 0; i < MAX_CONTROLS; ++i)
+                {
+                    id2control[i] = NULL;
+                }
+            }
+
+            inline size_t transformControlId(size_t id)
+            {
+                return id - CONTROLS_ID_START;
+            }
+
             Container * addControl(Control * control)
             {
                 controls.push_back(control);
-                id2control[control->id] = control;
+                id2control[transformControlId(control->id)] = control;
                 return this;
             }
 
-            Control * getControlById(int id)
+            inline Control * getControlById(int id)
             {
-                if (id2control.find(id) == id2control.end())
-                {
-                    return 0;
-                }
-                return id2control[id];
+                return id2control[transformControlId(id)];
             }
         };
 

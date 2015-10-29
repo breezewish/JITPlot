@@ -26,7 +26,7 @@ namespace StupidPlot
                 }
 
                 // Window messages
-                BOOL handle(UINT uMsg, WPARAM wParam, LPARAM lParam)
+                inline BOOL handle(UINT uMsg, WPARAM wParam, LPARAM lParam)
                 {
                     UNREFERENCED_PARAMETER(lParam);
 
@@ -36,7 +36,7 @@ namespace StupidPlot
                         // get the source control
                         int id = LOWORD(wParam);
                         Control * control = container->getControlById(id);
-                        if (!control) break;
+                        if (control == NULL) break;
 
                         // is mouse click?
                         WORD wmEvent = HIWORD(wParam);

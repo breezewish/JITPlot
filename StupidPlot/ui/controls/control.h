@@ -12,6 +12,7 @@
 #include <ui/events/event.h>
 #include <ui/events/rawevent.h>
 #include <ui/events/mouseevent.h>
+#include <ui/events/mousewheelevent.h>
 
 using std::vector;
 using std::unordered_map;
@@ -27,15 +28,40 @@ namespace StupidPlot
         {
             class Control;
 
-            typedef void(*CONTROLEVENTHANDLER)(
+            typedef void(*EventCallback)(
                 Control * control,
                 const EventPtr & event
                 );
 
+            struct EventListeners
+            {
+                int n;
+                EventCallback listeners[20];
+
+                EventListeners()
+                {
+                    n = 0;
+                }
+
+                void addListener(EventCallback listener)
+                {
+                    listeners[n] = listener;
+                    n++;
+                }
+
+                inline void dispatch(Control * control, const EventPtr & ev)
+                {
+                    for (int i = 0; i < n; ++i)
+                    {
+                        listeners[i](control, ev);
+                    }
+                }
+            };
+
             class Control
             {
             protected:
-                unordered_map<EventName, vector<CONTROLEVENTHANDLER>> handlers;
+                EventListeners handlers[static_cast<size_t>(EventName::EVENT_LAST)];
 
                 static LRESULT CALLBACK ctrlProc(
                     HWND hWnd,
@@ -57,6 +83,9 @@ namespace StupidPlot
                     {
                     case WM_NCHITTEST:
                         return HTCLIENT;
+                    case WM_MOUSEWHEEL:
+                        control->dispatchEvent(EventName::EVENT_MOUSEWHEEL, EventPtr(new MouseWheelEvent(wParam, lParam)));
+                        break;
                     case WM_LBUTTONDOWN:
                         control->dispatchEvent(EventName::EVENT_MOUSEDOWN, EventPtr(new MouseEvent(wParam, lParam)));
                         break;
@@ -115,24 +144,15 @@ namespace StupidPlot
                 {
                 }
 
-                inline Control * addEventHandler(EventName eventName, CONTROLEVENTHANDLER handler)
+                inline Control * addEventHandler(EventName eventName, EventCallback handler)
                 {
-                    handlers[eventName].push_back(handler);
+                    handlers[static_cast<size_t>(eventName)].addListener(handler);
                     return this;
                 }
 
                 inline Control * dispatchEvent(EventName eventName, const EventPtr & event)
                 {
-                    auto registeredHandlers = handlers.find(eventName);
-                    if (registeredHandlers == handlers.end())
-                    {
-                        return this;
-                    }
-                    for (CONTROLEVENTHANDLER handler : registeredHandlers->second)
-                    {
-                        handler(this, event);
-                    }
-
+                    handlers[static_cast<size_t>(eventName)].dispatch(this, event);
                     return this;
                 }
 
