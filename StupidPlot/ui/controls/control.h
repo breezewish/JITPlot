@@ -84,7 +84,7 @@ namespace StupidPlot
                     case WM_NCHITTEST:
                         return HTCLIENT;
                     case WM_MOUSEWHEEL:
-                        control->dispatchEvent(EventName::EVENT_MOUSEWHEEL, EventPtr(new MouseWheelEvent(wParam, lParam)));
+                        control->dispatchEvent(EventName::EVENT_MOUSEWHEEL, EventPtr(new MouseWheelEvent(wParam, lParam, hWnd)));
                         break;
                     case WM_LBUTTONDOWN:
                         control->dispatchEvent(EventName::EVENT_MOUSEDOWN, EventPtr(new MouseEvent(wParam, lParam)));

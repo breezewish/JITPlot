@@ -47,7 +47,7 @@ namespace StupidPlot
 
             inline double translateCanvasY(int y)
             {
-                return translateCanvasH(y) + options->drawTop;
+                return translateCanvasH(height - y) + options->drawBottom;
             }
 
             inline double translateFormulaX(double x)
@@ -57,7 +57,7 @@ namespace StupidPlot
 
             inline double translateFormulaY(double y)
             {
-                return (y - (options->drawBottom)) / (options->drawTop - options->drawBottom) * height;
+                return height - ((y - (options->drawBottom)) / (options->drawTop - options->drawBottom) * height);
             }
 
             inline void drawPlotLine(const ExpDrawerPtr & formulaDrawer, Gdiplus::Color color)
@@ -94,7 +94,7 @@ namespace StupidPlot
                     if (p % options->gridSpacing == 0)
                     {
                         int canvasPos = static_cast<int>(vertical ? translateFormulaY(p) : translateFormulaX(p));
-                        if (canvasPos - lastDrawScreenPos >= 10)
+                        if (std::abs(canvasPos - lastDrawScreenPos) >= 10)
                         {
                             points.get()[length] = canvasPos;
                             length++;

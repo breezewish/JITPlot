@@ -13,6 +13,7 @@
 #include <ui/events/eventmanager.h>
 #include <plot/drawer.h>
 #include <plot/optionbag.h>
+#include <plot/animation.h>
 #include <formula/exp.h>
 #include <formula/expdrawer.h>
 
@@ -50,6 +51,13 @@ namespace StupidPlot
     PlotOptionsPtr          options;
     PlotDrawerPtr           drawer;
     double                  initialLeft, initialRight, initialTop, initialBottom;
+
+    AnimationPtr            animation;
+
+    double                  scaleFactor = 1.0;
+    int                     scrollValue = 0;
+    int                     completedScrollValue = 0;
+    double                  scaleOriginX, scaleOriginY;
 
     void setup();
 
@@ -102,6 +110,12 @@ namespace StupidPlot
 
     BOOL App::handleEvent(UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
+        if (uMsg == WM_TIMER && wParam == IDT_TIMER_PLOT)
+        {
+            animation->update();
+            return false;
+        }
+
         return em->handle(uMsg, wParam, lParam);
     }
 
@@ -150,8 +164,48 @@ namespace StupidPlot
         double dy = drawer->translateCanvasH(event->dy);
         options->vpLeft = initialLeft - dx;
         options->vpRight = initialRight - dx;
-        options->vpTop = initialTop - dy;
-        options->vpBottom = initialBottom - dy;
+        options->vpTop = initialTop + dy;
+        options->vpBottom = initialBottom + dy;
+    }
+
+    void applyScaleFactor()
+    {
+        scrollValue -= completedScrollValue;
+        scaleFactor = 1.0;
+
+        initialLeft = options->drawLeft;
+        initialRight = options->drawRight;
+        initialTop = options->drawTop;
+        initialBottom = options->drawBottom;
+    }
+
+    inline void onAnimationUpdate(double k)
+    {
+        completedScrollValue = static_cast<int>(k * scrollValue);
+        double scaleFactor;
+
+        if (completedScrollValue > 0)
+        {
+            scaleFactor = 1.0 + static_cast<double>(completedScrollValue) / 20;
+        }
+        else if (completedScrollValue < 0)
+        {
+            scaleFactor = 1.0 / (1 + static_cast<double>(-completedScrollValue) / 20);
+        }
+        else
+        {
+            scaleFactor = 1.0;
+        }
+
+        options->scaleViewportBoundary(scaleOriginX, scaleOriginY, scaleFactor);
+        options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
+        canvas->forceRedraw();
+        canvas->forceCopyBuffer();
+    }
+
+    inline void onAnimationComplete()
+    {
+        applyScaleFactor();
     }
 
     inline void PlotCanvas_onMouseWheel(Control * _control, const EventPtr & _event)
@@ -159,19 +213,47 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<MouseWheelEvent>(_event);
 
-        Debug::Debug() << event->delta >> Debug::writeln;
+        if (!animation->isRunning())
+        {
+            initialLeft = options->drawLeft;
+            initialRight = options->drawRight;
+            initialTop = options->drawTop;
+            initialBottom = options->drawBottom;
+            scaleOriginX = drawer->translateCanvasX(event->x + canvas->vpX);
+            scaleOriginY = drawer->translateCanvasY(event->y + canvas->vpY);
+        }
+        else
+        {
+            applyScaleFactor();
+        }
+
+        scrollValue -= event->delta;
+        onAnimationUpdate(1);
+        onAnimationComplete();
+
+        //animation->start();
     }
 
     void setup()
     {
         mathConstants[L"PI"] = std::atan(1) * 4;
 
+        animation = AnimationPtr(new Animation(
+            hWnd, IDT_TIMER_PLOT,
+            Easing::cubicOut,
+            onAnimationUpdate,
+            onAnimationComplete,
+            300
+            ));
+
         options = PlotOptionsPtr(new OptionBag());
-        options->calculateEnlargedBounary(CANVAS_ENLARGE);
+        options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
 
         options->formulaColors.push_back(Color(255, 47, 197, 255));
+        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"sin(1/x)", mathConstants)));
+        /*options->formulaColors.push_back(Color(255, 47, 197, 255));
         options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"(sin(x+1)+1)/2", mathConstants)));
-        /*options->formulaColors.push_back(Color(255, 255, 197, 255));
+        options->formulaColors.push_back(Color(255, 255, 197, 255));
         options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"(cos(x-1)-1)/2", mathConstants)));
         options->formulaColors.push_back(Color(255, 47, 197, 0));
         options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"(x*10)/5", mathConstants)));*/

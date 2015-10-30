@@ -43,12 +43,13 @@ namespace StupidPlot
 
             void transformFormulaYToScreenY(double bottom, double top)
             {
-                // (y - (bottom)) / (top - bottom) * height
-                // (XMM0 - XMM1) * XMM2
-                double last = 1.0 / (top - bottom) * height;
-                __m128d xmm0, xmm1, xmm2;
-                xmm2 = _mm_set1_pd(last);
+                // height - ((y - (bottom)) / (top - bottom) * height)
+                // (XMM0 - XMM1) * XMM2 + XMM3
+                double last = -1.0 / (top - bottom) * height;
+                __m128d xmm0, xmm1, xmm2, xmm3;
                 xmm1 = _mm_set1_pd(bottom);
+                xmm2 = _mm_set1_pd(last);
+                xmm3 = _mm_set1_pd(height);
                 double * pt;
                 for (int i = 0, max = width; i < max; i += 2)
                 {
@@ -56,11 +57,12 @@ namespace StupidPlot
                     xmm0 = _mm_loadu_pd(pt);
                     xmm0 = _mm_sub_pd(xmm0, xmm1);
                     xmm0 = _mm_mul_pd(xmm0, xmm2);
+                    xmm0 = _mm_add_pd(xmm0, xmm3);
                     _mm_storeu_pd(pt, xmm0);
                 }
                 if ((width & 1) > 0)
                 {
-                    transformBuffer[width - 1] = (transformBuffer[width - 1] - bottom) * last;
+                    transformBuffer[width - 1] = height + (transformBuffer[width - 1] - bottom) * last;
                 }
             }
 

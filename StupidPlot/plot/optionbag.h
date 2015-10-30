@@ -42,7 +42,7 @@ namespace StupidPlot
                 drawBottom = vpBottom;
             }
 
-            void calculateEnlargedBounary(double enlargeFactor)
+            void calculateOuterBoundaryInCenter(double enlargeFactor)
             {
                 double vpW = vpRight - vpLeft;
                 double vpH = vpTop - vpBottom;
@@ -50,6 +50,29 @@ namespace StupidPlot
                 drawRight = drawLeft + vpW * enlargeFactor;
                 drawBottom = vpBottom - (enlargeFactor - 1) * vpH / 2;
                 drawTop = drawBottom + vpH * enlargeFactor;
+            }
+
+            void calculateViewportBoundaryInCenter(double enlargeFactor)
+            {
+                double dW = drawRight - drawLeft;
+                double dH = drawTop - drawBottom;
+                vpLeft = drawLeft + (dW - dW / enlargeFactor) / 2;
+                vpRight = vpLeft + dW / enlargeFactor;
+                vpBottom = drawBottom + (dH - dH / enlargeFactor) / 2;
+                vpTop = vpBottom + dH / enlargeFactor;
+            }
+
+            // in formula units
+            void scaleViewportBoundary(double centerX, double centerY, double scale)
+            {
+                double vpW = vpRight - vpLeft;
+                double vpH = vpTop - vpBottom;
+                double px = (centerX - vpLeft) / vpW;
+                double py = (centerY - vpBottom) / vpH;
+                vpLeft = vpLeft + vpW * px * (1 - scale);
+                vpRight = vpLeft + vpW * scale;
+                vpBottom = vpBottom + vpH * py * (1 - scale);
+                vpTop = vpBottom + vpH * scale;
             }
         };
 

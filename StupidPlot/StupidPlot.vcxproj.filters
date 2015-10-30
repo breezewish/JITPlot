@@ -158,6 +158,9 @@
     <ClInclude Include="plot\optionbag.h">
       <Filter>头文件\plot</Filter>
     </ClInclude>
+    <ClInclude Include="plot\animation.h">
+      <Filter>头文件\plot</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StupidPlot.rc">

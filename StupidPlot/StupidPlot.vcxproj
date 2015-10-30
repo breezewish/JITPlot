@@ -167,6 +167,7 @@
     <ClInclude Include="formula\token.h" />
     <ClInclude Include="formula\exception.h" />
     <ClInclude Include="formula\parser.h" />
+    <ClInclude Include="plot\animation.h" />
     <ClInclude Include="plot\drawer.h" />
     <ClInclude Include="plot\optionbag.h" />
     <ClInclude Include="plot\provider\gdiplusprovider.h" />
