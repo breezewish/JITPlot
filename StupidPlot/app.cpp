@@ -44,10 +44,11 @@ namespace StupidPlot
     LayoutManagerPtr        lm;
     EventManagerPtr         em;
 
-    Control                 * groupCanvas;
-    Checkbox                * checkShowGrid;
-    Control                 * editGridSize;
-    BufferedCanvas          * canvas;
+    Control                 * grpCanvas;
+    Checkbox                * chkShowGrid;
+    Checkbox                * chkAntialias;
+    Control                 * txtGridSize;
+    BufferedCanvas          * bmpCanvas;
 
     PlotOptionsPtr          options;
     PlotDrawerPtr           drawer;
@@ -72,22 +73,28 @@ namespace StupidPlot
         lm = LayoutManagerPtr(new LayoutManager(hWnd));
         em = EventManagerPtr(new EventManager(container));
 
-        canvas = new BufferedCanvas(hWnd, IDC_STATIC_CANVAS, CANVAS_ENLARGE);
-        groupCanvas = new Control(hWnd, IDC_STATIC_GROUP_CANVAS);
-        checkShowGrid = new Checkbox(hWnd, IDC_CHECK_SHOW_GRID);
-        editGridSize = new Control(hWnd, IDC_EDIT_GRID_SIZE);
+        bmpCanvas = new BufferedCanvas(hWnd, IDC_STATIC_CANVAS, CANVAS_ENLARGE);
+        grpCanvas = new Control(hWnd, IDC_STATIC_GROUP_CANVAS);
+        chkShowGrid = new Checkbox(hWnd, IDC_CHECK_SHOW_GRID);
+        chkAntialias = new Checkbox(hWnd, IDC_CHECK_ANTIALIAS);
+        txtGridSize = new Control(hWnd, IDC_EDIT_GRID_SIZE);
+
+        chkShowGrid->setChecked(true);
+        chkAntialias->setChecked(true);
 
         container
-            ->addControl(canvas)
-            ->addControl(groupCanvas)
-            ->addControl(checkShowGrid)
-            ->addControl(editGridSize);
+            ->addControl(bmpCanvas)
+            ->addControl(grpCanvas)
+            ->addControl(chkShowGrid)
+            ->addControl(chkAntialias)
+            ->addControl(txtGridSize);
 
         lm
-            ->enableMagnet(canvas, true, true, true, true)
-            ->enableMagnet(groupCanvas, false, true, true, false)
-            ->enableMagnet(checkShowGrid, false, true, true, false)
-            ->enableMagnet(editGridSize, false, true, true, false);
+            ->enableMagnet(bmpCanvas, true, true, true, true)
+            ->enableMagnet(grpCanvas, false, true, true, false)
+            ->enableMagnet(chkShowGrid, false, true, true, false)
+            ->enableMagnet(chkAntialias, false, true, true, false)
+            ->enableMagnet(txtGridSize, false, true, true, false);
 
         updateSize();
         setup();
@@ -95,10 +102,11 @@ namespace StupidPlot
 
     void App::terminate()
     {
-        if (editGridSize) delete editGridSize;
-        if (checkShowGrid) delete checkShowGrid;
-        if (groupCanvas) delete groupCanvas;
-        if (canvas) delete canvas;
+        delete txtGridSize;
+        delete chkShowGrid;
+        delete chkAntialias;
+        delete grpCanvas;
+        delete bmpCanvas;
 
         GdiplusShutdown(gdiplusToken);
     }
@@ -136,43 +144,52 @@ namespace StupidPlot
         options->vpBottom = initialBottom;
     }
 
-    inline void CheckShowGrid_onClick(Control * _control, const EventPtr & _event)
+    inline void chkShowGrid_onClick(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
-        editGridSize->setEnabled(checkShowGrid->isChecked());
+        txtGridSize->setEnabled(chkShowGrid->isChecked());
     }
 
-    inline void PlotCanvas_onRedrawBuffer(Control * _control, const EventPtr & _event)
+    inline void chkAntialias_onClick(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        drawer->setAntialias(chkAntialias->isChecked());
+        bmpCanvas->forceRedraw();
+    }
+
+    inline void bmpCanvas_onRedrawBuffer(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
         // We need to make sure that vp x <-> formula left
-        double dx = drawer->translateCanvasW(canvas->vpX);
-        double dy = drawer->translateCanvasH(canvas->vpY);
-        double fcw = drawer->translateCanvasW(canvas->canvasW);
-        double fch = drawer->translateCanvasH(canvas->canvasH);
-        double fvw = drawer->translateCanvasW(canvas->width);
-        double fvh = drawer->translateCanvasH(canvas->height);
+        double dx = drawer->translateCanvasW(bmpCanvas->vpX);
+        double dy = drawer->translateCanvasH(bmpCanvas->vpY);
+        double fcw = drawer->translateCanvasW(bmpCanvas->canvasW);
+        double fch = drawer->translateCanvasH(bmpCanvas->canvasH);
+        double fvw = drawer->translateCanvasW(bmpCanvas->width);
+        double fvh = drawer->translateCanvasH(bmpCanvas->height);
         options->vpRight = options->vpLeft + fvw;
         options->vpTop = options->vpBottom + fvh;
         options->drawLeft = options->vpLeft - dx;
         options->drawBottom = options->vpBottom - dy;
         options->drawRight = options->drawLeft + fcw;
         options->drawTop = options->drawBottom + fch;
-        drawer->setSize(canvas->canvasW, canvas->canvasH, canvas->vpX, canvas->vpY, canvas->width, canvas->height);
+        drawer->setSize(bmpCanvas->canvasW, bmpCanvas->canvasH, bmpCanvas->vpX, bmpCanvas->vpY, bmpCanvas->width, bmpCanvas->height);
         drawer->draw();
     }
 
-    inline void PlotCanvas_onCanvasBeginMove(Control * _control, const EventPtr & _event)
+    inline void bmpCanvas_onCanvasBeginMove(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
         vpTakeShapshot();
     }
 
-    inline void PlotCanvas_onCanvasMove(Control * _control, const EventPtr & _event)
+    inline void bmpCanvas_onCanvasMove(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<CanvasMoveEvent>(_event);
@@ -194,39 +211,39 @@ namespace StupidPlot
         vpTakeShapshot();
     }
 
-    inline void PlotCanvas_onScaleBegin(const shared_ptr<MouseWheelEvent> & event)
+    inline void bmpCanvas_onScaleBegin(const shared_ptr<MouseWheelEvent> & event)
     {
-        if (canvas->isMoving) return;
-        canvas->canMove = false;
+        if (bmpCanvas->isMoving) return;
+        bmpCanvas->canMove = false;
         vpTakeShapshot();
-        scaleOriginX = drawer->translateCanvasX(event->x + canvas->vpX);
-        scaleOriginY = drawer->translateCanvasY(event->y + canvas->vpY);
+        scaleOriginX = drawer->translateCanvasX(event->x + bmpCanvas->vpX);
+        scaleOriginY = drawer->translateCanvasY(event->y + bmpCanvas->vpY);
         drawer->clipToViewport();
     }
 
-    inline void PlotCanvas_onScaleMore(const shared_ptr<MouseWheelEvent> & event)
+    inline void bmpCanvas_onScaleMore(const shared_ptr<MouseWheelEvent> & event)
     {
-        if (canvas->isMoving) return;
+        if (bmpCanvas->isMoving) return;
         UNREFERENCED_PARAMETER(event);
         scaleReset();
     }
 
-    inline void PlotCanvas_onScale(const shared_ptr<MouseWheelEvent> & event)
+    inline void bmpCanvas_onScale(const shared_ptr<MouseWheelEvent> & event)
     {
-        if (canvas->isMoving) return;
+        if (bmpCanvas->isMoving) return;
         scrollValue -= event->delta;
         animation->reset();
     }
 
-    inline void PlotCanvas_onScaleEnd()
+    inline void bmpCanvas_onScaleEnd()
     {
         scaleReset();
-        canvas->canMove = true;
+        bmpCanvas->canMove = true;
         drawer->resetClipToCanvas();
-        canvas->forceRedraw();
+        bmpCanvas->forceRedraw();
     }
 
-    inline void PlotCanvas_onScaleAnimationProgress(double k)
+    inline void bmpCanvas_onScaleAnimationProgress(double k)
     {
         double scaleFactor;
 
@@ -247,30 +264,30 @@ namespace StupidPlot
         vpRevertSnapshot();
         options->scaleViewportBoundary(scaleOriginX, scaleOriginY, scaleFactor);
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
-        canvas->forceRedraw();
-        canvas->forceCopyBuffer();
+        bmpCanvas->forceRedraw();
+        bmpCanvas->forceCopyBuffer();
     }
 
-    inline void PlotCanvas_onScaleAnimationComplete()
+    inline void bmpCanvas_onScaleAnimationComplete()
     {
-        PlotCanvas_onScaleEnd();
+        bmpCanvas_onScaleEnd();
     }
 
-    inline void PlotCanvas_onMouseWheel(Control * _control, const EventPtr & _event)
+    inline void bmpCanvas_onMouseWheel(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<MouseWheelEvent>(_event);
 
         if (!animation->isRunning())
         {
-            PlotCanvas_onScaleBegin(event);
+            bmpCanvas_onScaleBegin(event);
         }
         else
         {
-            PlotCanvas_onScaleMore(event);
+            bmpCanvas_onScaleMore(event);
         }
 
-        PlotCanvas_onScale(event);
+        bmpCanvas_onScale(event);
     }
 
     void setup()
@@ -280,8 +297,8 @@ namespace StupidPlot
         animation = AnimationPtr(new Animation(
             hWnd, IDT_TIMER_PLOT,
             Easing::cubicOut,
-            PlotCanvas_onScaleAnimationProgress,
-            PlotCanvas_onScaleAnimationComplete,
+            bmpCanvas_onScaleAnimationProgress,
+            bmpCanvas_onScaleAnimationComplete,
             300
             ));
 
@@ -291,16 +308,16 @@ namespace StupidPlot
         options->formulaColors.push_back(Color(255, 47, 197, 255));
         options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"sin(x)", mathConstants)));
 
-        drawer = PlotDrawerPtr(new Drawer(options, canvas->memDC));
-        drawer->setSize(canvas->canvasW, canvas->canvasH, canvas->vpX, canvas->vpY, canvas->width, canvas->height);
+        drawer = PlotDrawerPtr(new Drawer(options, bmpCanvas->memDC, chkAntialias->isChecked()));
+        drawer->setSize(bmpCanvas->canvasW, bmpCanvas->canvasH, bmpCanvas->vpX, bmpCanvas->vpY, bmpCanvas->width, bmpCanvas->height);
 
-        checkShowGrid->addEventHandler(EventName::EVENT_CLICK, CheckShowGrid_onClick);
-        checkShowGrid->setChecked(true);
+        chkShowGrid->addEventHandler(EventName::EVENT_CLICK, chkShowGrid_onClick);
+        chkAntialias->addEventHandler(EventName::EVENT_CLICK, chkAntialias_onClick);
 
-        canvas->addEventHandler(EventName::EVENT_BUFFER_REDRAW, PlotCanvas_onRedrawBuffer);
-        canvas->addEventHandler(EventName::EVENT_CANVAS_BEGINMOVE, PlotCanvas_onCanvasBeginMove);
-        canvas->addEventHandler(EventName::EVENT_CANVAS_MOVE, PlotCanvas_onCanvasMove);
-        canvas->addEventHandler(EventName::EVENT_MOUSEWHEEL, PlotCanvas_onMouseWheel);
-        canvas->forceRedraw();
+        bmpCanvas->addEventHandler(EventName::EVENT_BUFFER_REDRAW, bmpCanvas_onRedrawBuffer);
+        bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_BEGINMOVE, bmpCanvas_onCanvasBeginMove);
+        bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_MOVE, bmpCanvas_onCanvasMove);
+        bmpCanvas->addEventHandler(EventName::EVENT_MOUSEWHEEL, bmpCanvas_onMouseWheel);
+        bmpCanvas->forceRedraw();
     }
 }

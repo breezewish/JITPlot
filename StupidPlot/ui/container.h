@@ -27,7 +27,7 @@ namespace StupidPlot
             vector<Control *>              controls;
 
             // hash map to find the control from control_id
-            Control                        *id2control[MAX_CONTROLS];
+            Control                        * id2control[MAX_CONTROLS];
 
         public:
             Container()

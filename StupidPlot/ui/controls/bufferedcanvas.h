@@ -3,6 +3,8 @@
 #include <windows.h>
 #include <gdiplus.h>
 
+#include <memory>
+
 #include <ui/controls/control.h>
 #include <ui/events/event.h>
 #include <ui/events/canvasmoveevent.h>
@@ -19,6 +21,27 @@ namespace StupidPlot
             {
             protected:
                 int vpInitialX, vpInitialY;
+
+                static LRESULT CALLBACK ctrlProc(
+                    HWND hWnd,
+                    UINT uMsg,
+                    WPARAM wParam,
+                    LPARAM lParam,
+                    UINT_PTR uIdSubclass,
+                    DWORD_PTR dwRefData
+                    )
+                {
+                    UNREFERENCED_PARAMETER(uIdSubclass);
+                    UNREFERENCED_PARAMETER(dwRefData);
+
+                    switch (uMsg)
+                    {
+                    case WM_NCHITTEST:
+                        return HTCLIENT;
+                    }
+
+                    return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+                }
 
                 static void onPaint(Control * _control, const EventPtr & _event)
                 {
@@ -125,6 +148,11 @@ namespace StupidPlot
                     vpY = (canvasH - height) >> 1;
                 }
 
+                inline void initSubclass()
+                {
+                    SetWindowSubclass(hWnd, ctrlProc, 0, reinterpret_cast<DWORD_PTR>(this));
+                }
+
             public:
 
                 HDC             memDC = NULL;
@@ -143,6 +171,8 @@ namespace StupidPlot
                 {
                     memDC = CreateCompatibleDC(hDC);
                     updateOrCreateBuffer();
+
+                    initSubclass();
 
                     addEventHandler(EventName::EVENT_PAINT, onPaint);
                     addEventHandler(EventName::EVENT_MOUSEDOWN, onMouseDown);
@@ -168,6 +198,8 @@ namespace StupidPlot
                     forceCopyBuffer();
                 }
             };
+
+            typedef std::shared_ptr<BufferedCanvas> BufferedCanvasPtr;
         }
     }
 }

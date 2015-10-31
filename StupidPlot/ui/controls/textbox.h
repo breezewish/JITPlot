@@ -1,7 +1,9 @@
 #pragma once
 
-#include <string>
 #include <windows.h>
+
+#include <string>
+#include <memory>
 
 #include <ui/controls/control.h>
 
@@ -35,6 +37,8 @@ namespace StupidPlot
                     return this;
                 }
             };
+
+            typedef std::shared_ptr<Textbox> TextboxPtr;
         }
     }
 }

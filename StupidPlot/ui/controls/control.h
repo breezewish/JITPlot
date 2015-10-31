@@ -28,6 +28,8 @@ namespace StupidPlot
         {
             class Control;
 
+            typedef std::shared_ptr<Control> ControlPtr;
+
             typedef void(*EventCallback)(
                 Control * control,
                 const EventPtr & event
@@ -81,8 +83,6 @@ namespace StupidPlot
 
                     switch (uMsg)
                     {
-                    case WM_NCHITTEST:
-                        return HTCLIENT;
                     case WM_MOUSEWHEEL:
                         control->dispatchEvent(EventName::EVENT_MOUSEWHEEL, EventPtr(new MouseWheelEvent(wParam, lParam, hWnd)));
                         break;

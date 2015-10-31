@@ -149,11 +149,23 @@ namespace StupidPlot
                 provider->drawGridLine(vertical, points, length, Gdiplus::Color(233, 233, 233));
             }
 
-            Drawer(const PlotOptionsPtr & _options, HDC _hdc)
+            Drawer(const PlotOptionsPtr & _options, HDC _hdc, bool antialias)
             {
                 options = _options;
                 hdc = _hdc;
-                provider = ProviderPtr(new Provider::GdiPlusProvider(hdc));
+                setAntialias(antialias);
+            }
+
+            inline void setAntialias(bool enabled)
+            {
+                if (enabled)
+                {
+                    provider = ProviderPtr(new Provider::GdiPlusProvider(hdc));
+                }
+                else
+                {
+                    provider = ProviderPtr(new Provider::GdiProvider(hdc));
+                }
             }
 
             inline void updateFormulaSize()
