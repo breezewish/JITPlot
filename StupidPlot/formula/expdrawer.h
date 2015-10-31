@@ -17,8 +17,10 @@ namespace StupidPlot
         protected:
             ExpressionPtr       expression;
 
-            int                 width;
-            int                 height;
+            int                 clipWidth;
+            int                 clipHeight;
+            int                 canvasWidth;
+            int                 canvasHeight;
 
             vector<double>      transformBuffer;
 
@@ -34,24 +36,26 @@ namespace StupidPlot
                 expression = ExpressionPtr(new Expression(_exp, _constVars));
             }
 
-            void setCanvasSize(int _width, int _height)
+            void setSize(int clipW, int clipH, int cW, int cH)
             {
-                width = _width;
-                height = _height;
-                transformBuffer.resize(width);
+                clipWidth = clipW;
+                clipHeight = clipH;
+                canvasWidth = cW;
+                canvasHeight = cH;
+                transformBuffer.resize(clipWidth);
             }
 
-            void transformFormulaYToScreenY(double bottom, double top)
+            void transformFormulaYToScreenY(double canvasBottom, double canvasTop)
             {
                 // height - ((y - (bottom)) / (top - bottom) * height)
                 // (XMM0 - XMM1) * XMM2 + XMM3
-                double last = -1.0 / (top - bottom) * height;
+                double last = -1.0 / (canvasTop - canvasBottom) * canvasHeight;
                 __m128d xmm0, xmm1, xmm2, xmm3;
-                xmm1 = _mm_set1_pd(bottom);
+                xmm1 = _mm_set1_pd(canvasBottom);
                 xmm2 = _mm_set1_pd(last);
-                xmm3 = _mm_set1_pd(height);
+                xmm3 = _mm_set1_pd(canvasHeight);
                 double * pt;
-                for (int i = 0, max = width; i < max; i += 2)
+                for (int i = 0, max = clipWidth; i < max; i += 2)
                 {
                     pt = &transformBuffer[i];
                     xmm0 = _mm_loadu_pd(pt);
@@ -60,17 +64,17 @@ namespace StupidPlot
                     xmm0 = _mm_add_pd(xmm0, xmm3);
                     _mm_storeu_pd(pt, xmm0);
                 }
-                if ((width & 1) > 0)
+                if ((clipWidth & 1) > 0)
                 {
-                    transformBuffer[width - 1] = height + (transformBuffer[width - 1] - bottom) * last;
+                    transformBuffer[clipWidth - 1] = canvasHeight + (transformBuffer[clipWidth - 1] - canvasBottom) * last;
                 }
             }
 
-            vector<double> & evalAndTransform(double xMin, double xMax, double yMin, double yMax)
+            vector<double> & evalAndTransform(double xMin, double xMax, double cMin, double cMax)
             {
-                auto formulaY = expression->eval(xMin, xMax, width);
-                memcpy(&transformBuffer[0], &formulaY[0], width * sizeof(double));
-                transformFormulaYToScreenY(yMin, yMax);
+                auto formulaY = expression->eval(xMin, xMax, clipWidth);
+                memcpy(&transformBuffer[0], &formulaY[0], clipWidth * sizeof(double));
+                transformFormulaYToScreenY(cMin, cMax);
                 return transformBuffer;
             }
         };

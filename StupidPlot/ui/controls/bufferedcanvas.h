@@ -37,6 +37,7 @@ namespace StupidPlot
                     auto canvas = dynamic_cast<BufferedCanvas *>(_control);
 
                     canvas->updateOrCreateBuffer();
+                    canvas->dispatchEvent(EventName::EVENT_CANVAS_RESIZE, EventPtr(new Event()));
                     canvas->forceRedraw();
                 }
 
@@ -44,6 +45,8 @@ namespace StupidPlot
                 {
                     auto canvas = dynamic_cast<BufferedCanvas *>(_control);
                     auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
+
+                    if (!canvas->canMove) return;
 
                     SetCapture(_control->hWnd);
 
@@ -63,6 +66,8 @@ namespace StupidPlot
                     ReleaseCapture();
 
                     canvas->isMoving = false;
+                    if (!canvas->canMove) return;
+
                     canvas->dispatchEvent(EventName::EVENT_CANVAS_ENDMOVE, EventPtr(new Event()));
 
                     canvas->updateOrCreateBuffer();
@@ -75,6 +80,7 @@ namespace StupidPlot
                     auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
 
                     if (!canvas->isMoving) return;
+                    if (!canvas->canMove) return;
 
                     int dx = event->x - canvas->mouseInitialX;
                     int dy = event->y - canvas->mouseInitialY;
@@ -130,6 +136,8 @@ namespace StupidPlot
                 int             mouseInitialX, mouseInitialY;
 
                 double          enlargeFactor;
+
+                bool            canMove = true;
 
                 BufferedCanvas(HWND _hWnd, int _id, double enlarge = 2.0) : Control(_hWnd, _id), enlargeFactor(enlarge)
                 {

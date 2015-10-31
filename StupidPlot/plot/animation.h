@@ -57,7 +57,7 @@ namespace StupidPlot
                 return running;
             }
 
-            void start()
+            void reset()
             {
                 if (running) stop();
 

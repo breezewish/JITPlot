@@ -15,6 +15,8 @@ namespace StupidPlot
             {
             protected:
                 int canvasWidth, canvasHeight;
+                int canvasOffsetX, canvasOffsetY;
+
             public:
                 GdiProvider(HDC _hdc) : Provider(_hdc)
                 {
@@ -28,8 +30,8 @@ namespace StupidPlot
                 {
                     if (length == 0) return;
 
-                    float ALLOWED_MIN = -2.0F * canvasHeight;
-                    float ALLOWED_MAX = +2.0F * canvasHeight;
+                    float ALLOWED_MIN_PX = -2.0F * canvasHeight + canvasOffsetY;
+                    float ALLOWED_MAX_PX = +3.0F * canvasHeight + canvasOffsetY;
 
                     HPEN pen = CreatePen(PS_SOLID, 2, color.ToCOLORREF());
                     HGDIOBJ oldPen = SelectObject(hdc, pen);
@@ -41,7 +43,7 @@ namespace StupidPlot
 
                     for (int i = 1; i < length; ++i)
                     {
-                        if (std::isnan(pt[i].y) || pt[i].y < ALLOWED_MIN || pt[i].y > ALLOWED_MAX)
+                        if (std::isnan(pt[i].y) || pt[i].y < ALLOWED_MIN_PX || pt[i].y > ALLOWED_MAX_PX)
                         {
                             breakPoint = true;
                             start = true;
@@ -77,13 +79,13 @@ namespace StupidPlot
 
                         if (vertical)
                         {
-                            MoveToEx(hdc, 0, p, NULL);
-                            LineTo(hdc, canvasWidth, p);
+                            MoveToEx(hdc, canvasOffsetX, p, NULL);
+                            LineTo(hdc, canvasOffsetX + canvasWidth, p);
                         }
                         else
                         {
-                            MoveToEx(hdc, p, 0, NULL);
-                            LineTo(hdc, p, canvasHeight);
+                            MoveToEx(hdc, p, canvasOffsetY, NULL);
+                            LineTo(hdc, p, canvasOffsetY + canvasHeight);
                         }
                     }
 
@@ -91,13 +93,15 @@ namespace StupidPlot
                     DeleteObject(pen);
                 }
 
-                virtual void beginDraw(int cw, int ch)
+                virtual void beginDraw(int left, int top, int width, int height)
                 {
-                    canvasWidth = cw;
-                    canvasHeight = ch;
+                    canvasWidth = width;
+                    canvasHeight = height;
+                    canvasOffsetX = left;
+                    canvasOffsetY = top;
                     HBRUSH background = CreateSolidBrush(RGB(255, 255, 255));
                     HGDIOBJ oldBackground = SelectObject(hdc, background);
-                    Rectangle(hdc, 0, 0, canvasWidth, canvasHeight);
+                    Rectangle(hdc, left, top, width + left, height + top);
                     SelectObject(hdc, oldBackground);
                     DeleteObject(background);
                 }

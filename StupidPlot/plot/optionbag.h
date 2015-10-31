@@ -52,16 +52,6 @@ namespace StupidPlot
                 drawTop = drawBottom + vpH * enlargeFactor;
             }
 
-            void calculateViewportBoundaryInCenter(double enlargeFactor)
-            {
-                double dW = drawRight - drawLeft;
-                double dH = drawTop - drawBottom;
-                vpLeft = drawLeft + (dW - dW / enlargeFactor) / 2;
-                vpRight = vpLeft + dW / enlargeFactor;
-                vpBottom = drawBottom + (dH - dH / enlargeFactor) / 2;
-                vpTop = vpBottom + dH / enlargeFactor;
-            }
-
             // in formula units
             void scaleViewportBoundary(double centerX, double centerY, double scale)
             {

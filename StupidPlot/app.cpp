@@ -31,6 +31,7 @@ namespace StupidPlot
     using namespace Formula;
 
     const double CANVAS_ENLARGE = 2.0;
+    const double SCROLL_FACTOR = 240.0;
 
     map<wstring, double>    mathConstants;
 
@@ -119,6 +120,22 @@ namespace StupidPlot
         return em->handle(uMsg, wParam, lParam);
     }
 
+    inline void vpTakeShapshot()
+    {
+        initialLeft = options->vpLeft;
+        initialRight = options->vpRight;
+        initialTop = options->vpTop;
+        initialBottom = options->vpBottom;
+    }
+
+    inline void vpRevertSnapshot()
+    {
+        options->vpLeft = initialLeft;
+        options->vpRight = initialRight;
+        options->vpTop = initialTop;
+        options->vpBottom = initialBottom;
+    }
+
     inline void CheckShowGrid_onClick(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
@@ -131,28 +148,28 @@ namespace StupidPlot
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
-
         // We need to make sure that vp x <-> formula left
         double dx = drawer->translateCanvasW(canvas->vpX);
         double dy = drawer->translateCanvasH(canvas->vpY);
-        double w = drawer->translateCanvasW(canvas->canvasW);
-        double h = drawer->translateCanvasH(canvas->canvasH);
+        double fcw = drawer->translateCanvasW(canvas->canvasW);
+        double fch = drawer->translateCanvasH(canvas->canvasH);
+        double fvw = drawer->translateCanvasW(canvas->width);
+        double fvh = drawer->translateCanvasH(canvas->height);
+        options->vpRight = options->vpLeft + fvw;
+        options->vpTop = options->vpBottom + fvh;
         options->drawLeft = options->vpLeft - dx;
         options->drawBottom = options->vpBottom - dy;
-        options->drawRight = options->drawLeft + w;
-        options->drawTop = options->drawBottom + h;
-        drawer->draw(canvas->canvasW, canvas->canvasH);
+        options->drawRight = options->drawLeft + fcw;
+        options->drawTop = options->drawBottom + fch;
+        drawer->setSize(canvas->canvasW, canvas->canvasH, canvas->vpX, canvas->vpY, canvas->width, canvas->height);
+        drawer->draw();
     }
 
     inline void PlotCanvas_onCanvasBeginMove(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
-
-        initialLeft = options->vpLeft;
-        initialRight = options->vpRight;
-        initialTop = options->vpTop;
-        initialBottom = options->vpBottom;
+        vpTakeShapshot();
     }
 
     inline void PlotCanvas_onCanvasMove(Control * _control, const EventPtr & _event)
@@ -162,50 +179,81 @@ namespace StupidPlot
 
         double dx = drawer->translateCanvasW(event->dx);
         double dy = drawer->translateCanvasH(event->dy);
-        options->vpLeft = initialLeft - dx;
-        options->vpRight = initialRight - dx;
-        options->vpTop = initialTop + dy;
-        options->vpBottom = initialBottom + dy;
+        vpRevertSnapshot();
+        options->vpLeft -= dx;
+        options->vpRight -= dx;
+        options->vpTop += dy;
+        options->vpBottom += dy;
     }
 
-    void applyScaleFactor()
+    void scaleReset()
     {
         scrollValue -= completedScrollValue;
         scaleFactor = 1.0;
-
-        initialLeft = options->drawLeft;
-        initialRight = options->drawRight;
-        initialTop = options->drawTop;
-        initialBottom = options->drawBottom;
+        completedScrollValue = 0;
+        vpTakeShapshot();
     }
 
-    inline void onAnimationUpdate(double k)
+    inline void PlotCanvas_onScaleBegin(const shared_ptr<MouseWheelEvent> & event)
     {
-        completedScrollValue = static_cast<int>(k * scrollValue);
+        if (canvas->isMoving) return;
+        canvas->canMove = false;
+        vpTakeShapshot();
+        scaleOriginX = drawer->translateCanvasX(event->x + canvas->vpX);
+        scaleOriginY = drawer->translateCanvasY(event->y + canvas->vpY);
+        drawer->clipToViewport();
+    }
+
+    inline void PlotCanvas_onScaleMore(const shared_ptr<MouseWheelEvent> & event)
+    {
+        if (canvas->isMoving) return;
+        UNREFERENCED_PARAMETER(event);
+        scaleReset();
+    }
+
+    inline void PlotCanvas_onScale(const shared_ptr<MouseWheelEvent> & event)
+    {
+        if (canvas->isMoving) return;
+        scrollValue -= event->delta;
+        animation->reset();
+    }
+
+    inline void PlotCanvas_onScaleEnd()
+    {
+        scaleReset();
+        canvas->canMove = true;
+        drawer->resetClipToCanvas();
+        canvas->forceRedraw();
+    }
+
+    inline void PlotCanvas_onScaleAnimationProgress(double k)
+    {
         double scaleFactor;
 
+        completedScrollValue = static_cast<int>(k * scrollValue);
         if (completedScrollValue > 0)
         {
-            scaleFactor = 1.0 + static_cast<double>(completedScrollValue) / 20;
+            scaleFactor = 1.0 + static_cast<double>(completedScrollValue) / SCROLL_FACTOR;
         }
         else if (completedScrollValue < 0)
         {
-            scaleFactor = 1.0 / (1 + static_cast<double>(-completedScrollValue) / 20);
+            scaleFactor = 1.0 / (1 + static_cast<double>(-completedScrollValue) / SCROLL_FACTOR);
         }
         else
         {
             scaleFactor = 1.0;
         }
 
+        vpRevertSnapshot();
         options->scaleViewportBoundary(scaleOriginX, scaleOriginY, scaleFactor);
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
         canvas->forceRedraw();
         canvas->forceCopyBuffer();
     }
 
-    inline void onAnimationComplete()
+    inline void PlotCanvas_onScaleAnimationComplete()
     {
-        applyScaleFactor();
+        PlotCanvas_onScaleEnd();
     }
 
     inline void PlotCanvas_onMouseWheel(Control * _control, const EventPtr & _event)
@@ -215,23 +263,14 @@ namespace StupidPlot
 
         if (!animation->isRunning())
         {
-            initialLeft = options->drawLeft;
-            initialRight = options->drawRight;
-            initialTop = options->drawTop;
-            initialBottom = options->drawBottom;
-            scaleOriginX = drawer->translateCanvasX(event->x + canvas->vpX);
-            scaleOriginY = drawer->translateCanvasY(event->y + canvas->vpY);
+            PlotCanvas_onScaleBegin(event);
         }
         else
         {
-            applyScaleFactor();
+            PlotCanvas_onScaleMore(event);
         }
 
-        scrollValue -= event->delta;
-        onAnimationUpdate(1);
-        onAnimationComplete();
-
-        //animation->start();
+        PlotCanvas_onScale(event);
     }
 
     void setup()
@@ -241,8 +280,8 @@ namespace StupidPlot
         animation = AnimationPtr(new Animation(
             hWnd, IDT_TIMER_PLOT,
             Easing::cubicOut,
-            onAnimationUpdate,
-            onAnimationComplete,
+            PlotCanvas_onScaleAnimationProgress,
+            PlotCanvas_onScaleAnimationComplete,
             300
             ));
 
@@ -250,16 +289,10 @@ namespace StupidPlot
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
 
         options->formulaColors.push_back(Color(255, 47, 197, 255));
-        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"sin(1/x)", mathConstants)));
-        /*options->formulaColors.push_back(Color(255, 47, 197, 255));
-        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"(sin(x+1)+1)/2", mathConstants)));
-        options->formulaColors.push_back(Color(255, 255, 197, 255));
-        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"(cos(x-1)-1)/2", mathConstants)));
-        options->formulaColors.push_back(Color(255, 47, 197, 0));
-        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"(x*10)/5", mathConstants)));*/
+        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"sin(x)", mathConstants)));
 
         drawer = PlotDrawerPtr(new Drawer(options, canvas->memDC));
-        drawer->setCanvasSize(canvas->canvasW, canvas->canvasH);
+        drawer->setSize(canvas->canvasW, canvas->canvasH, canvas->vpX, canvas->vpY, canvas->width, canvas->height);
 
         checkShowGrid->addEventHandler(EventName::EVENT_CLICK, CheckShowGrid_onClick);
         checkShowGrid->setChecked(true);
