@@ -13,10 +13,6 @@ namespace StupidPlot
         {
             class GdiProvider : public Provider
             {
-            protected:
-                int canvasWidth, canvasHeight;
-                int canvasOffsetX, canvasOffsetY;
-
             public:
                 GdiProvider(HDC _hdc) : Provider(_hdc)
                 {
@@ -68,9 +64,9 @@ namespace StupidPlot
                     DeleteObject(pen);
                 }
 
-                virtual void drawGridLine(BOOL vertical, const shared_ptr<int> & points, int length)
+                virtual void drawGridLine(BOOL vertical, const shared_ptr<int> & points, int length, Gdiplus::Color color)
                 {
-                    HPEN pen = CreatePen(PS_SOLID, 2, RGB(233, 233, 233));
+                    HPEN pen = CreatePen(PS_SOLID, 2, color.ToCOLORREF());
                     HGDIOBJ oldPen = SelectObject(hdc, pen);
 
                     for (int i = 0; i < length; ++i)
@@ -95,10 +91,8 @@ namespace StupidPlot
 
                 virtual void beginDraw(int left, int top, int width, int height)
                 {
-                    canvasWidth = width;
-                    canvasHeight = height;
-                    canvasOffsetX = left;
-                    canvasOffsetY = top;
+                    Provider::beginDraw(left, top, width, height);
+
                     HBRUSH background = CreateSolidBrush(RGB(255, 255, 255));
                     HGDIOBJ oldBackground = SelectObject(hdc, background);
                     Rectangle(hdc, left, top, width + left, height + top);

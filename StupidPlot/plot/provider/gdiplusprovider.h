@@ -15,7 +15,6 @@ namespace StupidPlot
             class GdiPlusProvider : public Provider
             {
             protected:
-                int                     width, height;
                 Gdiplus::Graphics       * g = NULL;
 
             public:
@@ -27,33 +26,76 @@ namespace StupidPlot
                 {
                 }
 
-                virtual void drawPlotLine(shared_ptr<vector<Gdiplus::PointF>> _points, Gdiplus::Color color)
+                virtual void drawPlotLine(const shared_ptr<POINTF> & points, int length, Gdiplus::Color color)
                 {
-                    if (_points->size() == 0) return;
-                    Gdiplus::Pen pen(color, 2.0f);
-                    g->DrawCurve(&pen, &_points->operator[](0), _points->size());
-                }
+                    if (length == 0) return;
 
-                virtual void drawGridLine(BOOL vertical, vector<int> points)
-                {
-                    Gdiplus::Pen pen(Gdiplus::Color(128, 128, 128, 128), 1.0f);
-                    for (int p : points)
+                    float ALLOWED_MIN_PX = -2.0F * canvasHeight + canvasOffsetY;
+                    float ALLOWED_MAX_PX = +3.0F * canvasHeight + canvasOffsetY;
+
+                    Gdiplus::Pen pen(color, 2.0f);
+
+                    int bufLen = 0;
+                    Gdiplus::PointF * buf = new Gdiplus::PointF[length];
+
+                    bool start = true;
+                    bool breakPoint = false;
+
+                    auto pt = points.get();
+
+                    for (int i = 1; i < length; ++i)
                     {
-                        if (vertical)
+                        if (std::isnan(pt[i].y) || pt[i].y < ALLOWED_MIN_PX || pt[i].y > ALLOWED_MAX_PX)
                         {
-                            g->DrawLine(&pen, 0, p, width, p);
+                            breakPoint = true;
+                            start = true;
                         }
                         else
                         {
-                            g->DrawLine(&pen, p, 0, p, height);
+                            breakPoint = false;
+                        }
+
+                        if (start)
+                        {
+                            if (bufLen > 1) g->DrawCurve(&pen, buf, bufLen);
+                            bufLen = 0;
+                            if (!breakPoint) start = false;
+                        }
+
+                        buf[bufLen].X = pt[i].x;
+                        buf[bufLen].Y = pt[i].y;
+                        bufLen++;
+                    }
+
+                    if (bufLen > 1) g->DrawCurve(&pen, buf, bufLen);
+
+                    delete[] buf;
+                }
+
+                virtual void drawGridLine(BOOL vertical, const shared_ptr<int> & points, int length, Gdiplus::Color color)
+                {
+                    Gdiplus::Pen pen(color, 2.0f);
+
+                    auto pt = points.get();
+
+                    for (int i = 0; i < length; ++i)
+                    {
+                        int p = pt[i];
+
+                        if (vertical)
+                        {
+                            g->DrawLine(&pen, canvasOffsetX, p, canvasOffsetX + canvasWidth, p);
+                        }
+                        else
+                        {
+                            g->DrawLine(&pen, p, canvasOffsetY, p, canvasOffsetY + canvasHeight);
                         }
                     }
                 }
 
-                virtual void beginDraw(int w, int h)
+                virtual void beginDraw(int left, int top, int width, int height)
                 {
-                    width = w;
-                    height = h;
+                    Provider::beginDraw(left, top, width, height);
                     g = new Gdiplus::Graphics(hdc);
                     g->SetSmoothingMode(Gdiplus::SmoothingMode::SmoothingModeAntiAlias);
                     g->SetTextRenderingHint(Gdiplus::TextRenderingHint::TextRenderingHintClearTypeGridFit);

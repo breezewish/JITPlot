@@ -146,14 +146,14 @@ namespace StupidPlot
                     }
                 }
 
-                provider->drawGridLine(vertical, points, length);
+                provider->drawGridLine(vertical, points, length, Gdiplus::Color(233, 233, 233));
             }
 
             Drawer(const PlotOptionsPtr & _options, HDC _hdc)
             {
                 options = _options;
                 hdc = _hdc;
-                provider = ProviderPtr(new Provider::GdiProvider(hdc));
+                provider = ProviderPtr(new Provider::GdiPlusProvider(hdc));
             }
 
             inline void updateFormulaSize()
