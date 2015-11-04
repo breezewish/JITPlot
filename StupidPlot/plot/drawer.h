@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <memory>
+#include <cmath>
 
 #include <windows.h>
 #include <gdiplus.h>
@@ -98,7 +99,7 @@ namespace StupidPlot
                 provider->drawPlotLine(points, length, color);
             }
 
-            inline void drawGridLine(BOOL vertical)
+            inline void drawGridLine(int spacing, BOOL vertical, Gdiplus::Color color, bool infinite = true)
             {
                 int min, max;
 
@@ -129,24 +130,27 @@ namespace StupidPlot
                     }
                 }
 
-                int n = ((max - min + 1) / options->gridSpacing) + 1;
+                int n = ((max - min + 1) / spacing) + 1;
+                if (!infinite && n > clipWidth / 20) return;
 
-                // too dense
-                if (n > clipWidth / 20) return;
+                int spacingFactor = max(1, n / (clipWidth / 20));
+
+                // spacingFactor = 5^ceil(log(5, spacingFactor))
+                spacingFactor = static_cast<int>(std::pow(5, std::ceil(std::log(spacingFactor) / std::log(5))));
 
                 int length = 0;
                 auto points = shared_ptr<int>(new int[n], array_deleter<int>());
 
                 for (int p = min; p < max; ++p)
                 {
-                    if (p % options->gridSpacing == 0)
+                    if (p % (spacing * spacingFactor) == 0)
                     {
                         int canvasPos = static_cast<int>(vertical ? translateFormulaY(p) : translateFormulaX(p));
                         points.get()[length++] = canvasPos;
                     }
                 }
 
-                provider->drawGridLine(vertical, points, length, Gdiplus::Color(233, 233, 233));
+                provider->drawGridLine(vertical, points, length, color);
             }
 
             Drawer(const PlotOptionsPtr & _options, HDC _hdc, bool antialias)
@@ -220,8 +224,12 @@ namespace StupidPlot
                 provider->beginDraw(clipLeft, clipTop, clipWidth, clipHeight);
 
                 // Draw grid lines
-                drawGridLine(false);
-                drawGridLine(true);
+                Gdiplus::Color glSmall = Gdiplus::Color(233, 233, 233);
+                Gdiplus::Color glLarge = Gdiplus::Color(180, 180, 180);
+                drawGridLine(options->gridSpacing, false, glSmall);
+                drawGridLine(options->gridSpacing, true, glSmall);
+                drawGridLine(options->gridSpacing * 5, false, glLarge, false);
+                drawGridLine(options->gridSpacing * 5, true, glLarge, false);
 
                 // Draw formulas
                 for (size_t i = 0; i < options->formulaObjects.size(); ++i)

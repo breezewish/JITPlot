@@ -32,6 +32,9 @@ namespace StupidPlot
                     HPEN pen = CreatePen(PS_SOLID, 2, color.ToCOLORREF());
                     HGDIOBJ oldPen = SelectObject(hdc, pen);
 
+                    int bufLen = 0;
+                    POINT * buf = new POINT[length];
+
                     bool start = true;
                     bool breakPoint = false;
 
@@ -51,14 +54,19 @@ namespace StupidPlot
 
                         if (start)
                         {
-                            MoveToEx(hdc, static_cast<int>(pt[i].x), static_cast<int>(pt[i].y), NULL);
+                            if (bufLen > 1) Polyline(hdc, buf, bufLen);
+                            bufLen = 0;
                             if (!breakPoint) start = false;
                         }
-                        else
-                        {
-                            LineTo(hdc, static_cast<int>(pt[i].x), static_cast<int>(pt[i].y));
-                        }
+
+                        buf[bufLen].x = static_cast<int>(pt[i].x);
+                        buf[bufLen].y = static_cast<int>(pt[i].y);
+                        bufLen++;
                     }
+
+                    if (bufLen > 1) Polyline(hdc, buf, bufLen);
+
+                    delete[] buf;
 
                     SelectObject(hdc, oldPen);
                     DeleteObject(pen);
