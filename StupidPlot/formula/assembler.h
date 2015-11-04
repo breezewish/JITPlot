@@ -158,6 +158,22 @@ namespace StupidPlot
                 *buffer = byte(0xC0 | (opnd1.reg << 3) | opnd2.reg); buffer += 1;
             }
 
+            static void XORPD_XMM_XMM(PBYTE & buffer, XMM opnd1, XMM opnd2)
+            {
+                *buffer = byte(0x66); buffer += 1;
+                *buffer = byte(0x0F); buffer += 1;
+                *buffer = byte(0x57); buffer += 1;
+                *buffer = byte(0xC0 | (opnd1.reg << 3) | opnd2.reg); buffer += 1;
+            }
+
+            static void ANDNPD_XMM_XMM(PBYTE & buffer, XMM opnd1, XMM opnd2)
+            {
+                *buffer = byte(0x66); buffer += 1;
+                *buffer = byte(0x0F); buffer += 1;
+                *buffer = byte(0x55); buffer += 1;
+                *buffer = byte(0xC0 | (opnd1.reg << 3) | opnd2.reg); buffer += 1;
+            }
+
             static void RET(PBYTE & buffer, unsigned short n)
             {
                 if (n == 0)

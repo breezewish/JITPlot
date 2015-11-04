@@ -165,16 +165,21 @@ namespace StupidPlot
                     {
                         // test previous token for the following cases
                         // "-x", "(-x", ",-x", "*-x", ...
-                        auto prev = std::prev(itr);
-                        if (
-                            prev == tokens.end()
-                            || (*prev)->is(TokenType::BR_LEFT)
-                            || (*prev)->is(TokenType::COMMA)
-                            || (*prev)->is(TokenType::OPERATOR)
-                            )
+                        if (itr == tokens.begin())
                         {
-                            // for sub, change to neg
                             *itr = shared_ptr<Token>(new OperatorToken(OP_NEG));
+                        }
+                        else
+                        {
+                            auto prev = std::prev(itr);
+                            if ((*prev)->is(TokenType::BR_LEFT)
+                                || (*prev)->is(TokenType::COMMA)
+                                || (*prev)->is(TokenType::OPERATOR)
+                                )
+                            {
+                                // for sub, change to neg
+                                *itr = shared_ptr<Token>(new OperatorToken(OP_NEG));
+                            }
                         }
                     }
                 }

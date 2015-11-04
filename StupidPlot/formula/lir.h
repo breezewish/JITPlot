@@ -24,9 +24,11 @@ namespace StupidPlot
             MUL_XMM_XMM,
             DIV_XMM_XMM,
             MOV_XMM_XMM,        // movapd
-            SQRT_XMM_XMM,
+            SQRT_XMM,
             MOV_XMM_ST0,
             MOV_ST0_XMM,
+            XOR_XMM_XMM,
+            ANDNOT_XMM_XMM,
             SIN_ST0,
             COS_ST0,
             RET,
@@ -143,8 +145,14 @@ namespace StupidPlot
                 case LIROperation::MOV_XMM_XMM:
                     Assembler::MOVAPD_XMM_XMM(buffer, operand1.xmm, operand2.xmm);
                     break;
-                case LIROperation::SQRT_XMM_XMM:
+                case LIROperation::SQRT_XMM:
                     Assembler::SQRTSD_XMM_XMM(buffer, operand1.xmm, operand1.xmm);
+                    break;
+                case LIROperation::XOR_XMM_XMM:
+                    Assembler::XORPD_XMM_XMM(buffer, operand1.xmm, operand2.xmm);
+                    break;
+                case LIROperation::ANDNOT_XMM_XMM:
+                    Assembler::ANDNPD_XMM_XMM(buffer, operand1.xmm, operand2.xmm);
                     break;
                 case LIROperation::MOV_ST0_XMM:
                 {
@@ -169,7 +177,7 @@ namespace StupidPlot
                     Assembler::FCOS_ST0(buffer);
                     break;
                 default:
-                    break;
+                    throw std::logic_error("Unknown operation");
                 }
             }
         };
