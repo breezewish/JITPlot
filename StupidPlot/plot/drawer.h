@@ -224,12 +224,15 @@ namespace StupidPlot
                 provider->beginDraw(clipLeft, clipTop, clipWidth, clipHeight);
 
                 // Draw grid lines
-                Gdiplus::Color glSmall = Gdiplus::Color(233, 233, 233);
-                Gdiplus::Color glLarge = Gdiplus::Color(180, 180, 180);
-                drawGridLine(options->gridSpacing, false, glSmall);
-                drawGridLine(options->gridSpacing, true, glSmall);
-                drawGridLine(options->gridSpacing * 5, false, glLarge, false);
-                drawGridLine(options->gridSpacing * 5, true, glLarge, false);
+                if (options->showGrid && options->gridSpacing > 0)
+                {
+                    Gdiplus::Color glSmall = Gdiplus::Color(233, 233, 233);
+                    Gdiplus::Color glLarge = Gdiplus::Color(180, 180, 180);
+                    drawGridLine(options->gridSpacing, false, glSmall);
+                    drawGridLine(options->gridSpacing, true, glSmall);
+                    drawGridLine(options->gridSpacing * 5, false, glLarge, false);
+                    drawGridLine(options->gridSpacing * 5, true, glLarge, false);
+                }
 
                 // Draw formulas
                 for (size_t i = 0; i < options->formulaObjects.size(); ++i)

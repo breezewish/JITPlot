@@ -60,9 +60,6 @@
     <ClCompile Include="formula\assembler.cpp">
       <Filter>源文件\formula</Filter>
     </ClCompile>
-    <ClCompile Include="formula\executable.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="throttler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>

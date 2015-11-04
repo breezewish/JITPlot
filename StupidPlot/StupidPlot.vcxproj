@@ -149,7 +149,6 @@
   <ItemGroup>
     <ClCompile Include="app.cpp" />
     <ClCompile Include="formula\assembler.cpp" />
-    <ClCompile Include="formula\executable.cpp" />
     <ClCompile Include="formula\functions.cpp" />
     <ClCompile Include="formula\lir.cpp" />
     <ClCompile Include="formula\token.cpp" />

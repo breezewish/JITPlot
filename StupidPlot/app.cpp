@@ -250,6 +250,17 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_event);
 
         txtGridSize->setEnabled(chkShowGrid->isChecked());
+        options->showGrid = chkShowGrid->isChecked();
+        bmpCanvas->forceRedraw();
+    }
+
+    inline void txtGridSize_onLosingFocus(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        options->gridSpacing = std::stoi(txtGridSize->getText());
+        bmpCanvas->forceRedraw();
     }
 
     inline void chkShowAxis_onClick(Control * _control, const EventPtr & _event)
@@ -258,6 +269,75 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_event);
 
         txtAxisSize->setEnabled(chkShowAxis->isChecked());
+    }
+
+    inline void txtRangeXFrom_onLosingFocus(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        double val = std::stod(txtRangeXFrom->getText());
+        if (val >= options->vpRight)
+        {
+            _syncRangeFromOption();
+            return;
+        }
+        Debug::Debug() << options->vpLeft >> Debug::writeln;
+        options->vpLeft = val;
+        options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
+        _syncRangeFromOption();
+        bmpCanvas->forceRedraw();
+    }
+
+    inline void txtRangeXTo_onLosingFocus(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        double val = std::stod(txtRangeXTo->getText());
+        if (val <= options->vpLeft)
+        {
+            _syncRangeFromOption();
+            return;
+        }
+        options->vpRight = val;
+        options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
+        _syncRangeFromOption();
+        bmpCanvas->forceRedraw();
+    }
+
+    inline void txtRangeYFrom_onLosingFocus(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        double val = std::stod(txtRangeYFrom->getText());
+        if (val >= options->vpTop)
+        {
+            _syncRangeFromOption();
+            return;
+        }
+        options->vpBottom = val;
+        options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
+        _syncRangeFromOption();
+        bmpCanvas->forceRedraw();
+    }
+
+    inline void txtRangeYTo_onLosingFocus(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        double val = std::stod(txtRangeYTo->getText());
+        if (val <= options->vpBottom)
+        {
+            _syncRangeFromOption();
+            return;
+        }
+        options->vpTop = val;
+        options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
+        _syncRangeFromOption();
+        bmpCanvas->forceRedraw();
     }
 
     inline void chkAntialias_onClick(Control * _control, const EventPtr & _event)
@@ -429,6 +509,11 @@ namespace StupidPlot
         chkAntialias->addEventHandler(EventName::EVENT_CLICK, chkAntialias_onClick);
         chkShowGrid->addEventHandler(EventName::EVENT_CLICK, chkShowGrid_onClick);
         chkShowAxis->addEventHandler(EventName::EVENT_CLICK, chkShowAxis_onClick);
+        txtGridSize->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtGridSize_onLosingFocus);
+        txtRangeXFrom->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeXFrom_onLosingFocus);
+        txtRangeXTo->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeXTo_onLosingFocus);
+        txtRangeYFrom->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeYFrom_onLosingFocus);
+        txtRangeYTo->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeYTo_onLosingFocus);
 
         bmpCanvas->addEventHandler(EventName::EVENT_BUFFER_REDRAW, bmpCanvas_onRedrawBuffer);
         bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_BEGINMOVE, bmpCanvas_onCanvasBeginMove);

@@ -29,6 +29,8 @@ namespace StupidPlot
                 EVENT_CANVAS_ENDMOVE,
                 EVENT_CANVAS_MOVE,
                 EVENT_CANVAS_RESIZE,
+                EVENT_GOT_FOCUS,
+                EVENT_LOSING_FOCUS,
 
                 EVENT_LAST
             };
