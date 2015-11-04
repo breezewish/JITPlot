@@ -11,15 +11,17 @@ namespace StupidPlot
         {
             int pVariable;
             int pConstants;
+            int pTempVariable;
             int pReturnValue;
+            int pEnd;
         };
 
         enum class MemoryOffsetType
         {
             OFFSET_VARIABLE,
             OFFSET_CONSTANT,
+            OFFSET_TEMP_VAR,
             OFFSET_RETURN_VALUE,
-            RESOLVED,
             INVALID
         };
 
@@ -40,28 +42,20 @@ namespace StupidPlot
                 offset = _offset;
             }
 
-            bool isResolved()
-            {
-                return type == MemoryOffsetType::RESOLVED;
-            }
-
-            void resolve(const MemoryOffsets & offsets)
+            inline int resolve(const MemoryOffsets & offsets) const
             {
                 switch (type)
                 {
                 case MemoryOffsetType::OFFSET_VARIABLE:
-                    offset = offsets.pVariable + offset;
-                    type = MemoryOffsetType::RESOLVED;
-                    break;
+                    return offsets.pVariable + offset;
                 case MemoryOffsetType::OFFSET_CONSTANT:
-                    offset = offsets.pConstants + offset;
-                    type = MemoryOffsetType::RESOLVED;
-                    break;
+                    return offsets.pConstants + offset;
+                case MemoryOffsetType::OFFSET_TEMP_VAR:
+                    return offsets.pTempVariable + offset;
                 case MemoryOffsetType::OFFSET_RETURN_VALUE:
-                    offset = offsets.pReturnValue + offset;
-                    type = MemoryOffsetType::RESOLVED;
-                    break;
+                    return offsets.pReturnValue + offset;
                 }
+                throw std::logic_error("Unresolvable memory offsets");
             }
         };
 
@@ -85,7 +79,7 @@ namespace StupidPlot
         std::wostream & operator<< (std::wostream & out, XMM const & xmm);
 
         // we have only used these two registers
-        enum class GPREG : int
+        enum class GPREG
         {
             UNKNOWN,
             ECX,

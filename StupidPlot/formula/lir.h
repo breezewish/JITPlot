@@ -25,8 +25,8 @@ namespace StupidPlot
             DIV_XMM_XMM,
             MOV_XMM_XMM,        // movapd
             SQRT_XMM_XMM,
-            LOAD_ST0_MEM,
-            STORE_ST0_MEM,
+            MOV_XMM_ST0,
+            MOV_ST0_XMM,
             SIN_ST0,
             COS_ST0,
             RET,
@@ -104,7 +104,7 @@ namespace StupidPlot
                 operands = 2;
             }
 
-            inline void generate(PBYTE & buffer)
+            inline void generate(const MemoryOffsets & offsets, PBYTE & buffer)
             {
                 switch (operation)
                 {
@@ -123,10 +123,10 @@ namespace StupidPlot
                     Assembler::ADD_REG_IMM8(buffer, REG(GPREG::ESP), byte(sizeof(double)));
                     break;
                 case LIROperation::LOAD_XMM_MEM:
-                    Assembler::MOVSD_XMM_MEM(buffer, operand1.xmm, MEMREF::ECX_REF(operand2.mem.offset * sizeof(double)));
+                    Assembler::MOVSD_XMM_MEM(buffer, operand1.xmm, MEMREF::ECX_REF(operand2.mem.resolve(offsets) * sizeof(double)));
                     break;
                 case LIROperation::STORE_MEM_XMM:
-                    Assembler::MOVSD_MEM_XMM(buffer, MEMREF::ECX_REF(operand1.mem.offset * sizeof(double)), operand2.xmm);
+                    Assembler::MOVSD_MEM_XMM(buffer, MEMREF::ECX_REF(operand1.mem.resolve(offsets) * sizeof(double)), operand2.xmm);
                     break;
                 case LIROperation::ADD_XMM_XMM:
                     Assembler::ADDSD_XMM_XMM(buffer, operand1.xmm, operand2.xmm);
@@ -146,17 +146,27 @@ namespace StupidPlot
                 case LIROperation::SQRT_XMM_XMM:
                     Assembler::SQRTSD_XMM_XMM(buffer, operand1.xmm, operand1.xmm);
                     break;
-                case LIROperation::LOAD_ST0_MEM:
-                    // Not implemented
+                case LIROperation::MOV_ST0_XMM:
+                {
+                    auto tempMem = MEM(MemoryOffsetType::OFFSET_RETURN_VALUE, 0);
+                    auto tempMemRef = MEMREF::ECX_REF(tempMem.resolve(offsets) * sizeof(double));
+                    Assembler::MOVSD_MEM_XMM(buffer, tempMemRef, operand1.xmm);
+                    Assembler::FLD_ST0_MEM(buffer, tempMemRef);
                     break;
-                case LIROperation::STORE_ST0_MEM:
-                    // Not implemented
+                }
+                case LIROperation::MOV_XMM_ST0:
+                {
+                    auto tempMem = MEM(MemoryOffsetType::OFFSET_RETURN_VALUE, 0);
+                    auto tempMemRef = MEMREF::ECX_REF(tempMem.resolve(offsets) * sizeof(double));
+                    Assembler::FSTP_MEM_ST0(buffer, tempMemRef);
+                    Assembler::MOVSD_XMM_MEM(buffer, operand1.xmm, tempMemRef);
                     break;
+                }
                 case LIROperation::SIN_ST0:
-                    // Not implemented
+                    Assembler::FSIN_ST0(buffer);
                     break;
                 case LIROperation::COS_ST0:
-                    // Not implemented
+                    Assembler::FCOS_ST0(buffer);
                     break;
                 default:
                     break;

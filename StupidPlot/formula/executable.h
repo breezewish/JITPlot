@@ -20,14 +20,14 @@ namespace StupidPlot
             PBYTE       pCode;
             int         poolSize;
 
-            Executable(int constLen, const std::map<double, int> & constMap)
+            Executable(const MemoryOffsets & offsets, const std::map<double, int> & constMap)
             {
-                int elements = constLen + 2;  // 0 = x, N = ret
+                int elements = offsets.pEnd;
 
                 pBuffer = new double[elements];
-                pVariable = pBuffer;
-                pConstants = pVariable + 1;
-                pReturnValue = pConstants + constLen;
+                pVariable = pBuffer + offsets.pVariable;
+                pConstants = pBuffer + offsets.pConstants;
+                pReturnValue = pBuffer + offsets.pReturnValue;
 
                 // copy constants
                 for (auto pair : constMap)

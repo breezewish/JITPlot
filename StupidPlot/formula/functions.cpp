@@ -59,11 +59,42 @@ namespace StupidPlot
             ins.push_back(LIRInstruction(LIROperation::DIV_XMM_XMM, opnd1, opnd2));
         }
 
+        void genSqrt(int & constLength, map<double, int> & constMap, LIRInstructionSet & ins, XMM opnd1)
+        {
+            UNREFERENCED_PARAMETER(constLength);
+            UNREFERENCED_PARAMETER(constMap);
+
+            ins.push_back(LIRInstruction(LIROperation::SQRT_XMM_XMM, opnd1));
+        }
+
+        void genSin(int & constLength, map<double, int> & constMap, LIRInstructionSet & ins, XMM opnd1)
+        {
+            UNREFERENCED_PARAMETER(constLength);
+            UNREFERENCED_PARAMETER(constMap);
+
+            ins.push_back(LIRInstruction(LIROperation::MOV_ST0_XMM, LIROperand(opnd1)));
+            ins.push_back(LIRInstruction(LIROperation::SIN_ST0));
+            ins.push_back(LIRInstruction(LIROperation::MOV_XMM_ST0, LIROperand(opnd1)));
+        }
+
+        void genCos(int & constLength, map<double, int> & constMap, LIRInstructionSet & ins, XMM opnd1)
+        {
+            UNREFERENCED_PARAMETER(constLength);
+            UNREFERENCED_PARAMETER(constMap);
+
+            ins.push_back(LIRInstruction(LIROperation::MOV_ST0_XMM, LIROperand(opnd1)));
+            ins.push_back(LIRInstruction(LIROperation::COS_ST0));
+            ins.push_back(LIRInstruction(LIROperation::MOV_XMM_ST0, LIROperand(opnd1)));
+        }
+
         const map<wstring, LIRGenerateFunction> functionMapping = {
             { L"add", LIRGenerateFunction(genAdd) },
             { L"subtract", LIRGenerateFunction(genSubtract) },
             { L"multiply", LIRGenerateFunction(genMultiply) },
             { L"divide", LIRGenerateFunction(genDivide) },
+            { L"sqrt", LIRGenerateFunction(genSqrt) },
+            { L"sin", LIRGenerateFunction(genSin) },
+            { L"cos", LIRGenerateFunction(genCos) },
         };
 
         bool isFunctionCallResolvable(wstring str)

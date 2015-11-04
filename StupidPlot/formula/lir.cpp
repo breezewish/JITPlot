@@ -32,8 +32,8 @@ namespace StupidPlot
             case LIROperation::DIV_XMM_XMM:     out << "DIV_XMM_XMM";   break;
             case LIROperation::MOV_XMM_XMM:     out << "MOV_XMM_XMM";   break;
             case LIROperation::SQRT_XMM_XMM:    out << "SQRT_XMM_XMM";  break;
-            case LIROperation::LOAD_ST0_MEM:    out << "LOAD_ST0_MEM";  break;
-            case LIROperation::STORE_ST0_MEM:   out << "STORE_ST0_MEM"; break;
+            case LIROperation::MOV_XMM_ST0:     out << "MOV_XMM_ST0";   break;
+            case LIROperation::MOV_ST0_XMM:     out << "MOV_ST0_XMM";   break;
             case LIROperation::SIN_ST0:         out << "SIN_ST0";       break;
             case LIROperation::COS_ST0:         out << "COS_ST0";       break;
             case LIROperation::RET:             out << "RET";           break;

@@ -170,6 +170,50 @@ namespace StupidPlot
                     *reinterpret_cast<short *>(buffer) = n; buffer += 2;
                 }
             }
+
+            static void FLD_ST0_MEM(PBYTE & buffer, MEMREF opnd1)
+            {
+                *buffer = byte(0xDD); buffer += 1;
+
+                if (-128 <= opnd1.offset && opnd1.offset <= 127)
+                {
+                    *buffer = byte((0x1 << 6) | RegisterNumber[opnd1.ref.reg]); buffer += 1;
+                    *buffer = byte(opnd1.offset); buffer += 1;
+                }
+                else
+                {
+                    *buffer = byte((0x2 << 6) | RegisterNumber[opnd1.ref.reg]); buffer += 1;
+                    *reinterpret_cast<int *>(buffer) = opnd1.offset; buffer += 4;
+                }
+            }
+
+            static void FSTP_MEM_ST0(PBYTE & buffer, MEMREF opnd1)
+            {
+                *buffer = byte(0xDD); buffer += 1;
+
+                if (-128 <= opnd1.offset && opnd1.offset <= 127)
+                {
+                    *buffer = byte((0x1 << 6) | (0x3 << 3) | RegisterNumber[opnd1.ref.reg]); buffer += 1;
+                    *buffer = byte(opnd1.offset); buffer += 1;
+                }
+                else
+                {
+                    *buffer = byte((0x2 << 6) | (0x3 << 3) | RegisterNumber[opnd1.ref.reg]); buffer += 1;
+                    *reinterpret_cast<int *>(buffer) = opnd1.offset; buffer += 4;
+                }
+            }
+
+            static void FSIN_ST0(PBYTE & buffer)
+            {
+                *buffer = byte(0xD9); buffer += 1;
+                *buffer = byte(0xFE); buffer += 1;
+            }
+
+            static void FCOS_ST0(PBYTE & buffer)
+            {
+                *buffer = byte(0xD9); buffer += 1;
+                *buffer = byte(0xFF); buffer += 1;
+            }
         };
     }
 }

@@ -194,37 +194,27 @@ namespace StupidPlot
                 }
 
                 // 5. allocate memory for storing constants
-                auto exec = ExecutablePtr(new Executable(usedConstants, constantOffsets));
+                MemoryOffsets offsets;
+                offsets.pVariable = 0;
+                offsets.pConstants = offsets.pVariable + 1;
+                offsets.pTempVariable = offsets.pConstants + usedConstants;
+                offsets.pReturnValue = offsets.pTempVariable + 1;
+                offsets.pEnd = offsets.pReturnValue + 1;
+
+                auto exec = ExecutablePtr(new Executable(offsets, constantOffsets));
 
                 // pre-body instruction: load address and x
                 lirins.push_front(LIRInstruction(LIROperation::SET_BASE, LIROperand(reinterpret_cast<unsigned int>(exec->pBuffer))));
                 lirins.insert(std::next(lirins.begin()), LIRInstruction(LIROperation::LOAD_XMM_MEM, LIROperand(XMM(0)), LIROperand(MEM(MemoryOffsetType::OFFSET_VARIABLE, 0))));
 
                 // post-body instruction: store result and return
-                lirins.push_back(LIRInstruction(LIROperation::STORE_MEM_XMM, LIROperand(MEM(MemoryOffsetType::OFFSET_RETURN_VALUE, 0)), LIROperand(XMM(0))));
+                lirins.push_back(LIRInstruction(LIROperation::STORE_MEM_XMM, LIROperand(MEM(MemoryOffsetType::OFFSET_RETURN_VALUE, 0)), LIROperand(XMM(1))));
                 lirins.push_back(LIRInstruction(LIROperation::RET, LIROperand(0)));
 
-                // 6. resolve memory positions
-                MemoryOffsets offsets;
-                offsets.pVariable = 0;
-                offsets.pConstants = offsets.pVariable + 1;
-                offsets.pReturnValue = offsets.pConstants + usedConstants;
-                for (auto it = lirins.begin(); it != lirins.end(); ++it)
-                {
-                    if (it->operands >= 1 && it->operand1.type == LIROperandType::MEM)
-                    {
-                        it->operand1.mem.resolve(offsets);
-                    }
-                    if (it->operands >= 2 && it->operand2.type == LIROperandType::MEM)
-                    {
-                        it->operand2.mem.resolve(offsets);
-                    }
-                }
-
-                // 7. generate machine code from LIR
+                // 6. generate machine code from LIR
                 auto pt = exec->pCode;
                 exec->beginWriteCode();
-                for (auto ins : lirins) ins.generate(pt);
+                for (auto ins : lirins) ins.generate(offsets, pt);
                 exec->endWriteCode();
 
                 /*

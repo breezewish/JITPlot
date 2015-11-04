@@ -14,7 +14,6 @@ namespace StupidPlot
             case MemoryOffsetType::OFFSET_CONSTANT:     return out << L"[CONSTANT + 0x" << std::hex << mem.offset << std::dec << L" * 8]";
             case MemoryOffsetType::OFFSET_RETURN_VALUE: return out << L"[RET]";
             case MemoryOffsetType::OFFSET_VARIABLE:     return out << L"[VAR + 0x" << std::hex << mem.offset << std::dec << L" * 8]";
-            case MemoryOffsetType::RESOLVED:            return out << L"[ECX + 0x" << std::hex << mem.offset << std::dec << L" * 8]";
             default:                                    return out << L"[?]";
             }
         }
