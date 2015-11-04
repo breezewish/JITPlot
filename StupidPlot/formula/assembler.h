@@ -230,6 +230,70 @@ namespace StupidPlot
                 *buffer = byte(0xD9); buffer += 1;
                 *buffer = byte(0xFF); buffer += 1;
             }
+            static void FYL2X_ST0_ST1(PBYTE & buffer)
+            {
+                *buffer = byte(0xD9); buffer += 1;
+                *buffer = byte(0xF1); buffer += 1;
+            }
+
+            static void FLD_ST0_STX(PBYTE & buffer, int x)
+            {
+                *buffer = byte(0xD9); buffer += 1;
+                *buffer = byte(0xC0 | x); buffer += 1;
+            }
+
+            static void FRNDINT_ST0(PBYTE & buffer)
+            {
+                *buffer = byte(0xD9); buffer += 1;
+                *buffer = byte(0xFC); buffer += 1;
+            }
+
+            static void FSUB_STX_ST0(PBYTE & buffer, int x)
+            {
+                *buffer = byte(0xDC); buffer += 1;
+                *buffer = byte(0xE8 | x); buffer += 1;
+            }
+
+            static void FXCH_ST0_STX(PBYTE & buffer, int x)
+            {
+                *buffer = byte(0xD9); buffer += 1;
+                *buffer = byte(0xC8 | x); buffer += 1;
+            }
+
+            static void F2XM1_ST0(PBYTE & buffer)
+            {
+                *buffer = byte(0xD9); buffer += 1;
+                *buffer = byte(0xF0); buffer += 1;
+            }
+
+            static void FLD1_ST0(PBYTE & buffer)
+            {
+                *buffer = byte(0xD9); buffer += 1;
+                *buffer = byte(0xE8); buffer += 1;
+            }
+
+            static void FADDP_STX_ST0(PBYTE & buffer, int x)
+            {
+                *buffer = byte(0xDE); buffer += 1;
+                *buffer = byte(0xC0 | x); buffer += 1;
+            }
+
+            static void FADD_ST0_ST1(PBYTE & buffer)
+            {
+                FADDP_STX_ST0(buffer, 1);
+            }
+
+            static void FSCALE_ST0_ST1(PBYTE & buffer)
+            {
+                *buffer = byte(0xD9); buffer += 1;
+                *buffer = byte(0xFD); buffer += 1;
+            }
+
+            static void FSTP_STX_ST0(PBYTE & buffer, int x)
+            {
+                *buffer = byte(0xDD); buffer += 1;
+                *buffer = byte(0xD8 | x); buffer += 1;
+            }
         };
     }
 }

@@ -132,6 +132,12 @@ namespace StupidPlot
                         continue;
                     }
 
+                    if (c == L'^')
+                    {
+                        tokens.push_back(shared_ptr<Token>(new OperatorToken(OperatorType::OP_POW)));
+                        continue;
+                    }
+
                     // comma
                     if (c == L',')
                     {

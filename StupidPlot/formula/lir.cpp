@@ -38,6 +38,7 @@ namespace StupidPlot
             case LIROperation::ANDNOT_XMM_XMM:  out << L"ANDNOT_XMM_XMM";   break;
             case LIROperation::SIN_ST0:         out << L"SIN_ST0";          break;
             case LIROperation::COS_ST0:         out << L"COS_ST0";          break;
+            case LIROperation::POWER_ST0_ST1:   out << L"POWER_ST0_ST1";    break;
             case LIROperation::RET:             out << L"RET";              break;
             default:                            out << L"?";                break;
             }
