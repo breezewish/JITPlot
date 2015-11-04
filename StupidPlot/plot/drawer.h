@@ -132,7 +132,7 @@ namespace StupidPlot
                 int n = ((max - min + 1) / options->gridSpacing) + 1;
 
                 // too dense
-                if (n > clipWidth / 10) return;
+                if (n > clipWidth / 20) return;
 
                 int length = 0;
                 auto points = shared_ptr<int>(new int[n], array_deleter<int>());

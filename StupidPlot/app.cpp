@@ -306,7 +306,8 @@ namespace StupidPlot
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
 
         options->formulaColors.push_back(Color(255, 47, 197, 255));
-        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"sin(x)", mathConstants)));
+        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"x+(1+(2+(3+(4+(5+(6+(7+(8+(9+(10+(11+12)))))))))))", mathConstants)));
+        //options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"x+1", mathConstants)));
 
         drawer = PlotDrawerPtr(new Drawer(options, bmpCanvas->memDC, chkAntialias->isChecked()));
         drawer->setSize(bmpCanvas->canvasW, bmpCanvas->canvasH, bmpCanvas->vpX, bmpCanvas->vpY, bmpCanvas->width, bmpCanvas->height);

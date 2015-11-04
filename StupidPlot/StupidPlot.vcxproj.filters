@@ -31,9 +31,6 @@
     <Filter Include="源文件\formula">
       <UniqueIdentifier>{275c66cb-600c-4ab2-beaf-eee5dfae6d8f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\formula\jit">
-      <UniqueIdentifier>{2ac81fd2-4376-453a-9ca8-5d9c8cacab6c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="头文件\ui\events">
       <UniqueIdentifier>{5a605467-e5cd-4bf3-847e-d01eae67f36c}</UniqueIdentifier>
     </Filter>
@@ -50,6 +47,21 @@
     </ClCompile>
     <ClCompile Include="formula\token.cpp">
       <Filter>源文件\formula</Filter>
+    </ClCompile>
+    <ClCompile Include="formula\functions.cpp">
+      <Filter>源文件\formula</Filter>
+    </ClCompile>
+    <ClCompile Include="formula\lir.cpp">
+      <Filter>源文件\formula</Filter>
+    </ClCompile>
+    <ClCompile Include="formula\types.cpp">
+      <Filter>源文件\formula</Filter>
+    </ClCompile>
+    <ClCompile Include="formula\assembler.cpp">
+      <Filter>源文件\formula</Filter>
+    </ClCompile>
+    <ClCompile Include="formula\executable.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -95,27 +107,6 @@
     <ClInclude Include="util.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="formula\jit\functions.h">
-      <Filter>头文件\formula\jit</Filter>
-    </ClInclude>
-    <ClInclude Include="formula\jit\functiontable.h">
-      <Filter>头文件\formula\jit</Filter>
-    </ClInclude>
-    <ClInclude Include="formula\jit\instructiongen.h">
-      <Filter>头文件\formula\jit</Filter>
-    </ClInclude>
-    <ClInclude Include="formula\jit\types.h">
-      <Filter>头文件\formula\jit</Filter>
-    </ClInclude>
-    <ClInclude Include="formula\jit\instructions.h">
-      <Filter>头文件\formula\jit</Filter>
-    </ClInclude>
-    <ClInclude Include="formula\jit\assembler.h">
-      <Filter>头文件\formula\jit</Filter>
-    </ClInclude>
-    <ClInclude Include="formula\jit\executable.h">
-      <Filter>头文件\formula\jit</Filter>
-    </ClInclude>
     <ClInclude Include="formula\exp.h">
       <Filter>头文件\formula</Filter>
     </ClInclude>
@@ -160,6 +151,21 @@
     </ClInclude>
     <ClInclude Include="plot\animation.h">
       <Filter>头文件\plot</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\lir.h">
+      <Filter>头文件\formula</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\types.h">
+      <Filter>头文件\formula</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\functions.h">
+      <Filter>头文件\formula</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\executable.h">
+      <Filter>头文件\formula</Filter>
+    </ClInclude>
+    <ClInclude Include="formula\assembler.h">
+      <Filter>头文件\formula</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

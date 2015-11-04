@@ -6,13 +6,13 @@
 #include <stack>
 #include <string>
 #include <memory>
+#include <cmath>
 #include <formula/token.h>
 #include <formula/exception.h>
-#include <formula/jit/types.h>
-#include <formula/jit/instructions.h>
-#include <formula/jit/functiontable.h>
-#include <formula/jit/functions.h>
-#include <formula/jit/instructiongen.h>
+#include <formula/types.h>
+#include <formula/lir.h>
+#include <formula/functions.h>
+#include <formula/executable.h>
 
 using std::list;
 using std::shared_ptr;
@@ -26,32 +26,14 @@ namespace StupidPlot
 {
     namespace Formula
     {
-        using namespace JIT;
-
-        struct CompiledResult
-        {
-            shared_ptr<InstructionGen>  insgen;
-            map<wstring, int>           dynamicVarOffsets;
-            map<double, int>            constantOffsets;
-        };
-
-        typedef std::shared_ptr<CompiledResult> CompiledResultPtr;
-
         class Compiler
         {
         public:
-            static CompiledResultPtr compileRPN(
-                list<shared_ptr<Token>> tokens,     // tokens
-                map<wstring, double> & constVars,   // constant variables (name => value)
-                vector<wstring> dynamicVars         // runtime variables, like 'x' (name)
+            static ExecutablePtr compileRPN(
+                list<shared_ptr<Token>> tokens,            // tokens
+                const map<wstring, double> & constVars     // constant variables (name => value)
                 )
             {
-                auto opTable = JIT::getOperatorTranslateTable();
-                auto funcTable = JIT::getFunctionCallTable();
-
-                int usedDynamicVars = 0;
-                map<wstring, int> dynamicVarOffsets;
-
                 int usedConstants = 0;
                 map<double, int> constantOffsets;
 
@@ -68,23 +50,15 @@ namespace StupidPlot
                         // find var in constVars and replace
                         if (constVars.find(name) != constVars.end())
                         {
-                            *itr = shared_ptr<Token>(new ConstantOperandToken(constVars[name]));
+                            *itr = shared_ptr<Token>(new ConstantOperandToken(constVars.find(name)->second));
                             continue;
                         }
 
-                        // find var in dynamicVars
-                        if (std::find(dynamicVars.begin(), dynamicVars.end(), name) != dynamicVars.end())
+                        if (name == L"x")
                         {
-                            // we needn't two spaces for the same variable
-                            if (dynamicVarOffsets.find(name) == dynamicVarOffsets.end())
-                            {
-                                dynamicVarOffsets[name] = usedDynamicVars;
-                                usedDynamicVars++;
-                            }
                             continue;
                         }
 
-                        // not found
                         throw UnknownSymbolException(name);
                     }
 
@@ -93,15 +67,16 @@ namespace StupidPlot
                         auto token = dynamic_pointer_cast<FunctionCallToken>(pToken);
 
                         // find function
-                        if (funcTable.find(token->name) == funcTable.end())
+                        if (!isFunctionCallResolvable(token->name))
                         {
                             throw UnknownSymbolException(token->name);
                         }
 
                         // check parameter number
-                        if (funcTable[token->name].parameterCount != token->n)
+                        auto f = resolveFunctionCall(token->name);
+                        if (f.operands != token->n)
                         {
-                            throw ParameterNumberMismatchException(token->name, token->n, funcTable[token->name].parameterCount);
+                            throw ParameterNumberMismatchException(token->name, token->n, f.operands);
                         }
                     }
                 }
@@ -114,14 +89,13 @@ namespace StupidPlot
                     if (pToken->is(TokenType::OPERATOR))
                     {
                         auto token = dynamic_pointer_cast<OperatorToken>(pToken);
-                        if (opTable.find(token->op) == opTable.end())
+                        if (!isOperatorTranslatable(token->op))
                         {
                             throw OperatorNotImplementedException(token->getTokenValue());
                         }
 
-                        auto func = opTable[token->op];
-
-                        *itr = shared_ptr<Token>(new FunctionCallToken(func.funcName, func.parameterCount));
+                        auto func = translateOperator(token->op);
+                        *itr = shared_ptr<Token>(new FunctionCallToken(func.name, func.operands));
                     }
                 }
 
@@ -144,74 +118,127 @@ namespace StupidPlot
                     }
                 }
 
-                auto insgen = shared_ptr<JIT::InstructionGen>(new JIT::InstructionGen(usedDynamicVars, usedConstants));
-
-                // 4. generate instructions
+                // 4. generate LIR instructions
                 // for function calls, we always store parameters in an XMM register
                 // and notify the function to put result into an XMM register
-                int stackTop = -1;      // xmm stack
+
+                LIRInstructionSet lirins;
+                int depth = 0;  // xmm0 = x
 
                 for (auto pToken : tokens)
                 {
                     if (pToken->is(TokenType::OPERAND))
                     {
                         auto opToken = dynamic_pointer_cast<OperandToken>(pToken);
+                        auto dest = XMM(min(depth + 1, 6));
+
                         if (opToken->operandType == OperandType::OPERAND_CONST)
                         {
                             // constant
                             auto token = dynamic_pointer_cast<ConstantOperandToken>(pToken);
-                            insgen->jit_sse_movsd_xmm_mem(
-                                ++stackTop,                                                             // dst xmm reg
-                                MEM(MemoryPositionType::STATIC_CONSTANT, constantOffsets[token->value]) // src memory
-                                );
+                            auto src = MEM(MemoryOffsetType::OFFSET_CONSTANT, constantOffsets[token->value]);
+                            lirins.push_back(LIRInstruction(LIROperation::LOAD_XMM_MEM, LIROperand(dest), LIROperand(src)));
                         }
                         else
                         {
+                            // variable x
                             auto token = dynamic_pointer_cast<VariableOperandToken>(pToken);
-                            insgen->jit_sse_movsd_xmm_mem(
-                                ++stackTop,                                                                     // dst xmm reg
-                                MEM(MemoryPositionType::DYNAMIC_SYMBOL_VAR, dynamicVarOffsets[token->name])     // src memory
-                                );
+                            lirins.push_back(LIRInstruction(LIROperation::MOV_XMM_XMM, LIROperand(dest), LIROperand(XMM(0))));
                         }
+
+                        if (depth + 1 >= 6)
+                        {
+                            lirins.push_back(LIRInstruction(LIROperation::PUSH_MEM_XMM, LIROperand(XMM(6))));
+                        }
+
+                        depth++;
                     }
                     else if (pToken->is(TokenType::FUNC_CALL))
                     {
                         auto token = dynamic_pointer_cast<FunctionCallToken>(pToken);
-                        // calculate the reg num of each parameter
-                        // notice: we push parameters from left to right in RPN
-                        // for example, func(1,2,3) becomes [1],[2],[3],[func_call(3)]
-                        // and we scan RPN from left to right.
+                        auto func = resolveFunctionCall(token->name);
 
-                        vector<XMM> pXMM;
-                        for (int i = 0; i < token->n; ++i)
+                        XMM opnd1, opnd2;
+
+                        if (token->n >= 1 && depth >= 6)
                         {
-                            pXMM.push_back(XMM(stackTop - token->n + i + 1));
+                            lirins.push_back(LIRInstruction(LIROperation::POP_XMM_MEM, LIROperand(XMM(6))));
                         }
 
-                        stackTop -= token->n;
-                        XMM retXMM(++stackTop);
+                        if (token->n >= 2 && depth >= 7)
+                        {
+                            lirins.push_back(LIRInstruction(LIROperation::POP_XMM_MEM, LIROperand(XMM(7))));
+                        }
 
-                        FunctionCallItem func = funcTable[token->name];
                         if (token->n == 1)
                         {
-                            func.address.p1(insgen, retXMM, pXMM[0]);
+                            opnd1 = XMM(min(depth, 6));
+                            func.genfunc1(usedConstants, constantOffsets, lirins, opnd1);
+                            if (depth >= 6)
+                            {
+                                lirins.push_back(LIRInstruction(LIROperation::PUSH_MEM_XMM, LIROperand(XMM(6))));
+                            }
                         }
                         else if (token->n == 2)
                         {
-                            func.address.p2(insgen, retXMM, pXMM[0], pXMM[1]);
-                        }
-                        else if (token->n == 3)
-                        {
-                            func.address.p3(insgen, retXMM, pXMM[0], pXMM[1], pXMM[2]);
+                            opnd1 = XMM(min(depth - 1, 6));
+                            opnd2 = XMM(min(depth, 7));
+                            func.genfunc2(usedConstants, constantOffsets, lirins, opnd1, opnd2);
+                            if (depth - 1 >= 6)
+                            {
+                                lirins.push_back(LIRInstruction(LIROperation::PUSH_MEM_XMM, LIROperand(XMM(6))));
+                            }
+                            depth--;
                         }
                     }
                 }
 
+                // 5. allocate memory for storing constants
+                auto exec = ExecutablePtr(new Executable(usedConstants, constantOffsets));
+
+                // pre-body instruction: load address and x
+                lirins.push_front(LIRInstruction(LIROperation::SET_BASE, LIROperand(reinterpret_cast<unsigned int>(exec->pBuffer))));
+                lirins.insert(std::next(lirins.begin()), LIRInstruction(LIROperation::LOAD_XMM_MEM, LIROperand(XMM(0)), LIROperand(MEM(MemoryOffsetType::OFFSET_VARIABLE, 0))));
+
+                // post-body instruction: store result and return
+                lirins.push_back(LIRInstruction(LIROperation::STORE_MEM_XMM, LIROperand(MEM(MemoryOffsetType::OFFSET_RETURN_VALUE, 0)), LIROperand(XMM(0))));
+                lirins.push_back(LIRInstruction(LIROperation::RET, LIROperand(0)));
+
+                // 6. resolve memory positions
+                MemoryOffsets offsets;
+                offsets.pVariable = 0;
+                offsets.pConstants = offsets.pVariable + 1;
+                offsets.pReturnValue = offsets.pConstants + usedConstants;
+                for (auto it = lirins.begin(); it != lirins.end(); ++it)
+                {
+                    if (it->operands >= 1 && it->operand1.type == LIROperandType::MEM)
+                    {
+                        it->operand1.mem.resolve(offsets);
+                    }
+                    if (it->operands >= 2 && it->operand2.type == LIROperandType::MEM)
+                    {
+                        it->operand2.mem.resolve(offsets);
+                    }
+                }
+
+                // 7. generate machine code from LIR
+                auto pt = exec->pCode;
+                exec->beginWriteCode();
+                for (auto ins : lirins) ins.generate(pt);
+                exec->endWriteCode();
+
+                /*
                 auto ret = CompiledResultPtr(new CompiledResult());
                 ret->insgen = insgen;
                 ret->constantOffsets = constantOffsets;
-                ret->dynamicVarOffsets = dynamicVarOffsets;
-                return ret;
+                ret->dynamicVarOffsets = variableOffsets;*/
+
+                for (auto instruction : lirins)
+                {
+                    Debug::Debug() << instruction >> Debug::writeln;
+                }
+
+                return exec;
             };
         };
     }

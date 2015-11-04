@@ -148,25 +148,28 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />
+    <ClCompile Include="formula\assembler.cpp" />
+    <ClCompile Include="formula\executable.cpp" />
+    <ClCompile Include="formula\functions.cpp" />
+    <ClCompile Include="formula\lir.cpp" />
     <ClCompile Include="formula\token.cpp" />
+    <ClCompile Include="formula\types.cpp" />
     <ClCompile Include="winform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h" />
+    <ClInclude Include="formula\assembler.h" />
     <ClInclude Include="formula\compiler.h" />
+    <ClInclude Include="formula\executable.h" />
     <ClInclude Include="formula\exp.h" />
     <ClInclude Include="formula\expdrawer.h" />
-    <ClInclude Include="formula\jit\assembler.h" />
-    <ClInclude Include="formula\jit\executable.h" />
-    <ClInclude Include="formula\jit\functions.h" />
-    <ClInclude Include="formula\jit\functiontable.h" />
-    <ClInclude Include="formula\jit\instructiongen.h" />
-    <ClInclude Include="formula\jit\instructions.h" />
-    <ClInclude Include="formula\jit\types.h" />
+    <ClInclude Include="formula\functions.h" />
+    <ClInclude Include="formula\lir.h" />
     <ClInclude Include="formula\lexer.h" />
     <ClInclude Include="formula\token.h" />
     <ClInclude Include="formula\exception.h" />
     <ClInclude Include="formula\parser.h" />
+    <ClInclude Include="formula\types.h" />
     <ClInclude Include="plot\animation.h" />
     <ClInclude Include="plot\drawer.h" />
     <ClInclude Include="plot\optionbag.h" />

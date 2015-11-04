@@ -16,7 +16,7 @@
 #include <formula/lexer.h>
 #include <formula/parser.h>
 #include <formula/compiler.h>
-#include <formula/jit/executable.h>
+#include <formula/executable.h>
 
 using std::wstring;
 using std::map;
@@ -27,7 +27,7 @@ namespace StupidPlot
 {
     namespace Formula
     {
-        using namespace JIT;
+        //using namespace JIT;
 
         class Expression
         {
@@ -48,19 +48,14 @@ namespace StupidPlot
             {
                 exp = _exp;
 
-                auto dynamicVars = vector<wstring>();
-                dynamicVars.push_back(L"x");
-
                 auto tokens = Lexer::lex(exp);
                 tokens = Parser::getRPN(tokens);
-                auto cr = Compiler::compileRPN(tokens, _constVars, dynamicVars);
-                executable = ExecutablePtr(new Executable(cr));
+                executable = Compiler::compileRPN(tokens, _constVars);
             }
 
             inline double eval(double x)
             {
-                executable->setVar(0, x);
-                return executable->eval();
+                return executable->eval(x);
             }
 
             vector<double> & eval(double xMin, double xMax, int n)
