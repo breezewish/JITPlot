@@ -129,6 +129,17 @@ namespace StupidPlot
             ins.push_back(LIRInstruction(LIROperation::MOV_XMM_ST0, LIROperand(opnd1)));
         }
 
+        void genLog2(int & constLength, map<double, int> & constMap, LIRInstructionSet & ins, XMM opnd1)
+        {
+            UNREFERENCED_PARAMETER(constLength);
+            UNREFERENCED_PARAMETER(constMap);
+
+            ins.push_back(LIRInstruction(LIROperation::MOV_ST0_1));
+            ins.push_back(LIRInstruction(LIROperation::MOV_ST0_XMM, LIROperand(opnd1)));
+            ins.push_back(LIRInstruction(LIROperation::LOG2_ST0_ST1));
+            ins.push_back(LIRInstruction(LIROperation::MOV_XMM_ST0, LIROperand(opnd1)));
+        }
+
         const map<wstring, LIRGenerateFunction> functionMapping = {
             { L"add", LIRGenerateFunction(genAdd) },
             { L"sub", LIRGenerateFunction(genSub) },
@@ -140,6 +151,7 @@ namespace StupidPlot
             { L"neg", LIRGenerateFunction(genNeg) },
             { L"abs", LIRGenerateFunction(genAbs) },
             { L"pow", LIRGenerateFunction(genPower) },
+            { L"log2", LIRGenerateFunction(genLog2) },
         };
 
         bool isFunctionCallResolvable(wstring str)

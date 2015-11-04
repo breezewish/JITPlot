@@ -32,6 +32,8 @@ namespace StupidPlot
             SIN_ST0,
             COS_ST0,
             POWER_ST0_ST1,
+            MOV_ST0_1,
+            LOG2_ST0_ST1,
             RET,
         };
 
@@ -188,6 +190,12 @@ namespace StupidPlot
                     Assembler::FADD_ST0_ST1(buffer);
                     Assembler::FSCALE_ST0_ST1(buffer);
                     Assembler::FSTP_STX_ST0(buffer, 1);
+                    break;
+                case LIROperation::MOV_ST0_1:
+                    Assembler::FLD1_ST0(buffer);
+                    break;
+                case LIROperation::LOG2_ST0_ST1:
+                    Assembler::FYL2X_ST0_ST1(buffer);
                     break;
                 default:
                     throw std::logic_error("Unknown operation");
