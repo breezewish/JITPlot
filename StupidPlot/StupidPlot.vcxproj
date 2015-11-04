@@ -154,6 +154,7 @@
     <ClCompile Include="formula\lir.cpp" />
     <ClCompile Include="formula\token.cpp" />
     <ClCompile Include="formula\types.cpp" />
+    <ClCompile Include="throttler.cpp" />
     <ClCompile Include="winform.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -177,6 +178,7 @@
     <ClInclude Include="plot\provider\gdiprovider.h" />
     <ClInclude Include="plot\provider\provider.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="throttler.h" />
     <ClInclude Include="ui\container.h" />
     <ClInclude Include="ui\controls\bufferedcanvas.h" />
     <ClInclude Include="ui\controls\checkbox.h" />

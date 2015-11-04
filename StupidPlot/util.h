@@ -2,6 +2,8 @@
 
 #include <string>
 #include <sstream>
+#include <iomanip>
+
 #include <windows.h>
 
 using std::string;
@@ -22,6 +24,14 @@ namespace StupidPlot
     class Util
     {
     public:
+        template <typename T>
+        static wstring to_string_with_precision(const T a_value, const int n = 6)
+        {
+            std::wostringstream out;
+            out << std::setprecision(n) << a_value;
+            return out.str();
+        }
+
         static string utf8_encode(const wstring &wstr)
         {
             if (wstr.empty()) return string();

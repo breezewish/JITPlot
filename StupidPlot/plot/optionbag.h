@@ -25,6 +25,7 @@ namespace StupidPlot
 
             bool                    keepRatio = false;
 
+            bool                    showGrid = true;
             int                     gridSpacing = 1;
 
             vector<Gdiplus::Color>  formulaColors;

@@ -4,8 +4,10 @@
 
 #include <app.h>
 #include <resource.h>
+#include <throttler.h>
 #include <ui/controls/control.h>
 #include <ui/controls/checkbox.h>
+#include <ui/controls/textbox.h>
 #include <ui/controls/bufferedcanvas.h>
 #include <ui/container.h>
 #include <ui/layout/layoutmanager.h>
@@ -40,15 +42,33 @@ namespace StupidPlot
 
     HWND                    hWnd;
 
+    ThrottlerPtr            throttler;
+
     ContainerPtr            container;
     LayoutManagerPtr        lm;
     EventManagerPtr         em;
 
     Control                 * grpCanvas;
-    Checkbox                * chkShowGrid;
     Checkbox                * chkAntialias;
-    Control                 * txtGridSize;
+    Checkbox                * chkShowGrid;
+    Checkbox                * chkShowAxis;
+    Control                 * lblGridInterval;
+    Control                 * lblAxisInterval;
+    Textbox                 * txtGridSize;
+    Textbox                 * txtAxisSize;
     BufferedCanvas          * bmpCanvas;
+    Control                 * lblRange;
+    Control                 * lblRangeXFrom;
+    Control                 * lblRangeXTo;
+    Control                 * lblRangeYFrom;
+    Control                 * lblRangeYTo;
+    Textbox                 * txtRangeXFrom;
+    Textbox                 * txtRangeXTo;
+    Textbox                 * txtRangeYFrom;
+    Textbox                 * txtRangeYTo;
+
+    CallbackFunction        syncRangeFromOption;
+    CallbackFunction        syncGridFromOption;
 
     PlotOptionsPtr          options;
     PlotDrawerPtr           drawer;
@@ -63,11 +83,29 @@ namespace StupidPlot
 
     void setup();
 
+    void _syncRangeFromOption()
+    {
+        txtRangeXFrom->setText(Util::to_string_with_precision(options->vpLeft, 5));
+        txtRangeXTo->setText(Util::to_string_with_precision(options->vpRight, 5));
+        txtRangeYFrom->setText(Util::to_string_with_precision(options->vpBottom, 5));
+        txtRangeYTo->setText(Util::to_string_with_precision(options->vpTop, 5));
+    }
+
+    void _syncGridFromOption()
+    {
+        chkShowGrid->setChecked(options->showGrid);
+        txtGridSize->setText(std::to_wstring(options->gridSpacing));
+    }
+
     void App::init(HWND _hWnd)
     {
         GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
         hWnd = _hWnd;
+
+        throttler = ThrottlerPtr(new Throttler(hWnd));
+        syncRangeFromOption = throttler->applyThrottle(300, CallbackFunction(_syncRangeFromOption));
+        syncGridFromOption = throttler->applyThrottle(300, CallbackFunction(_syncGridFromOption));
 
         container = ContainerPtr(new Container());
         lm = LayoutManagerPtr(new LayoutManager(hWnd));
@@ -75,26 +113,66 @@ namespace StupidPlot
 
         bmpCanvas = new BufferedCanvas(hWnd, IDC_STATIC_CANVAS, CANVAS_ENLARGE);
         grpCanvas = new Control(hWnd, IDC_STATIC_GROUP_CANVAS);
-        chkShowGrid = new Checkbox(hWnd, IDC_CHECK_SHOW_GRID);
         chkAntialias = new Checkbox(hWnd, IDC_CHECK_ANTIALIAS);
-        txtGridSize = new Control(hWnd, IDC_EDIT_GRID_SIZE);
+        chkShowGrid = new Checkbox(hWnd, IDC_CHECK_SHOW_GRID);
+        chkShowAxis = new Checkbox(hWnd, IDC_CHECK_SHOW_AXIS);
+        txtGridSize = new Textbox(hWnd, IDC_EDIT_GRID_SIZE);
+        txtAxisSize = new Textbox(hWnd, IDC_EDIT_AXIS_SIZE);
+        lblGridInterval = new Control(hWnd, IDC_STATIC_GRID_INTERVAL);
+        lblAxisInterval = new Control(hWnd, IDC_STATIC_AXIS_INTERVAL);
+        lblRange = new Control(hWnd, IDC_STATIC_RANGE);
+        lblRangeXFrom = new Control(hWnd, IDC_STATIC_RANGE_X_FROM);
+        lblRangeXTo = new Control(hWnd, IDC_STATIC_RANGE_X_TO);
+        lblRangeYFrom = new Control(hWnd, IDC_STATIC_RANGE_Y_FROM);
+        lblRangeYTo = new Control(hWnd, IDC_STATIC_RANGE_Y_TO);
+        txtRangeXFrom = new Textbox(hWnd, IDC_EDIT_X_FROM);
+        txtRangeXTo = new Textbox(hWnd, IDC_EDIT_X_TO);
+        txtRangeYFrom = new Textbox(hWnd, IDC_EDIT_Y_FROM);
+        txtRangeYTo = new Textbox(hWnd, IDC_EDIT_Y_TO);
 
-        chkShowGrid->setChecked(true);
         chkAntialias->setChecked(true);
+        chkShowGrid->setChecked(true);
+        chkShowAxis->setChecked(true);
 
         container
             ->addControl(bmpCanvas)
             ->addControl(grpCanvas)
-            ->addControl(chkShowGrid)
             ->addControl(chkAntialias)
-            ->addControl(txtGridSize);
+            ->addControl(chkShowGrid)
+            ->addControl(chkShowAxis)
+            ->addControl(txtGridSize)
+            ->addControl(txtAxisSize)
+            ->addControl(lblGridInterval)
+            ->addControl(lblAxisInterval)
+            ->addControl(lblRange)
+            ->addControl(lblRangeXFrom)
+            ->addControl(lblRangeXTo)
+            ->addControl(lblRangeYFrom)
+            ->addControl(lblRangeYTo)
+            ->addControl(txtRangeXFrom)
+            ->addControl(txtRangeXTo)
+            ->addControl(txtRangeYFrom)
+            ->addControl(txtRangeYTo);
 
         lm
             ->enableMagnet(bmpCanvas, true, true, true, true)
             ->enableMagnet(grpCanvas, false, true, true, false)
-            ->enableMagnet(chkShowGrid, false, true, true, false)
             ->enableMagnet(chkAntialias, false, true, true, false)
-            ->enableMagnet(txtGridSize, false, true, true, false);
+            ->enableMagnet(chkShowGrid, false, true, true, false)
+            ->enableMagnet(chkShowAxis, false, true, true, false)
+            ->enableMagnet(txtGridSize, false, true, true, false)
+            ->enableMagnet(txtAxisSize, false, true, true, false)
+            ->enableMagnet(lblGridInterval, false, true, true, false)
+            ->enableMagnet(lblAxisInterval, false, true, true, false)
+            ->enableMagnet(lblRange, false, true, true, false)
+            ->enableMagnet(lblRangeXFrom, false, true, true, false)
+            ->enableMagnet(lblRangeXTo, false, true, true, false)
+            ->enableMagnet(lblRangeYFrom, false, true, true, false)
+            ->enableMagnet(lblRangeYTo, false, true, true, false)
+            ->enableMagnet(txtRangeXFrom, false, true, true, false)
+            ->enableMagnet(txtRangeXTo, false, true, true, false)
+            ->enableMagnet(txtRangeYFrom, false, true, true, false)
+            ->enableMagnet(txtRangeYTo, false, true, true, false);
 
         updateSize();
         setup();
@@ -102,11 +180,24 @@ namespace StupidPlot
 
     void App::terminate()
     {
-        delete txtGridSize;
-        delete chkShowGrid;
-        delete chkAntialias;
         delete grpCanvas;
+        delete chkAntialias;
+        delete chkShowGrid;
+        delete chkShowAxis;
+        delete lblGridInterval;
+        delete lblAxisInterval;
+        delete txtGridSize;
+        delete txtAxisSize;
         delete bmpCanvas;
+        delete lblRange;
+        delete lblRangeXFrom;
+        delete lblRangeXTo;
+        delete lblRangeYFrom;
+        delete lblRangeYTo;
+        delete txtRangeXFrom;
+        delete txtRangeXTo;
+        delete txtRangeYFrom;
+        delete txtRangeYTo;
 
         GdiplusShutdown(gdiplusToken);
     }
@@ -119,10 +210,18 @@ namespace StupidPlot
 
     BOOL App::handleEvent(UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
-        if (uMsg == WM_TIMER && wParam == IDT_TIMER_PLOT)
+        if (uMsg == WM_TIMER)
         {
-            animation->update();
-            return false;
+            if (wParam == IDT_TIMER_PLOT)
+            {
+                animation->update();
+                return false;
+            }
+            else if (throttler->canHandleTick(wParam))
+            {
+                throttler->handleTick(wParam);
+                return false;
+            }
         }
 
         return em->handle(uMsg, wParam, lParam);
@@ -142,6 +241,7 @@ namespace StupidPlot
         options->vpRight = initialRight;
         options->vpTop = initialTop;
         options->vpBottom = initialBottom;
+        syncRangeFromOption();
     }
 
     inline void chkShowGrid_onClick(Control * _control, const EventPtr & _event)
@@ -150,6 +250,14 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_event);
 
         txtGridSize->setEnabled(chkShowGrid->isChecked());
+    }
+
+    inline void chkShowAxis_onClick(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        txtAxisSize->setEnabled(chkShowAxis->isChecked());
     }
 
     inline void chkAntialias_onClick(Control * _control, const EventPtr & _event)
@@ -178,6 +286,7 @@ namespace StupidPlot
         options->drawBottom = options->vpBottom - dy;
         options->drawRight = options->drawLeft + fcw;
         options->drawTop = options->drawBottom + fch;
+        syncRangeFromOption();
         drawer->setSize(bmpCanvas->canvasW, bmpCanvas->canvasH, bmpCanvas->vpX, bmpCanvas->vpY, bmpCanvas->width, bmpCanvas->height);
         drawer->draw();
     }
@@ -201,6 +310,7 @@ namespace StupidPlot
         options->vpRight -= dx;
         options->vpTop += dy;
         options->vpBottom += dy;
+        syncRangeFromOption();
     }
 
     void scaleReset()
@@ -264,6 +374,7 @@ namespace StupidPlot
         vpRevertSnapshot();
         options->scaleViewportBoundary(scaleOriginX, scaleOriginY, scaleFactor);
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
+        syncRangeFromOption();
         bmpCanvas->forceRedraw();
         bmpCanvas->forceCopyBuffer();
     }
@@ -309,11 +420,15 @@ namespace StupidPlot
         options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"sin(x)", mathConstants)));
         //options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"x+1", mathConstants)));
 
+        syncRangeFromOption();
+        syncGridFromOption();
+
         drawer = PlotDrawerPtr(new Drawer(options, bmpCanvas->memDC, chkAntialias->isChecked()));
         drawer->setSize(bmpCanvas->canvasW, bmpCanvas->canvasH, bmpCanvas->vpX, bmpCanvas->vpY, bmpCanvas->width, bmpCanvas->height);
 
-        chkShowGrid->addEventHandler(EventName::EVENT_CLICK, chkShowGrid_onClick);
         chkAntialias->addEventHandler(EventName::EVENT_CLICK, chkAntialias_onClick);
+        chkShowGrid->addEventHandler(EventName::EVENT_CLICK, chkShowGrid_onClick);
+        chkShowAxis->addEventHandler(EventName::EVENT_CLICK, chkShowAxis_onClick);
 
         bmpCanvas->addEventHandler(EventName::EVENT_BUFFER_REDRAW, bmpCanvas_onRedrawBuffer);
         bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_BEGINMOVE, bmpCanvas_onCanvasBeginMove);

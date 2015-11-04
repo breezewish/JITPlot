@@ -34,6 +34,7 @@ namespace StupidPlot
 
                 Textbox * setText(wstring s)
                 {
+                    SetWindowTextW(hWnd, s.c_str());
                     return this;
                 }
             };

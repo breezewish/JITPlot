@@ -63,6 +63,9 @@
     <ClCompile Include="formula\executable.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="throttler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h">
@@ -166,6 +169,9 @@
     </ClInclude>
     <ClInclude Include="formula\assembler.h">
       <Filter>头文件\formula</Filter>
+    </ClInclude>
+    <ClInclude Include="throttler.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
