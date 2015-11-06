@@ -25,6 +25,7 @@ namespace StupidPlot
                 EVENT_MOUSEMOVE,
                 EVENT_MOUSEUP,
                 EVENT_MOUSEWHEEL,
+                EVENT_SETCURSOR,
                 EVENT_CANVAS_REBUILD,
                 EVENT_CANVAS_BEGINMOVE,
                 EVENT_CANVAS_ENDMOVE,

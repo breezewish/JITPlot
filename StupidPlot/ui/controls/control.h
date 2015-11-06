@@ -83,6 +83,9 @@ namespace StupidPlot
 
                     switch (uMsg)
                     {
+                    case WM_SETCURSOR:
+                        control->dispatchEvent(EventName::EVENT_SETCURSOR, EventPtr(new Event()));
+                        break;
                     case WM_KILLFOCUS:
                         control->dispatchEvent(EventName::EVENT_LOSING_FOCUS, EventPtr(new Event()));
                         break;

@@ -98,6 +98,13 @@ namespace StupidPlot
     int                     completedScrollValue = 0;
     double                  scaleOriginX, scaleOriginY;
 
+    // ======== Cursor Resources ========
+    HCURSOR                 hCursorDefault;
+    HCURSOR                 hCursorCross;
+    HCURSOR                 hCursorHand;
+    HCURSOR                 hCurrentCursor;
+    HCURSOR                 hOldCursor;
+
     // ======== Cursor Position ========
     int                     currentCursorX, currentCursorY;
 
@@ -147,9 +154,27 @@ namespace StupidPlot
         }
     }
 
+    void saveAndApplyCursor(HCURSOR cursor)
+    {
+        hOldCursor = hCurrentCursor;
+        hCurrentCursor = cursor;
+        SetCursor(hCurrentCursor);
+    }
+
+    void restoreCursor()
+    {
+        hCurrentCursor = hOldCursor;
+        SetCursor(hCurrentCursor);
+    }
+
     void App::init(HWND _hWnd)
     {
         GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+
+        hCursorDefault = LoadCursorW(NULL, IDC_ARROW);
+        hCursorCross = LoadCursorW(NULL, IDC_CROSS);
+        hCursorHand = LoadCursorW(NULL, IDC_HAND);
+        hCurrentCursor = hCursorCross;
 
         hWnd = _hWnd;
 
@@ -494,7 +519,16 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
+        saveAndApplyCursor(hCursorDefault);
         vpTakeShapshot();
+    }
+
+    inline void bmpCanvas_onCanvasEndMove(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        restoreCursor();
     }
 
     inline void bmpCanvas_onCanvasMove(Control * _control, const EventPtr & _event)
@@ -556,6 +590,7 @@ namespace StupidPlot
     {
         if (bmpCanvas->isMoving) return;
         bmpCanvas->canMove = false;
+        saveAndApplyCursor(hCursorDefault);
         vpTakeShapshot();
         scaleOriginX = drawer->translateCanvasX(event->x + bmpCanvas->vpX);
         scaleOriginY = drawer->translateCanvasY(event->y + bmpCanvas->vpY);
@@ -579,6 +614,7 @@ namespace StupidPlot
     inline void bmpCanvas_onScaleEnd()
     {
         scaleReset();
+        restoreCursor();
         bmpCanvas->canMove = true;
         drawer->resetClipToCanvas();
         bmpCanvas->dispatchRedraw();
@@ -649,6 +685,14 @@ namespace StupidPlot
         drawer->rebuildBuffer(event->canvasWidth, event->canvasHeight);
     }
 
+    inline void bmpCanvas_onSetCursor(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        SetCursor(hCurrentCursor);
+    }
+
     void setup()
     {
         mathConstants[L"PI"] = std::atan(1) * 4;
@@ -685,12 +729,15 @@ namespace StupidPlot
         txtRangeYFrom->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeYFrom_onLosingFocus);
         txtRangeYTo->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeYTo_onLosingFocus);
 
+        SetClassLong(bmpCanvas->hWnd, GCL_HCURSOR, NULL);
         bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_REBUILD, bmpCanvas_onCanvasRebuild);
         bmpCanvas->addEventHandler(EventName::EVENT_BUFFER_REDRAW, bmpCanvas_onRedrawBuffer);
         bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_BEGINMOVE, bmpCanvas_onCanvasBeginMove);
         bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_MOVE, bmpCanvas_onCanvasMove);
+        bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_ENDMOVE, bmpCanvas_onCanvasEndMove);
         bmpCanvas->addEventHandler(EventName::EVENT_MOUSEWHEEL, bmpCanvas_onMouseWheel);
         bmpCanvas->addEventHandler(EventName::EVENT_MOUSEMOVE, bmpCanvas_onMouseMove);
+        bmpCanvas->addEventHandler(EventName::EVENT_SETCURSOR, bmpCanvas_onSetCursor);
         bmpCanvas->dispatchRedraw();
     }
 }
