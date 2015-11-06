@@ -13,13 +13,32 @@ namespace StupidPlot
         {
             class GdiProvider : public Provider
             {
+                HFONT       axisFont;
+
             public:
                 GdiProvider(HDC _hdc) : Provider(_hdc)
                 {
+                    LOGFONT lfont;
+                    lfont.lfHeight = -MulDiv(12, GetDeviceCaps(hdc, LOGPIXELSY), 72);
+                    lfont.lfWidth = 0;
+                    lfont.lfEscapement = 0;
+                    lfont.lfOrientation = 0;
+                    lfont.lfWeight = FW_REGULAR;
+                    lfont.lfItalic = 0;
+                    lfont.lfUnderline = 0;
+                    lfont.lfStrikeOut = 0;
+                    lfont.lfCharSet = ANSI_CHARSET;
+                    lfont.lfOutPrecision = OUT_DEFAULT_PRECIS;
+                    lfont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+                    lfont.lfQuality = CLEARTYPE_QUALITY;
+                    lfont.lfPitchAndFamily = VARIABLE_PITCH | FF_ROMAN;
+                    lstrcpyW(lfont.lfFaceName, L"Segoe UI");
+                    axisFont = CreateFontIndirect(&lfont);
                 }
 
                 ~GdiProvider()
                 {
+                    DeleteObject(axisFont);
                 }
 
                 virtual void drawPlotLine(const shared_ptr<POINTF> & points, int length, Gdiplus::Color color)
@@ -72,27 +91,95 @@ namespace StupidPlot
                     DeleteObject(pen);
                 }
 
-                virtual void drawGridLine(BOOL vertical, const shared_ptr<int> & points, int length, Gdiplus::Color color)
+                virtual void drawGridLine(bool vertical, const shared_ptr<int> & points, int length, Gdiplus::Color color)
                 {
                     HPEN pen = CreatePen(PS_SOLID, 2, color.ToCOLORREF());
                     HGDIOBJ oldPen = SelectObject(hdc, pen);
 
+                    auto pt = points.get();
+
+                    int minv, maxv;
+
+                    if (vertical)
+                    {
+                        minv = canvasOffsetX;
+                        maxv = canvasOffsetX + canvasWidth;
+                    }
+                    else
+                    {
+                        minv = canvasOffsetY;
+                        maxv = canvasOffsetY + canvasHeight;
+                    }
+
                     for (int i = 0; i < length; ++i)
                     {
-                        int p = points.get()[i];
+                        int p = pt[i];
 
                         if (vertical)
                         {
-                            MoveToEx(hdc, canvasOffsetX, p, NULL);
-                            LineTo(hdc, canvasOffsetX + canvasWidth, p);
+                            MoveToEx(hdc, minv, p, NULL);
+                            LineTo(hdc, maxv, p);
                         }
                         else
                         {
-                            MoveToEx(hdc, p, canvasOffsetY, NULL);
-                            LineTo(hdc, p, canvasOffsetY + canvasHeight);
+                            MoveToEx(hdc, p, minv, NULL);
+                            LineTo(hdc, p, maxv);
                         }
                     }
 
+                    SelectObject(hdc, oldPen);
+                    DeleteObject(pen);
+                }
+
+                virtual void drawAxis(bool vertical, int axisPos, const shared_ptr<int> & ticks, const shared_ptr<double> & tickLabels, int length, int tickRadius, Gdiplus::Color color)
+                {
+                    HPEN pen = CreatePen(PS_SOLID, 2, color.ToCOLORREF());
+                    HGDIOBJ oldPen = SelectObject(hdc, pen);
+                    HGDIOBJ oldFont = SelectObject(hdc, axisFont);
+
+                    // axis
+                    if (vertical)
+                    {
+                        MoveToEx(hdc, axisPos, canvasOffsetY, NULL);
+                        LineTo(hdc, axisPos, canvasOffsetY + canvasHeight);
+                    }
+                    else
+                    {
+                        MoveToEx(hdc, canvasOffsetX, axisPos, NULL);
+                        LineTo(hdc, canvasOffsetX + canvasWidth, axisPos);
+                    }
+
+                    // ticks
+                    int minv = axisPos - tickRadius;
+                    int maxv = axisPos + tickRadius;
+
+                    auto ptTick = ticks.get();
+                    auto ptLabels = tickLabels.get();
+
+                    for (int i = 0; i < length; ++i)
+                    {
+                        int p = ptTick[i];
+
+                        wstring str = Util::to_string_with_precision(ptLabels[i], 5);
+
+                        if (vertical)
+                        {
+                            MoveToEx(hdc, minv, p, NULL);
+                            LineTo(hdc, maxv, p);
+                            TextOutW(hdc, axisPos + 2, p + 2, str.c_str(), str.size());
+                        }
+                        else
+                        {
+                            MoveToEx(hdc, p, minv, NULL);
+                            LineTo(hdc, p, maxv);
+                            if (std::fabs(ptLabels[i]) > DBL_EPSILON)
+                            {
+                                TextOutW(hdc, p + 2, axisPos + 2, str.c_str(), str.size());
+                            }
+                        }
+                    }
+
+                    SelectObject(hdc, oldFont);
                     SelectObject(hdc, oldPen);
                     DeleteObject(pen);
                 }

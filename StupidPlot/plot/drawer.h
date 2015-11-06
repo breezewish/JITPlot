@@ -23,6 +23,78 @@ namespace StupidPlot
 
         class Drawer
         {
+        protected:
+            inline void getClipRange(int & min, int & max, bool vertical)
+            {
+                if (vertical)
+                {
+                    if (clipEnabled)
+                    {
+                        min = static_cast<int>(std::floor(options->vpBottom));
+                        max = static_cast<int>(std::ceil(options->vpTop));
+                    }
+                    else
+                    {
+                        min = static_cast<int>(std::floor(options->drawBottom));
+                        max = static_cast<int>(std::ceil(options->drawTop));
+                    }
+                }
+                else
+                {
+                    if (clipEnabled)
+                    {
+                        min = static_cast<int>(std::floor(options->vpLeft));
+                        max = static_cast<int>(std::ceil(options->vpRight));
+                    }
+                    else
+                    {
+                        min = static_cast<int>(std::floor(options->drawLeft));
+                        max = static_cast<int>(std::ceil(options->drawRight));
+                    }
+                }
+            }
+
+            inline void getTicks(
+                int & arrayLength,
+                shared_ptr<int> & ticks,
+                shared_ptr<double> & labels,
+                int interval,
+                int minDensity,
+                bool vertical,
+                bool autoResize = true)
+            {
+                int min, max;
+                getClipRange(min, max, vertical);
+
+                double canvasInterval = vertical ? translateFormulaH(interval) : translateFormulaW(interval);
+
+                int n = ((max - min + 1) / interval) + 1;
+
+                arrayLength = 0;
+                ticks = shared_ptr<int>(new int[n], array_deleter<int>());
+                labels = shared_ptr<double>(new double[n], array_deleter<double>());
+
+                if (!autoResize && canvasInterval < minDensity) return;
+
+                int scale = static_cast<int>(max(1, static_cast<double>(minDensity) / canvasInterval));
+
+                // scale = 5^ceil(log(5, scale))
+                scale = static_cast<int>(std::pow(5, std::ceil(std::log(scale) / std::log(5))));
+
+                auto ptTicks = ticks.get();
+                auto ptLabels = labels.get();
+
+                for (int p = min; p < max; ++p)
+                {
+                    if (p % (interval * scale) == 0)
+                    {
+                        int canvasPos = static_cast<int>(vertical ? translateFormulaY(p) : translateFormulaX(p));
+                        ptLabels[arrayLength] = static_cast<double>(p);
+                        ptTicks[arrayLength++] = canvasPos;
+                    }
+                }
+            }
+
         public:
             HDC                     hdc;
             PlotOptionsPtr          options = NULL;
@@ -61,14 +133,24 @@ namespace StupidPlot
                 return translateCanvasH(canvasHeight - y) + options->drawBottom;
             }
 
+            inline double translateFormulaW(double w)
+            {
+                return w / (options->drawRight - options->drawLeft) * canvasWidth;
+            }
+
+            inline double translateFormulaH(double h)
+            {
+                return h / (options->drawTop - options->drawBottom) * canvasHeight;
+            }
+
             inline double translateFormulaX(double x)
             {
-                return (x - (options->drawLeft)) / (options->drawRight - options->drawLeft) * canvasWidth;
+                return translateFormulaW(x - (options->drawLeft));
             }
 
             inline double translateFormulaY(double y)
             {
-                return canvasHeight - ((y - (options->drawBottom)) / (options->drawTop - options->drawBottom) * canvasHeight);
+                return canvasHeight - translateFormulaH(y - (options->drawBottom));
             }
 
             inline void drawPlotLine(const ExpDrawerPtr & formulaDrawer, Gdiplus::Color color)
@@ -99,58 +181,37 @@ namespace StupidPlot
                 provider->drawPlotLine(points, length, color);
             }
 
-            inline void drawGridLine(int spacing, BOOL vertical, Gdiplus::Color color, bool infinite = true)
+            inline void drawGridLine(int spacing, bool vertical, Gdiplus::Color color, bool infinite = true)
             {
-                int min, max;
+                int length;
+                shared_ptr<int> ticks;
+                shared_ptr<double> labels;
+                getTicks(length, ticks, labels, spacing, 20, vertical, infinite);
+                provider->drawGridLine(vertical, ticks, length, color);
+            }
+
+            inline void drawAxisAndTick(int spacing, bool vertical, int tickRadius, Gdiplus::Color color, bool infinite = true)
+            {
+                int axisPos;
 
                 if (vertical)
                 {
-                    if (clipEnabled)
-                    {
-                        min = static_cast<int>(std::floor(options->vpBottom));
-                        max = static_cast<int>(std::ceil(options->vpTop));
-                    }
-                    else
-                    {
-                        min = static_cast<int>(std::floor(options->drawBottom));
-                        max = static_cast<int>(std::ceil(options->drawTop));
-                    }
+                    // Y axis
+                    axisPos = static_cast<int>(translateFormulaX(0));
+                    if (axisPos < clipLeft - 50 || axisPos > clipLeft + clipWidth + 50) return;
                 }
                 else
                 {
-                    if (clipEnabled)
-                    {
-                        min = static_cast<int>(std::floor(options->vpLeft));
-                        max = static_cast<int>(std::ceil(options->vpRight));
-                    }
-                    else
-                    {
-                        min = static_cast<int>(std::floor(options->drawLeft));
-                        max = static_cast<int>(std::ceil(options->drawRight));
-                    }
+                    // X axis
+                    axisPos = static_cast<int>(translateFormulaY(0));
+                    if (axisPos < clipTop - 50 || axisPos > clipTop + clipHeight + 50) return;
                 }
 
-                int n = ((max - min + 1) / spacing) + 1;
-                if (!infinite && n > clipWidth / 20) return;
-
-                int spacingFactor = max(1, n / (clipWidth / 20));
-
-                // spacingFactor = 5^ceil(log(5, spacingFactor))
-                spacingFactor = static_cast<int>(std::pow(5, std::ceil(std::log(spacingFactor) / std::log(5))));
-
-                int length = 0;
-                auto points = shared_ptr<int>(new int[n], array_deleter<int>());
-
-                for (int p = min; p < max; ++p)
-                {
-                    if (p % (spacing * spacingFactor) == 0)
-                    {
-                        int canvasPos = static_cast<int>(vertical ? translateFormulaY(p) : translateFormulaX(p));
-                        points.get()[length++] = canvasPos;
-                    }
-                }
-
-                provider->drawGridLine(vertical, points, length, color);
+                int length;
+                shared_ptr<int> ticks;
+                shared_ptr<double> labels;
+                getTicks(length, ticks, labels, spacing, 80, vertical, infinite);
+                provider->drawAxis(vertical, axisPos, ticks, labels, length, tickRadius, color);
             }
 
             Drawer(const PlotOptionsPtr & _options, HDC _hdc, bool antialias)
@@ -226,12 +287,20 @@ namespace StupidPlot
                 // Draw grid lines
                 if (options->showGrid && options->gridSpacing > 0)
                 {
-                    Gdiplus::Color glSmall = Gdiplus::Color(233, 233, 233);
-                    Gdiplus::Color glLarge = Gdiplus::Color(180, 180, 180);
+                    Gdiplus::Color glSmall(240, 240, 240);
+                    Gdiplus::Color glLarge(200, 200, 200);
                     drawGridLine(options->gridSpacing, false, glSmall);
                     drawGridLine(options->gridSpacing, true, glSmall);
                     drawGridLine(options->gridSpacing * 5, false, glLarge, false);
                     drawGridLine(options->gridSpacing * 5, true, glLarge, false);
+                }
+
+                // Draw axis
+                if (options->showAxis && options->axisTickInterval > 0)
+                {
+                    Gdiplus::Color axisColor(50, 50, 50);
+                    drawAxisAndTick(options->axisTickInterval, false, 8, axisColor);
+                    drawAxisAndTick(options->axisTickInterval, true, 8, axisColor);
                 }
 
                 // Draw formulas

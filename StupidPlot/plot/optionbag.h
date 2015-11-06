@@ -28,6 +28,9 @@ namespace StupidPlot
             bool                    showGrid = true;
             int                     gridSpacing = 1;
 
+            bool                    showAxis = true;
+            int                     axisTickInterval = 5;
+
             vector<Gdiplus::Color>  formulaColors;
             vector<ExpDrawerPtr>    formulaObjects;
 

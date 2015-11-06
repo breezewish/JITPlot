@@ -1,6 +1,10 @@
 #pragma once
 
 #include <vector>
+#include <memory>
+#include <cmath>
+#include <cfloat>
+
 #include <windows.h>
 #include <gdiplus.h>
 
@@ -15,11 +19,17 @@ namespace StupidPlot
             class GdiPlusProvider : public Provider
             {
             protected:
-                Gdiplus::Graphics       * g = NULL;
+                shared_ptr<Gdiplus::Font>           axisFont;
+                shared_ptr<Gdiplus::StringFormat>   axisStringformat;
+                Gdiplus::Graphics                   * g = NULL;
 
             public:
                 GdiPlusProvider(HDC _hdc) : Provider(_hdc)
                 {
+                    axisFont = shared_ptr<Gdiplus::Font>(new Gdiplus::Font(L"Segoe UI", 12, Gdiplus::FontStyleRegular, Gdiplus::UnitPoint));
+                    axisStringformat = shared_ptr<Gdiplus::StringFormat>(new Gdiplus::StringFormat());
+                    axisStringformat->SetAlignment(Gdiplus::StringAlignmentNear);
+                    axisStringformat->SetLineAlignment(Gdiplus::StringAlignmentNear);
                 }
 
                 ~GdiPlusProvider()
@@ -72,23 +82,89 @@ namespace StupidPlot
                     delete[] buf;
                 }
 
-                virtual void drawGridLine(BOOL vertical, const shared_ptr<int> & points, int length, Gdiplus::Color color)
+                virtual void drawGridLine(bool vertical, const shared_ptr<int> & points, int length, Gdiplus::Color color)
                 {
                     Gdiplus::Pen pen(color, 2.0f);
 
                     auto pt = points.get();
 
+                    int minv, maxv;
+
+                    if (vertical)
+                    {
+                        minv = canvasOffsetX;
+                        maxv = canvasOffsetX + canvasWidth;
+                    }
+                    else
+                    {
+                        minv = canvasOffsetY;
+                        maxv = canvasOffsetY + canvasHeight;
+                    }
+
                     for (int i = 0; i < length; ++i)
                     {
                         int p = pt[i];
-
                         if (vertical)
                         {
-                            g->DrawLine(&pen, canvasOffsetX, p, canvasOffsetX + canvasWidth, p);
+                            g->DrawLine(&pen, minv, p, maxv, p);
                         }
                         else
                         {
-                            g->DrawLine(&pen, p, canvasOffsetY, p, canvasOffsetY + canvasHeight);
+                            g->DrawLine(&pen, p, minv, p, maxv);
+                        }
+                    }
+                }
+
+                virtual void drawAxis(bool vertical, int axisPos, const shared_ptr<int> & ticks, const shared_ptr<double> & tickLabels, int length, int tickRadius, Gdiplus::Color color)
+                {
+                    Gdiplus::Pen pen(color, 2.0f);
+                    Gdiplus::SolidBrush fontBrush(color);
+
+                    // axis
+                    if (vertical)
+                    {
+                        g->DrawLine(&pen, axisPos, canvasOffsetY, axisPos, canvasOffsetY + canvasHeight);
+                    }
+                    else
+                    {
+                        g->DrawLine(&pen, canvasOffsetX, axisPos, canvasOffsetX + canvasWidth, axisPos);
+                    }
+
+                    // tick
+                    int minv = axisPos - tickRadius;
+                    int maxv = axisPos + tickRadius;
+
+                    auto ptTick = ticks.get();
+                    auto ptLabels = tickLabels.get();
+
+                    for (int i = 0; i < length; ++i)
+                    {
+                        int p = ptTick[i];
+
+                        if (vertical)
+                        {
+                            g->DrawLine(&pen, minv, p, maxv, p);
+                            g->DrawString(
+                                Util::to_string_with_precision(ptLabels[i], 5).c_str(),
+                                -1,
+                                axisFont.get(),
+                                Gdiplus::PointF(static_cast<float>(axisPos + 2), static_cast<float>(p + 2)),
+                                &fontBrush
+                                );
+                        }
+                        else
+                        {
+                            g->DrawLine(&pen, p, minv, p, maxv);
+                            if (std::fabs(ptLabels[i]) > DBL_EPSILON)
+                            {
+                                g->DrawString(
+                                    Util::to_string_with_precision(ptLabels[i], 5).c_str(),
+                                    -1,
+                                    axisFont.get(),
+                                    Gdiplus::PointF(static_cast<float>(p + 2), static_cast<float>(axisPos + 2)),
+                                    &fontBrush
+                                    );
+                            }
                         }
                     }
                 }

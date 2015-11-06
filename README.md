@@ -30,7 +30,7 @@ JIT compiler is not very well developed since it is my first time to create such
 
 ### Auto Layout Library
 
-The project contains a simple and stupid layout library, which is used to automatically layout controls when user is resizing the window. Developers only need to specify magnet settings for controls. For example, `right, top` means the control will always stick at the right top corner when resizing the window, while `left top right bottom` means the control will be resized when size of window is changed.
+The project contains a simple and stupid layout library, which is used to automatically layout controls when user is resizing the window. Developers only need to specify magnet settings (aka anchor) for controls. For example, `right, top` means the control will always stick at the right top corner when resizing the window, while `left top right bottom` means the control will be resized when size of window is changed.
 
 - `ui\layout\layoutmanager.h`: The layout manager.
 

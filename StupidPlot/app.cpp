@@ -199,6 +199,10 @@ namespace StupidPlot
         delete txtRangeYFrom;
         delete txtRangeYTo;
 
+        // TODO: fix this hack
+        // drawer destructor should be called before GdiplusShutdown
+        drawer = NULL;
+
         GdiplusShutdown(gdiplusToken);
     }
 
