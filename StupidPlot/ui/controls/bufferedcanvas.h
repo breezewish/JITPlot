@@ -8,6 +8,7 @@
 #include <ui/controls/control.h>
 #include <ui/events/event.h>
 #include <ui/events/canvasmoveevent.h>
+#include <ui/events/canvasrebuildevent.h>
 
 using namespace Gdiplus;
 
@@ -92,8 +93,7 @@ namespace StupidPlot
                     if (!canvas->canMove) return;
 
                     canvas->dispatchEvent(EventName::EVENT_CANVAS_ENDMOVE, EventPtr(new Event()));
-
-                    canvas->updateOrCreateBuffer();
+                    canvas->resetViewportPosition();
                     canvas->forceRedraw();
                 }
 
@@ -144,8 +144,9 @@ namespace StupidPlot
                     HBITMAP buf = CreateCompatibleBitmap(hDC, canvasW, canvasH);
                     oldBitmap = SelectObject(memDC, buf);
 
-                    vpX = (canvasW - width) >> 1;
-                    vpY = (canvasH - height) >> 1;
+                    dispatchEvent(EventName::EVENT_CANVAS_REBUILD, EventPtr(new CanvasRebuildEvent(canvasW, canvasH)));
+
+                    resetViewportPosition();
                 }
 
                 inline void initSubclass()
@@ -196,6 +197,12 @@ namespace StupidPlot
                 {
                     dispatchEvent(EventName::EVENT_BUFFER_REDRAW, EventPtr(new Event()));
                     forceCopyBuffer();
+                }
+
+                void resetViewportPosition()
+                {
+                    vpX = (canvasW - width) >> 1;
+                    vpY = (canvasH - height) >> 1;
                 }
             };
 

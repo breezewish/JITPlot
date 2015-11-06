@@ -12,6 +12,7 @@
 #include <ui/container.h>
 #include <ui/layout/layoutmanager.h>
 #include <ui/events/event.h>
+#include <ui/events/canvasrebuildevent.h>
 #include <ui/events/eventmanager.h>
 #include <plot/drawer.h>
 #include <plot/optionbag.h>
@@ -48,6 +49,17 @@ namespace StupidPlot
     LayoutManagerPtr        lm;
     EventManagerPtr         em;
 
+    Control                 * grpInfo;
+    Control                 * lblInfoCursor;
+    Control                 * lblInfoCursorX;
+    Control                 * lblInfoCursorY;
+    Control                 * lblInfoFormula;
+    Control                 * lblInfoFormulaX;
+    Control                 * lblInfoFormulaY;
+    Textbox                 * lblInfoCursorXValue;
+    Textbox                 * lblInfoCursorYValue;
+    Textbox                 * lblInfoFormulaXValue;
+    Textbox                 * lblInfoFormulaYValue;
     Control                 * grpCanvas;
     Checkbox                * chkAntialias;
     Checkbox                * chkShowGrid;
@@ -69,6 +81,8 @@ namespace StupidPlot
 
     CallbackFunction        syncRangeFromOption;
     CallbackFunction        syncGridFromOption;
+    CallbackFunction        syncAxisFromOption;
+    CallbackFunction        syncCursorPosition;
 
     PlotOptionsPtr          options;
     PlotDrawerPtr           drawer;
@@ -80,6 +94,8 @@ namespace StupidPlot
     int                     scrollValue = 0;
     int                     completedScrollValue = 0;
     double                  scaleOriginX, scaleOriginY;
+
+    int                     currentCursorX, currentCursorY;
 
     void setup();
 
@@ -97,6 +113,20 @@ namespace StupidPlot
         txtGridSize->setText(std::to_wstring(options->gridSpacing));
     }
 
+    void _syncAxisFromOption()
+    {
+        chkShowAxis->setChecked(options->showAxis);
+        txtAxisSize->setText(std::to_wstring(options->axisTickInterval));
+    }
+
+    void _syncCursorPosition()
+    {
+        double x = drawer->translateCanvasX(currentCursorX);
+        double y = drawer->translateCanvasY(currentCursorY);
+        lblInfoCursorXValue->setText(Util::to_string_with_precision(x, 8));
+        lblInfoCursorYValue->setText(Util::to_string_with_precision(y, 8));
+    }
+
     void App::init(HWND _hWnd)
     {
         GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
@@ -105,13 +135,26 @@ namespace StupidPlot
 
         throttler = ThrottlerPtr(new Throttler(hWnd));
         syncRangeFromOption = throttler->applyThrottle(300, CallbackFunction(_syncRangeFromOption));
-        syncGridFromOption = throttler->applyThrottle(300, CallbackFunction(_syncGridFromOption));
+        syncGridFromOption = CallbackFunction(_syncGridFromOption);
+        syncAxisFromOption = CallbackFunction(_syncAxisFromOption);
+        syncCursorPosition = throttler->applyThrottle(30, CallbackFunction(_syncCursorPosition));
 
         container = ContainerPtr(new Container());
         lm = LayoutManagerPtr(new LayoutManager(hWnd));
         em = EventManagerPtr(new EventManager(container));
 
         bmpCanvas = new BufferedCanvas(hWnd, IDC_STATIC_CANVAS, CANVAS_ENLARGE);
+        grpInfo = new Control(hWnd, IDC_STATIC_GROUP_INFO);
+        lblInfoCursor = new Control(hWnd, IDC_STATIC_INFO_CURSOR);
+        lblInfoCursorX = new Control(hWnd, IDC_STATIC_INFO_CURSOR_X);
+        lblInfoCursorY = new Control(hWnd, IDC_STATIC_INFO_CURSOR_Y);
+        lblInfoFormula = new Control(hWnd, IDC_STATIC_INFO_FORMULA);
+        lblInfoFormulaX = new Control(hWnd, IDC_STATIC_INFO_FORMULA_X);
+        lblInfoFormulaY = new Control(hWnd, IDC_STATIC_INFO_FORMULA_Y);
+        lblInfoCursorXValue = new Textbox(hWnd, IDC_STATIC_INFO_CURSOR_X_VALUE);
+        lblInfoCursorYValue = new Textbox(hWnd, IDC_STATIC_INFO_CURSOR_Y_VALUE);
+        lblInfoFormulaXValue = new Textbox(hWnd, IDC_STATIC_INFO_FORMULA_X_VALUE);
+        lblInfoFormulaYValue = new Textbox(hWnd, IDC_STATIC_INFO_FORMULA_Y_VALUE);
         grpCanvas = new Control(hWnd, IDC_STATIC_GROUP_CANVAS);
         chkAntialias = new Checkbox(hWnd, IDC_CHECK_ANTIALIAS);
         chkShowGrid = new Checkbox(hWnd, IDC_CHECK_SHOW_GRID);
@@ -136,6 +179,17 @@ namespace StupidPlot
 
         container
             ->addControl(bmpCanvas)
+            ->addControl(grpInfo)
+            ->addControl(lblInfoCursor)
+            ->addControl(lblInfoCursorX)
+            ->addControl(lblInfoCursorY)
+            ->addControl(lblInfoFormula)
+            ->addControl(lblInfoFormulaX)
+            ->addControl(lblInfoFormulaY)
+            ->addControl(lblInfoCursorXValue)
+            ->addControl(lblInfoCursorYValue)
+            ->addControl(lblInfoFormulaXValue)
+            ->addControl(lblInfoFormulaYValue)
             ->addControl(grpCanvas)
             ->addControl(chkAntialias)
             ->addControl(chkShowGrid)
@@ -156,6 +210,17 @@ namespace StupidPlot
 
         lm
             ->enableMagnet(bmpCanvas, true, true, true, true)
+            ->enableMagnet(grpInfo, false, true, true, false)
+            ->enableMagnet(lblInfoCursor, false, true, true, false)
+            ->enableMagnet(lblInfoCursorX, false, true, true, false)
+            ->enableMagnet(lblInfoCursorY, false, true, true, false)
+            ->enableMagnet(lblInfoFormula, false, true, true, false)
+            ->enableMagnet(lblInfoFormulaX, false, true, true, false)
+            ->enableMagnet(lblInfoFormulaY, false, true, true, false)
+            ->enableMagnet(lblInfoCursorXValue, false, true, true, false)
+            ->enableMagnet(lblInfoCursorYValue, false, true, true, false)
+            ->enableMagnet(lblInfoFormulaXValue, false, true, true, false)
+            ->enableMagnet(lblInfoFormulaYValue, false, true, true, false)
             ->enableMagnet(grpCanvas, false, true, true, false)
             ->enableMagnet(chkAntialias, false, true, true, false)
             ->enableMagnet(chkShowGrid, false, true, true, false)
@@ -180,6 +245,17 @@ namespace StupidPlot
 
     void App::terminate()
     {
+        delete grpInfo;
+        delete lblInfoCursor;
+        delete lblInfoCursorX;
+        delete lblInfoCursorY;
+        delete lblInfoFormula;
+        delete lblInfoFormulaX;
+        delete lblInfoFormulaY;
+        delete lblInfoCursorXValue;
+        delete lblInfoCursorYValue;
+        delete lblInfoFormulaXValue;
+        delete lblInfoFormulaYValue;
         delete grpCanvas;
         delete chkAntialias;
         delete chkShowGrid;
@@ -248,6 +324,13 @@ namespace StupidPlot
         syncRangeFromOption();
     }
 
+    inline void updateDrawerRange()
+    {
+        drawer->updateDrawingRange(bmpCanvas->canvasW, bmpCanvas->canvasH, bmpCanvas->vpX, bmpCanvas->vpY, bmpCanvas->width, bmpCanvas->height);
+    }
+
+    // ========== Event handlers =============
+
     inline void chkShowGrid_onClick(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
@@ -273,6 +356,17 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_event);
 
         txtAxisSize->setEnabled(chkShowAxis->isChecked());
+        options->showAxis = chkShowAxis->isChecked();
+        bmpCanvas->forceRedraw();
+    }
+
+    inline void txtAxisSize_onLosingFocus(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        options->axisTickInterval = std::stoi(txtAxisSize->getText());
+        bmpCanvas->forceRedraw();
     }
 
     inline void txtRangeXFrom_onLosingFocus(Control * _control, const EventPtr & _event)
@@ -371,14 +465,15 @@ namespace StupidPlot
         options->drawRight = options->drawLeft + fcw;
         options->drawTop = options->drawBottom + fch;
         syncRangeFromOption();
-        drawer->setSize(bmpCanvas->canvasW, bmpCanvas->canvasH, bmpCanvas->vpX, bmpCanvas->vpY, bmpCanvas->width, bmpCanvas->height);
-        drawer->draw();
+        updateDrawerRange();
+        drawer->drawPlot();
     }
 
     inline void bmpCanvas_onCanvasBeginMove(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
+
         vpTakeShapshot();
     }
 
@@ -395,6 +490,15 @@ namespace StupidPlot
         options->vpTop += dy;
         options->vpBottom += dy;
         syncRangeFromOption();
+    }
+
+    inline void bmpCanvas_onMouseMove(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
+        currentCursorX = bmpCanvas->vpX + event->x;
+        currentCursorY = bmpCanvas->vpY + event->y;
+        syncCursorPosition();
     }
 
     void scaleReset()
@@ -485,6 +589,14 @@ namespace StupidPlot
         bmpCanvas_onScale(event);
     }
 
+    inline void bmpCanvas_onCanvasRebuild(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        auto event = std::dynamic_pointer_cast<CanvasRebuildEvent>(_event);
+
+        drawer->rebuildBuffer(event->canvasWidth, event->canvasHeight);
+    }
+
     void setup()
     {
         mathConstants[L"PI"] = std::atan(1) * 4;
@@ -506,23 +618,28 @@ namespace StupidPlot
 
         syncRangeFromOption();
         syncGridFromOption();
+        syncAxisFromOption();
 
         drawer = PlotDrawerPtr(new Drawer(options, bmpCanvas->memDC, chkAntialias->isChecked()));
-        drawer->setSize(bmpCanvas->canvasW, bmpCanvas->canvasH, bmpCanvas->vpX, bmpCanvas->vpY, bmpCanvas->width, bmpCanvas->height);
+        updateDrawerRange();
+        drawer->rebuildBuffer(bmpCanvas->canvasW, bmpCanvas->canvasH);
 
         chkAntialias->addEventHandler(EventName::EVENT_CLICK, chkAntialias_onClick);
         chkShowGrid->addEventHandler(EventName::EVENT_CLICK, chkShowGrid_onClick);
         chkShowAxis->addEventHandler(EventName::EVENT_CLICK, chkShowAxis_onClick);
         txtGridSize->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtGridSize_onLosingFocus);
+        txtAxisSize->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtAxisSize_onLosingFocus);
         txtRangeXFrom->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeXFrom_onLosingFocus);
         txtRangeXTo->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeXTo_onLosingFocus);
         txtRangeYFrom->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeYFrom_onLosingFocus);
         txtRangeYTo->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeYTo_onLosingFocus);
 
+        bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_REBUILD, bmpCanvas_onCanvasRebuild);
         bmpCanvas->addEventHandler(EventName::EVENT_BUFFER_REDRAW, bmpCanvas_onRedrawBuffer);
         bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_BEGINMOVE, bmpCanvas_onCanvasBeginMove);
         bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_MOVE, bmpCanvas_onCanvasMove);
         bmpCanvas->addEventHandler(EventName::EVENT_MOUSEWHEEL, bmpCanvas_onMouseWheel);
+        bmpCanvas->addEventHandler(EventName::EVENT_MOUSEMOVE, bmpCanvas_onMouseMove);
         bmpCanvas->forceRedraw();
     }
 }

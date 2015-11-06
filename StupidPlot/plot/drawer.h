@@ -95,6 +95,15 @@ namespace StupidPlot
                 }
             }
 
+            inline void destroyBuffer()
+            {
+                if (oldBitmap != NULL)
+                {
+                    HGDIOBJ buf = SelectObject(memDC, oldBitmap);
+                    DeleteObject(buf);
+                    oldBitmap = NULL;
+                }
+            }
         public:
             HDC                     hdc;
             PlotOptionsPtr          options = NULL;
@@ -112,6 +121,17 @@ namespace StupidPlot
             int                     clipWidth;
             int                     clipHeight;
             bool                    clipEnabled;
+
+            HDC                     memDC;
+            HGDIOBJ                 oldBitmap;
+
+            inline void rebuildBuffer(int width, int height)
+            {
+                //Debug::Debug() << L"rebuild buffer: " << canvasWidth << L" " << canvasHeight >> Debug::writeln;
+                destroyBuffer();
+                HBITMAP buf = CreateCompatibleBitmap(hdc, width, height);
+                oldBitmap = SelectObject(memDC, buf);
+            }
 
             inline double translateCanvasW(int w)
             {
@@ -218,18 +238,27 @@ namespace StupidPlot
             {
                 options = _options;
                 hdc = _hdc;
+
+                memDC = CreateCompatibleDC(hdc);
+
                 setAntialias(antialias);
+            }
+
+            ~Drawer()
+            {
+                destroyBuffer();
+                DeleteDC(memDC);
             }
 
             inline void setAntialias(bool enabled)
             {
                 if (enabled)
                 {
-                    provider = ProviderPtr(new Provider::GdiPlusProvider(hdc));
+                    provider = ProviderPtr(new Provider::GdiPlusProvider(memDC));
                 }
                 else
                 {
-                    provider = ProviderPtr(new Provider::GdiProvider(hdc));
+                    provider = ProviderPtr(new Provider::GdiProvider(memDC));
                 }
             }
 
@@ -261,7 +290,7 @@ namespace StupidPlot
                 updateFormulaSize();
             }
 
-            inline void setSize(int cw, int ch, int vpx, int vpy, int vpw, int vph)
+            inline void updateDrawingRange(int cw, int ch, int vpx, int vpy, int vpw, int vph)
             {
                 canvasWidth = cw;
                 canvasHeight = ch;
@@ -280,7 +309,12 @@ namespace StupidPlot
                 }
             }
 
-            inline void draw()
+            inline void refreshPlot()
+            {
+                BitBlt(hdc, clipLeft, clipTop, clipWidth, clipHeight, memDC, clipLeft, clipTop, SRCCOPY);
+            }
+
+            inline void drawPlot()
             {
                 provider->beginDraw(clipLeft, clipTop, clipWidth, clipHeight);
 
@@ -310,6 +344,8 @@ namespace StupidPlot
                 }
 
                 provider->endDraw();
+
+                refreshPlot();
             }
         };
 
