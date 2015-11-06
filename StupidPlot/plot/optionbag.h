@@ -20,19 +20,26 @@ namespace StupidPlot
         class OptionBag
         {
         public:
+            // ======== Viewport ========
             double                  drawLeft, drawRight, drawTop, drawBottom;
             double                  vpLeft, vpRight, vpTop, vpBottom;
 
+            // ======== General ========
             bool                    keepRatio = false;
+            bool                    enableHotTrack = true;
 
+            // ======== Grid ========
             bool                    showGrid = true;
             int                     gridSpacing = 1;
 
+            // ======== Axis ========
             bool                    showAxis = true;
             int                     axisTickInterval = 5;
 
-            vector<Gdiplus::Color>  formulaColors;
-            vector<ExpDrawerPtr>    formulaObjects;
+            // ======== Expressions ========
+            vector<ExpDrawerPtr>    expressions;
+            int                     activeExpIdx = 0;
+            int                     hoverExpIdx = -1;
 
             OptionBag()
             {

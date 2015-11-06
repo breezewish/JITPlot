@@ -43,12 +43,13 @@ namespace StupidPlot
 
     HWND                    hWnd;
 
+    // ======== Managers ========
     ThrottlerPtr            throttler;
-
     ContainerPtr            container;
     LayoutManagerPtr        lm;
     EventManagerPtr         em;
 
+    // ======== Controls ========
     Control                 * grpInfo;
     Control                 * lblInfoCursor;
     Control                 * lblInfoCursorX;
@@ -79,23 +80,29 @@ namespace StupidPlot
     Textbox                 * txtRangeYFrom;
     Textbox                 * txtRangeYTo;
 
+    // ======== Data Struct -> UI ========
     CallbackFunction        syncRangeFromOption;
     CallbackFunction        syncGridFromOption;
     CallbackFunction        syncAxisFromOption;
     CallbackFunction        syncCursorPosition;
 
+    // ======== Plot Drawing ========
     PlotOptionsPtr          options;
     PlotDrawerPtr           drawer;
     double                  initialLeft, initialRight, initialTop, initialBottom;
 
+    // ======== Scaling ========
     AnimationPtr            animation;
-
     double                  scaleFactor = 1.0;
     int                     scrollValue = 0;
     int                     completedScrollValue = 0;
     double                  scaleOriginX, scaleOriginY;
 
+    // ======== Cursor Position ========
     int                     currentCursorX, currentCursorY;
+
+    // ======== Formula Hot Track Position ========
+    double                  currentHTX, currentHTY;
 
     void setup();
 
@@ -121,10 +128,23 @@ namespace StupidPlot
 
     void _syncCursorPosition()
     {
+        // cursor
         double x = drawer->translateCanvasX(currentCursorX);
         double y = drawer->translateCanvasY(currentCursorY);
         lblInfoCursorXValue->setText(Util::to_string_with_precision(x, 8));
         lblInfoCursorYValue->setText(Util::to_string_with_precision(y, 8));
+
+        // hot track
+        if (options->enableHotTrack)
+        {
+            lblInfoFormulaXValue->setText(Util::to_string_with_precision(currentHTX, 8));
+            lblInfoFormulaYValue->setText(Util::to_string_with_precision(currentHTY, 8));
+        }
+        else
+        {
+            lblInfoFormulaXValue->setText(L"--");
+            lblInfoFormulaYValue->setText(L"--");
+        }
     }
 
     void App::init(HWND _hWnd)
@@ -338,7 +358,7 @@ namespace StupidPlot
 
         txtGridSize->setEnabled(chkShowGrid->isChecked());
         options->showGrid = chkShowGrid->isChecked();
-        bmpCanvas->forceRedraw();
+        bmpCanvas->dispatchRedraw();
     }
 
     inline void txtGridSize_onLosingFocus(Control * _control, const EventPtr & _event)
@@ -347,7 +367,7 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_event);
 
         options->gridSpacing = std::stoi(txtGridSize->getText());
-        bmpCanvas->forceRedraw();
+        bmpCanvas->dispatchRedraw();
     }
 
     inline void chkShowAxis_onClick(Control * _control, const EventPtr & _event)
@@ -357,7 +377,7 @@ namespace StupidPlot
 
         txtAxisSize->setEnabled(chkShowAxis->isChecked());
         options->showAxis = chkShowAxis->isChecked();
-        bmpCanvas->forceRedraw();
+        bmpCanvas->dispatchRedraw();
     }
 
     inline void txtAxisSize_onLosingFocus(Control * _control, const EventPtr & _event)
@@ -366,7 +386,7 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_event);
 
         options->axisTickInterval = std::stoi(txtAxisSize->getText());
-        bmpCanvas->forceRedraw();
+        bmpCanvas->dispatchRedraw();
     }
 
     inline void txtRangeXFrom_onLosingFocus(Control * _control, const EventPtr & _event)
@@ -384,7 +404,7 @@ namespace StupidPlot
         options->vpLeft = val;
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
         _syncRangeFromOption();
-        bmpCanvas->forceRedraw();
+        bmpCanvas->dispatchRedraw();
     }
 
     inline void txtRangeXTo_onLosingFocus(Control * _control, const EventPtr & _event)
@@ -401,7 +421,7 @@ namespace StupidPlot
         options->vpRight = val;
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
         _syncRangeFromOption();
-        bmpCanvas->forceRedraw();
+        bmpCanvas->dispatchRedraw();
     }
 
     inline void txtRangeYFrom_onLosingFocus(Control * _control, const EventPtr & _event)
@@ -418,7 +438,7 @@ namespace StupidPlot
         options->vpBottom = val;
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
         _syncRangeFromOption();
-        bmpCanvas->forceRedraw();
+        bmpCanvas->dispatchRedraw();
     }
 
     inline void txtRangeYTo_onLosingFocus(Control * _control, const EventPtr & _event)
@@ -435,7 +455,7 @@ namespace StupidPlot
         options->vpTop = val;
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
         _syncRangeFromOption();
-        bmpCanvas->forceRedraw();
+        bmpCanvas->dispatchRedraw();
     }
 
     inline void chkAntialias_onClick(Control * _control, const EventPtr & _event)
@@ -444,7 +464,7 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_event);
 
         drawer->setAntialias(chkAntialias->isChecked());
-        bmpCanvas->forceRedraw();
+        bmpCanvas->dispatchRedraw();
     }
 
     inline void bmpCanvas_onRedrawBuffer(Control * _control, const EventPtr & _event)
@@ -492,12 +512,35 @@ namespace StupidPlot
         syncRangeFromOption();
     }
 
+    inline void updateHotTrackPosition()
+    {
+        drawer->htCanvasX = currentCursorX;
+        currentHTX = drawer->translateCanvasX(currentCursorX);
+        currentHTY = options->expressions[options->activeExpIdx]->expression->eval(currentHTX);
+        drawer->htCanvasY = static_cast<int>(drawer->translateFormulaY(currentHTY));
+    }
+
     inline void bmpCanvas_onMouseMove(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
+
+        // current cursor position
         currentCursorX = bmpCanvas->vpX + event->x;
         currentCursorY = bmpCanvas->vpY + event->y;
+
+        // current plot position
+        if (options->enableHotTrack
+            && options->activeExpIdx >= 0
+            && options->activeExpIdx < static_cast<int>(options->expressions.size())
+            )
+        {
+            updateHotTrackPosition();
+
+            drawer->refresh();
+            bmpCanvas->refresh();
+        }
+
         syncCursorPosition();
     }
 
@@ -538,7 +581,7 @@ namespace StupidPlot
         scaleReset();
         bmpCanvas->canMove = true;
         drawer->resetClipToCanvas();
-        bmpCanvas->forceRedraw();
+        bmpCanvas->dispatchRedraw();
     }
 
     inline void bmpCanvas_onScaleAnimationProgress(double k)
@@ -563,8 +606,17 @@ namespace StupidPlot
         options->scaleViewportBoundary(scaleOriginX, scaleOriginY, scaleFactor);
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
         syncRangeFromOption();
-        bmpCanvas->forceRedraw();
-        bmpCanvas->forceCopyBuffer();
+
+        if (options->enableHotTrack
+            && options->activeExpIdx >= 0
+            && options->activeExpIdx < static_cast<int>(options->expressions.size())
+            )
+        {
+            updateHotTrackPosition();
+        }
+
+        bmpCanvas->dispatchRedraw();
+        bmpCanvas->refresh();
     }
 
     inline void bmpCanvas_onScaleAnimationComplete()
@@ -612,8 +664,7 @@ namespace StupidPlot
         options = PlotOptionsPtr(new OptionBag());
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
 
-        options->formulaColors.push_back(Color(255, 47, 197, 255));
-        options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"sin(x)", mathConstants)));
+        options->expressions.push_back(ExpDrawerPtr(new ExpDrawer(L"sin(x)", mathConstants, Color(255, 47, 197, 255))));
         //options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"x+1", mathConstants)));
 
         syncRangeFromOption();
@@ -640,6 +691,6 @@ namespace StupidPlot
         bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_MOVE, bmpCanvas_onCanvasMove);
         bmpCanvas->addEventHandler(EventName::EVENT_MOUSEWHEEL, bmpCanvas_onMouseWheel);
         bmpCanvas->addEventHandler(EventName::EVENT_MOUSEMOVE, bmpCanvas_onMouseMove);
-        bmpCanvas->forceRedraw();
+        bmpCanvas->dispatchRedraw();
     }
 }

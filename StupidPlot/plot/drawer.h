@@ -24,6 +24,8 @@ namespace StupidPlot
         class Drawer
         {
         protected:
+            HPEN            hotTrackPen;
+
             inline void getClipRange(int & min, int & max, bool vertical)
             {
                 if (vertical)
@@ -105,10 +107,12 @@ namespace StupidPlot
                 }
             }
         public:
+            // ======== Internal object ========
             HDC                     hdc;
             PlotOptionsPtr          options = NULL;
             ProviderPtr             provider = NULL;
 
+            // ======== Viewport ========
             int                     canvasWidth;
             int                     canvasHeight;
             int                     viewportWidth;
@@ -116,18 +120,23 @@ namespace StupidPlot
             int                     viewportLeft;
             int                     viewportTop;
 
+            // ======== Clip ========
             int                     clipLeft;
             int                     clipTop;
             int                     clipWidth;
             int                     clipHeight;
             bool                    clipEnabled;
 
+            // ======== Hot Track ========
+            int                     htCanvasX = -1;
+            int                     htCanvasY = -1;
+
+            // ======== Memory Buffer ========
             HDC                     memDC;
             HGDIOBJ                 oldBitmap;
 
             inline void rebuildBuffer(int width, int height)
             {
-                //Debug::Debug() << L"rebuild buffer: " << canvasWidth << L" " << canvasHeight >> Debug::writeln;
                 destroyBuffer();
                 HBITMAP buf = CreateCompatibleBitmap(hdc, width, height);
                 oldBitmap = SelectObject(memDC, buf);
@@ -173,7 +182,7 @@ namespace StupidPlot
                 return canvasHeight - translateFormulaH(y - (options->drawBottom));
             }
 
-            inline void drawPlotLine(const ExpDrawerPtr & formulaDrawer, Gdiplus::Color color)
+            inline void drawPlotLine(const ExpDrawerPtr & exp)
             {
                 int length = 0;
                 auto points = shared_ptr<Provider::POINTF>(new Provider::POINTF[clipWidth], array_deleter<Provider::POINTF>());
@@ -182,11 +191,11 @@ namespace StupidPlot
 
                 if (clipEnabled)
                 {
-                    formulaPoints = formulaDrawer->evalAndTransform(options->vpLeft, options->vpRight, options->drawBottom, options->drawTop);
+                    formulaPoints = exp->evalAndTransform(options->vpLeft, options->vpRight, options->drawBottom, options->drawTop);
                 }
                 else
                 {
-                    formulaPoints = formulaDrawer->evalAndTransform(options->drawLeft, options->drawRight, options->drawBottom, options->drawTop);
+                    formulaPoints = exp->evalAndTransform(options->drawLeft, options->drawRight, options->drawBottom, options->drawTop);
                 }
 
                 auto pt = points.get();
@@ -198,7 +207,7 @@ namespace StupidPlot
                     length++;
                 }
 
-                provider->drawPlotLine(points, length, color);
+                provider->drawPlotLine(points, length, exp->color);
             }
 
             inline void drawGridLine(int spacing, bool vertical, Gdiplus::Color color, bool infinite = true)
@@ -240,12 +249,14 @@ namespace StupidPlot
                 hdc = _hdc;
 
                 memDC = CreateCompatibleDC(hdc);
+                hotTrackPen = CreatePen(PS_SOLID, 1, RGB(100, 100, 100));
 
                 setAntialias(antialias);
             }
 
             ~Drawer()
             {
+                DeleteObject(hotTrackPen);
                 destroyBuffer();
                 DeleteDC(memDC);
             }
@@ -264,7 +275,7 @@ namespace StupidPlot
 
             inline void updateFormulaSize()
             {
-                for (auto formula : options->formulaObjects)
+                for (auto formula : options->expressions)
                 {
                     formula->setSize(clipWidth, clipHeight, canvasWidth, canvasHeight);
                 }
@@ -309,9 +320,21 @@ namespace StupidPlot
                 }
             }
 
-            inline void refreshPlot()
+            inline void refresh()
             {
+                // Copy plot
                 BitBlt(hdc, clipLeft, clipTop, clipWidth, clipHeight, memDC, clipLeft, clipTop, SRCCOPY);
+
+                // Draw hot track
+                if (options->enableHotTrack)
+                {
+                    HGDIOBJ oldPen = SelectObject(hdc, hotTrackPen);
+                    MoveToEx(hdc, 0, htCanvasY, NULL);
+                    LineTo(hdc, clipWidth + clipLeft, htCanvasY);
+                    MoveToEx(hdc, htCanvasX, 0, NULL);
+                    LineTo(hdc, htCanvasX, clipHeight + clipTop);
+                    SelectObject(hdc, oldPen);
+                }
             }
 
             inline void drawPlot()
@@ -338,14 +361,14 @@ namespace StupidPlot
                 }
 
                 // Draw formulas
-                for (size_t i = 0; i < options->formulaObjects.size(); ++i)
+                for (size_t i = 0; i < options->expressions.size(); ++i)
                 {
-                    drawPlotLine(options->formulaObjects[i], options->formulaColors[i]);
+                    drawPlotLine(options->expressions[i]);
                 }
 
                 provider->endDraw();
 
-                refreshPlot();
+                refresh();
             }
         };
 

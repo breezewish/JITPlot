@@ -62,7 +62,7 @@ namespace StupidPlot
 
                     canvas->updateOrCreateBuffer();
                     canvas->dispatchEvent(EventName::EVENT_CANVAS_RESIZE, EventPtr(new Event()));
-                    canvas->forceRedraw();
+                    canvas->dispatchRedraw();
                 }
 
                 static void onMouseDown(Control * _control, const EventPtr & _event)
@@ -94,7 +94,7 @@ namespace StupidPlot
 
                     canvas->dispatchEvent(EventName::EVENT_CANVAS_ENDMOVE, EventPtr(new Event()));
                     canvas->resetViewportPosition();
-                    canvas->forceRedraw();
+                    canvas->dispatchRedraw();
                 }
 
                 static void onMouseMove(Control * _control, const EventPtr & _event)
@@ -110,7 +110,7 @@ namespace StupidPlot
 
                     canvas->vpX = canvas->vpInitialX - dx;
                     canvas->vpY = canvas->vpInitialY - dy;
-                    canvas->forceCopyBuffer();
+                    canvas->refresh();
 
                     canvas->dispatchEvent(EventName::EVENT_CANVAS_MOVE, EventPtr(new CanvasMoveEvent(dx, dy)));
 
@@ -188,15 +188,15 @@ namespace StupidPlot
                     DeleteDC(memDC);
                 }
 
-                void forceCopyBuffer()
+                void refresh()
                 {
                     InvalidateRect(hWnd, NULL, false);
                 }
 
-                void forceRedraw()
+                void dispatchRedraw()
                 {
                     dispatchEvent(EventName::EVENT_BUFFER_REDRAW, EventPtr(new Event()));
-                    forceCopyBuffer();
+                    refresh();
                 }
 
                 void resetViewportPosition()

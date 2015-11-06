@@ -4,6 +4,8 @@
 #include <string>
 #include <intrin.h>
 
+#include <gdiplus.h>
+
 #include <formula/exp.h>
 
 using std::wstring;
@@ -15,8 +17,6 @@ namespace StupidPlot
         class ExpDrawer
         {
         protected:
-            ExpressionPtr       expression;
-
             int                 clipWidth;
             int                 clipHeight;
             int                 canvasWidth;
@@ -25,15 +25,25 @@ namespace StupidPlot
             vector<double>      transformBuffer;
 
         public:
-            ExpDrawer(const ExpressionPtr & exp)
+            ExpressionPtr       expression;
+            Gdiplus::Color      color;
+
+            ExpDrawer(
+                const ExpressionPtr & exp,
+                Gdiplus::Color _color)
             {
                 expression = exp;
+                color = _color;
             }
 
-            ExpDrawer(wstring _exp,
-                map<wstring, double> & _constVars)
+            ExpDrawer(
+                wstring _exp,
+                map<wstring, double> & _constVars,
+                Gdiplus::Color _color
+                )
             {
                 expression = ExpressionPtr(new Expression(_exp, _constVars));
+                color = _color;
             }
 
             void setSize(int clipW, int clipH, int cW, int cH)
