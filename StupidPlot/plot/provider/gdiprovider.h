@@ -41,14 +41,14 @@ namespace StupidPlot
                     DeleteObject(axisFont);
                 }
 
-                virtual void drawPlotLine(const shared_ptr<POINTF> & points, int length, Gdiplus::Color color)
+                virtual void drawPlotLine(const shared_ptr<POINTF> & points, int length, Gdiplus::Color color, int width)
                 {
                     if (length == 0) return;
 
                     float ALLOWED_MIN_PX = -2.0F * canvasHeight + canvasOffsetY;
                     float ALLOWED_MAX_PX = +3.0F * canvasHeight + canvasOffsetY;
 
-                    HPEN pen = CreatePen(PS_SOLID, 2, color.ToCOLORREF());
+                    HPEN pen = CreatePen(PS_SOLID, width, color.ToCOLORREF());
                     HGDIOBJ oldPen = SelectObject(hdc, pen);
 
                     int bufLen = 0;

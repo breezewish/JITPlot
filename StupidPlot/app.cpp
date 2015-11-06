@@ -1,6 +1,7 @@
 #include <map>
 #include <string>
 #include <cmath>
+#include <limits>
 
 #include <app.h>
 #include <resource.h>
@@ -35,6 +36,8 @@ namespace StupidPlot
 
     const double CANVAS_ENLARGE = 2.0;
     const double SCROLL_FACTOR = 240.0;
+
+    const int HITTEST_RADIUS = 20;
 
     map<wstring, double>    mathConstants;
 
@@ -107,11 +110,60 @@ namespace StupidPlot
 
     // ======== Cursor Position ========
     int                     currentCursorX, currentCursorY;
+    double                  currentCursorFormulaX, currentCursorFormulaY;
 
     // ======== Formula Hot Track Position ========
     double                  currentHTX, currentHTY;
+    CallbackFunction        updateCursorHitTest;
 
     void setup();
+
+    void saveAndApplyCursor(HCURSOR cursor)
+    {
+        hOldCursor = hCurrentCursor;
+        hCurrentCursor = cursor;
+        SetCursor(hCurrentCursor);
+    }
+
+    void restoreCursor()
+    {
+        hCurrentCursor = hOldCursor;
+        SetCursor(hCurrentCursor);
+    }
+
+    void _updateCursorHitTest()
+    {
+        // hit test cursor on each formula
+        int closestFormulaIdx = -1;
+        double closestDistance = (std::numeric_limits<double>::max)();
+
+        for (int i = currentCursorX - HITTEST_RADIUS / 4, imax = currentCursorX + HITTEST_RADIUS / 4; i < imax; ++i)
+        {
+            double formulaX = drawer->translateCanvasX(i);
+            double initial = Util::pow2(formulaX - currentCursorFormulaX);
+
+            for (size_t j = 0, jmax = options->expressions.size(); j < jmax; ++j)
+            {
+                double y = options->expressions[j]->expression->eval(formulaX);
+                double dis = initial + Util::pow2(y - currentCursorFormulaY);
+                if (dis < closestDistance)
+                {
+                    closestDistance = dis;
+                    closestFormulaIdx = j;
+                }
+            }
+        }
+
+        double expect = drawer->translateCanvasW(HITTEST_RADIUS) * drawer->translateCanvasH(HITTEST_RADIUS);
+        int result = closestDistance < expect ? closestFormulaIdx : -1;
+
+        if (result != drawer->hoverExpIdx)
+        {
+            drawer->hoverExpIdx = result;
+            bmpCanvas->dispatchRedraw();
+            saveAndApplyCursor((result == -1 ? hCursorCross : hCursorHand));
+        }
+    }
 
     void _syncRangeFromOption()
     {
@@ -136,10 +188,8 @@ namespace StupidPlot
     void _syncCursorPosition()
     {
         // cursor
-        double x = drawer->translateCanvasX(currentCursorX);
-        double y = drawer->translateCanvasY(currentCursorY);
-        lblInfoCursorXValue->setText(Util::to_string_with_precision(x, 8));
-        lblInfoCursorYValue->setText(Util::to_string_with_precision(y, 8));
+        lblInfoCursorXValue->setText(Util::to_string_with_precision(currentCursorFormulaX, 8));
+        lblInfoCursorYValue->setText(Util::to_string_with_precision(currentCursorFormulaY, 8));
 
         // hot track
         if (options->enableHotTrack)
@@ -152,19 +202,6 @@ namespace StupidPlot
             lblInfoFormulaXValue->setText(L"--");
             lblInfoFormulaYValue->setText(L"--");
         }
-    }
-
-    void saveAndApplyCursor(HCURSOR cursor)
-    {
-        hOldCursor = hCurrentCursor;
-        hCurrentCursor = cursor;
-        SetCursor(hCurrentCursor);
-    }
-
-    void restoreCursor()
-    {
-        hCurrentCursor = hOldCursor;
-        SetCursor(hCurrentCursor);
     }
 
     void App::init(HWND _hWnd)
@@ -183,6 +220,7 @@ namespace StupidPlot
         syncGridFromOption = CallbackFunction(_syncGridFromOption);
         syncAxisFromOption = CallbackFunction(_syncAxisFromOption);
         syncCursorPosition = throttler->applyThrottle(30, CallbackFunction(_syncCursorPosition));
+        updateCursorHitTest = throttler->applyThrottle(30, CallbackFunction(_updateCursorHitTest));
 
         container = ContainerPtr(new Container());
         lm = LayoutManagerPtr(new LayoutManager(hWnd));
@@ -549,8 +587,8 @@ namespace StupidPlot
     inline void updateHotTrackPosition()
     {
         drawer->htCanvasX = currentCursorX;
-        currentHTX = drawer->translateCanvasX(currentCursorX);
-        currentHTY = options->expressions[options->activeExpIdx]->expression->eval(currentHTX);
+        currentHTX = currentCursorFormulaX;
+        currentHTY = options->expressions[drawer->activeExpIdx]->expression->eval(currentHTX);
         drawer->htCanvasY = static_cast<int>(drawer->translateFormulaY(currentHTY));
     }
 
@@ -562,11 +600,14 @@ namespace StupidPlot
         // current cursor position
         currentCursorX = bmpCanvas->vpX + event->x;
         currentCursorY = bmpCanvas->vpY + event->y;
+        currentCursorFormulaX = drawer->translateCanvasX(currentCursorX);
+        currentCursorFormulaY = drawer->translateCanvasY(currentCursorY);
+        updateCursorHitTest();
 
         // current plot position
         if (options->enableHotTrack
-            && options->activeExpIdx >= 0
-            && options->activeExpIdx < static_cast<int>(options->expressions.size())
+            && drawer->activeExpIdx >= 0
+            && drawer->activeExpIdx < static_cast<int>(options->expressions.size())
             )
         {
             updateHotTrackPosition();
@@ -644,8 +685,8 @@ namespace StupidPlot
         syncRangeFromOption();
 
         if (options->enableHotTrack
-            && options->activeExpIdx >= 0
-            && options->activeExpIdx < static_cast<int>(options->expressions.size())
+            && drawer->activeExpIdx >= 0
+            && drawer->activeExpIdx < static_cast<int>(options->expressions.size())
             )
         {
             updateHotTrackPosition();
@@ -709,6 +750,7 @@ namespace StupidPlot
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
 
         options->expressions.push_back(ExpDrawerPtr(new ExpDrawer(L"sin(x)", mathConstants, Color(255, 47, 197, 255))));
+        options->expressions.push_back(ExpDrawerPtr(new ExpDrawer(L"cos(x)", mathConstants, Color(255, 243, 104, 104))));
         //options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"x+1", mathConstants)));
 
         syncRangeFromOption();

@@ -38,8 +38,6 @@ namespace StupidPlot
 
             // ======== Expressions ========
             vector<ExpDrawerPtr>    expressions;
-            int                     activeExpIdx = 0;
-            int                     hoverExpIdx = -1;
 
             OptionBag()
             {

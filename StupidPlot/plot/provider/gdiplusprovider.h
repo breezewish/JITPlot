@@ -36,14 +36,14 @@ namespace StupidPlot
                 {
                 }
 
-                virtual void drawPlotLine(const shared_ptr<POINTF> & points, int length, Gdiplus::Color color)
+                virtual void drawPlotLine(const shared_ptr<POINTF> & points, int length, Gdiplus::Color color, int width)
                 {
                     if (length == 0) return;
 
                     float ALLOWED_MIN_PX = -2.0F * canvasHeight + canvasOffsetY;
                     float ALLOWED_MAX_PX = +3.0F * canvasHeight + canvasOffsetY;
 
-                    Gdiplus::Pen pen(color, 2.0f);
+                    Gdiplus::Pen pen(color, static_cast<float>(width));
 
                     int bufLen = 0;
                     Gdiplus::PointF * buf = new Gdiplus::PointF[length];

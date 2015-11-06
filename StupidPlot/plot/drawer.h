@@ -130,6 +130,8 @@ namespace StupidPlot
             // ======== Hot Track ========
             int                     htCanvasX = -1;
             int                     htCanvasY = -1;
+            int                     activeExpIdx = 0;
+            int                     hoverExpIdx = -1;
 
             // ======== Memory Buffer ========
             HDC                     memDC;
@@ -182,7 +184,7 @@ namespace StupidPlot
                 return canvasHeight - translateFormulaH(y - (options->drawBottom));
             }
 
-            inline void drawPlotLine(const ExpDrawerPtr & exp)
+            inline void drawPlotLine(const ExpDrawerPtr & exp, int width)
             {
                 int length = 0;
                 auto points = shared_ptr<Provider::POINTF>(new Provider::POINTF[clipWidth], array_deleter<Provider::POINTF>());
@@ -207,7 +209,7 @@ namespace StupidPlot
                     length++;
                 }
 
-                provider->drawPlotLine(points, length, exp->color);
+                provider->drawPlotLine(points, length, exp->color, width);
             }
 
             inline void drawGridLine(int spacing, bool vertical, Gdiplus::Color color, bool infinite = true)
@@ -361,9 +363,10 @@ namespace StupidPlot
                 }
 
                 // Draw formulas
-                for (size_t i = 0; i < options->expressions.size(); ++i)
+                for (size_t i = 0, imax = options->expressions.size(); i < imax; ++i)
                 {
-                    drawPlotLine(options->expressions[i]);
+                    int width = (static_cast<int>(i) == hoverExpIdx ? 4 : 2);
+                    drawPlotLine(options->expressions[i], width);
                 }
 
                 provider->endDraw();

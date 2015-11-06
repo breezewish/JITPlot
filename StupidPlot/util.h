@@ -49,6 +49,11 @@ namespace StupidPlot
             MultiByteToWideChar(CP_UTF8, 0, &str[0], static_cast<int>(str.size()), &wstrTo[0], size_needed);
             return wstrTo;
         }
+
+        inline static double pow2(double v)
+        {
+            return v*v;
+        }
     };
 
     class Formatter

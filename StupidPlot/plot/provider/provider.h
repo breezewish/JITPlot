@@ -36,7 +36,7 @@ namespace StupidPlot
 
                 virtual void drawAxis(bool vertical, int axisPos, const shared_ptr<int> & ticks, const shared_ptr<double> & tickLabels, int length, int tickRadius, Gdiplus::Color color) = 0;
 
-                virtual void drawPlotLine(const shared_ptr<POINTF> & points, int length, Gdiplus::Color color) = 0;
+                virtual void drawPlotLine(const shared_ptr<POINTF> & points, int length, Gdiplus::Color color, int width) = 0;
 
                 virtual void beginDraw(int left, int top, int width, int height)
                 {
