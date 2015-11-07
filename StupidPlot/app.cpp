@@ -140,6 +140,7 @@ namespace StupidPlot
 
     // ======== Context menu ========
     int                     cmFormulaIdx;
+    bool                    cmHasMouseMoved;
 
 #pragma endregion
 
@@ -720,6 +721,8 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
 
+        cmHasMouseMoved = true;
+
         // current cursor position
         currentCursorX = bmpCanvas->vpX + event->x;
         currentCursorY = bmpCanvas->vpY + event->y;
@@ -857,13 +860,16 @@ namespace StupidPlot
         SetCursor(hCurrentCursor);
     }
 
-    inline void bmpCanvas_onMouseDown(Control * _control, const EventPtr & _event)
+    inline void bmpCanvas_onMouseUp(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
 
-        if (event->button == MouseButton::RIGHT)
+        // left click on formula: show formula context menu
+        if (!cmHasMouseMoved && event->button == MouseButton::LEFT && drawer->hoverExpIdx != -1)
         {
+            cmFormulaIdx = drawer->hoverExpIdx;
+
             POINT pt;
             pt.x = event->x;
             pt.y = event->y;
@@ -872,7 +878,34 @@ namespace StupidPlot
             UINT32 rh;
             Ribbon::g_pRibbon->GetHeight(&rh);
 
+            // invalidate color
+            Ribbon::g_pFramework->InvalidateUICommand(IDR_CMD_FORMULA_COLORPICKER, UI_INVALIDATIONS_PROPERTY, &UI_PKEY_Color);
+
+            IUIContextualUI * pContextualUI = NULL;
+            Ribbon::g_pFramework->GetView(IDR_CMD_CONTEXT_FORMULA, IID_PPV_ARGS(&pContextualUI));
+            pContextualUI->ShowAtLocation(pt.x, pt.y + rh);
+            pContextualUI->Release();
+        }
+    }
+
+    inline void bmpCanvas_onMouseDown(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
+
+        cmHasMouseMoved = false;
+
+        if (event->button == MouseButton::RIGHT)
+        {
             cmFormulaIdx = drawer->hoverExpIdx;
+
+            POINT pt;
+            pt.x = event->x;
+            pt.y = event->y;
+            ClientToScreen(hWnd, &pt);
+
+            UINT32 rh;
+            Ribbon::g_pRibbon->GetHeight(&rh);
 
             // invalidate color
             Ribbon::g_pFramework->InvalidateUICommand(IDR_CMD_FORMULA_COLORPICKER, UI_INVALIDATIONS_PROPERTY, &UI_PKEY_Color);
@@ -1018,6 +1051,7 @@ namespace StupidPlot
         bmpCanvas->addEventHandler(EventName::EVENT_MOUSEMOVE, bmpCanvas_onMouseMove);
         bmpCanvas->addEventHandler(EventName::EVENT_SETCURSOR, bmpCanvas_onSetCursor);
         bmpCanvas->addEventHandler(EventName::EVENT_MOUSEDOWN, bmpCanvas_onMouseDown);
+        bmpCanvas->addEventHandler(EventName::EVENT_MOUSEUP, bmpCanvas_onMouseUp);
         bmpCanvas->dispatchRedraw();
     }
 }

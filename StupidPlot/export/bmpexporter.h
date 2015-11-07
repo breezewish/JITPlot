@@ -50,8 +50,6 @@ namespace StupidPlot
                 bfHeader.bfReserved2 = 0;
                 bfHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 
-
-
                 DWORD written;
 
                 WriteFile(fh, &bfHeader, sizeof(BITMAPFILEHEADER), &written, NULL);
