@@ -45,6 +45,7 @@ namespace StupidPlot
     ULONG_PTR               gdiplusToken;
 
     HWND                    hWnd;
+    bool                    initialized = false;
 
     // ======== Managers ========
     ThrottlerPtr            throttler;
@@ -204,6 +205,11 @@ namespace StupidPlot
         }
     }
 
+    bool App::hasInitialized()
+    {
+        return initialized;
+    }
+
     void App::init(HWND _hWnd)
     {
         GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
@@ -324,6 +330,8 @@ namespace StupidPlot
 
         updateSize();
         setup();
+
+        initialized = true;
     }
 
     void App::terminate()
@@ -463,7 +471,6 @@ namespace StupidPlot
             _syncRangeFromOption();
             return;
         }
-        Debug::Debug() << options->vpLeft >> Debug::writeln;
         options->vpLeft = val;
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
         _syncRangeFromOption();
@@ -734,6 +741,24 @@ namespace StupidPlot
         SetCursor(hCurrentCursor);
     }
 
+    inline void bmpCanvas_onMouseDown(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
+
+        if (event->button == MouseButton::RIGHT)
+        {
+            POINT pt;
+            pt.x = event->x;
+            pt.y = event->y;
+            ClientToScreen(hWnd, &pt);
+            Ribbon::showContextualUI(pt);
+            /*HMENU hMenu = LoadMenu(NULL, MAKEINTRESOURCE(IDR_MENU_PLOT));
+            hMenu = GetSubMenu(hMenu, 0);
+            TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, hWnd, NULL);*/
+        }
+    }
+
     void setup()
     {
         mathConstants[L"PI"] = std::atan(1) * 4;
@@ -780,6 +805,7 @@ namespace StupidPlot
         bmpCanvas->addEventHandler(EventName::EVENT_MOUSEWHEEL, bmpCanvas_onMouseWheel);
         bmpCanvas->addEventHandler(EventName::EVENT_MOUSEMOVE, bmpCanvas_onMouseMove);
         bmpCanvas->addEventHandler(EventName::EVENT_SETCURSOR, bmpCanvas_onSetCursor);
+        bmpCanvas->addEventHandler(EventName::EVENT_MOUSEDOWN, bmpCanvas_onMouseDown);
         bmpCanvas->dispatchRedraw();
     }
 }

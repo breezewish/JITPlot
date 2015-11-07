@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Application xmlns="http://schemas.microsoft.com/windows/2009/Ribbon">
+  <Application.Commands>
+    <Command Name="cmdShowGrid">
+      <Command.LabelTitle>
+        <String Id="200">Grid</String>
+      </Command.LabelTitle>
+    </Command>
+    <Command Name="cmdShowAxis">
+      <Command.LabelTitle>
+        <String Id="201">Axis and tick</String>
+      </Command.LabelTitle>
+    </Command>
+    <Command Name="cmdSave">
+      <Command.LabelTitle>
+        <String Id="202">Save viewport...</String>
+      </Command.LabelTitle>
+    </Command>
+    <Command Name="cmdContextMapPlot" Symbol="IDC_CMD_CONTEXT_PLOT" />
+  </Application.Commands>
+  <Application.Views>
+    <Ribbon>
+    </Ribbon>
+    <ContextPopup>
+      <ContextPopup.ContextMenus>
+        <ContextMenu Name="ContextMenuPlot">
+          <MenuGroup>
+            <Button CommandName="cmdShowGrid" />
+            <Button CommandName="cmdShowAxis" />
+          </MenuGroup>
+          <MenuGroup>
+            <Button CommandName="cmdSave" />
+          </MenuGroup>
+        </ContextMenu>
+      </ContextPopup.ContextMenus>
+      <ContextPopup.ContextMaps>
+        <ContextMap CommandName="cmdContextMapPlot" ContextMenu="ContextMenuPlot" />
+      </ContextPopup.ContextMaps>
+    </ContextPopup>
+  </Application.Views>
+</Application>

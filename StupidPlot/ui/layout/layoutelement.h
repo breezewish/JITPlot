@@ -93,7 +93,7 @@ namespace StupidPlot
                     return true;
                 }
 
-                BOOL relayout(HDWP hDefer, SIZE parentSize)
+                BOOL relayout(HDWP hDefer, SIZE parentSize, POINT offset)
                 {
                     if (isEmpty)
                     {
@@ -156,8 +156,8 @@ namespace StupidPlot
                         hDefer,
                         control->hWnd,
                         NULL,
-                        left,
-                        top,
+                        left + offset.x,
+                        top + offset.y,
                         width,
                         height,
                         SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOZORDER

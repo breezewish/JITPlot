@@ -6,6 +6,7 @@
 
 #include <windows.h>
 
+#include <ribbon.h>
 #include <ui/container.h>
 #include <ui/controls/control.h>
 #include <ui/layout/layoutelement.h>
@@ -26,6 +27,7 @@ namespace StupidPlot
             protected:
                 HWND                                    hWnd;
                 SIZE                                    size;
+                POINT                                   offset;
 
                 // collection of layout elements
                 vector<LayoutElement *>                 elements;
@@ -50,7 +52,14 @@ namespace StupidPlot
                 {
                     RECT rect;
                     GetClientRect(hWnd, &rect);
-                    size = SIZE{ rect.right - rect.left, rect.bottom - rect.top };
+
+                    UINT32 ribbonHeight;
+                    Ribbon::g_pRibbon->GetHeight(&ribbonHeight);
+
+                    size.cx = rect.right - rect.left;
+                    size.cy = rect.bottom - rect.top - ribbonHeight;
+                    offset.x = 0;
+                    offset.y = ribbonHeight;
                 }
 
                 void relayout()
@@ -60,7 +69,7 @@ namespace StupidPlot
 
                     for (LayoutElement * element : elements)
                     {
-                        element->relayout(hDefer, size);
+                        element->relayout(hDefer, size, offset);
                     }
 
                     EndDeferWindowPos(hDefer);

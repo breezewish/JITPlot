@@ -37,6 +37,9 @@
     <Filter Include="头文件\ui\controls">
       <UniqueIdentifier>{09d09d4b-8047-4574-adbf-deb21a0a291b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\export">
+      <UniqueIdentifier>{ea780e16-34de-44b8-a570-65ae3528eb75}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winform.cpp">
@@ -61,6 +64,15 @@
       <Filter>源文件\formula</Filter>
     </ClCompile>
     <ClCompile Include="throttler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ribbon.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="uiapplication.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="uicommandhandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -173,10 +185,31 @@
     <ClInclude Include="ui\events\canvasrebuildevent.h">
       <Filter>头文件\ui\events</Filter>
     </ClInclude>
+    <ClInclude Include="export\imageexporter.h">
+      <Filter>头文件\export</Filter>
+    </ClInclude>
+    <ClInclude Include="export\bmpexporter.h">
+      <Filter>头文件\export</Filter>
+    </ClInclude>
+    <ClInclude Include="export\pngexporter.h">
+      <Filter>头文件\export</Filter>
+    </ClInclude>
+    <ClInclude Include="ribbon.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="uiapplication.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="uicommandhandler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StupidPlot.rc">
       <Filter>资源文件</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="StupidPlotRibbonMarkup.xml" />
   </ItemGroup>
 </Project>

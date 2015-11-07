@@ -2,10 +2,12 @@
 #include <CommCtrl.h>
 #include <tchar.h>
 
+#include <ribbon.h>
 #include <resource.h>
 #include <app.h>
 
 using StupidPlot::App;
+using StupidPlot::Ribbon;
 
 BOOL CALLBACK PlotDialogProc(
     HWND hDlg,
@@ -15,20 +17,28 @@ BOOL CALLBACK PlotDialogProc(
     )
 {
     UNREFERENCED_PARAMETER(hDlg);
+    UNREFERENCED_PARAMETER(wParam);
+    UNREFERENCED_PARAMETER(lParam);
 
     switch (message)
     {
     case WM_INITDIALOG:
+        Ribbon::init(hDlg);
         App::init(hDlg);
         return true;
     case WM_SIZE:
     case WM_SIZING:
-        App::updateSize();
-        return true;
+        if (App::hasInitialized())
+        {
+            App::updateSize();
+            return true;
+        }
+        break;
     case WM_CLOSE:
         DestroyWindow(hDlg);
         return true;
     case WM_DESTROY:
+        Ribbon::destroy();
         PostQuitMessage(0);
         return true;
     default:
@@ -48,6 +58,8 @@ int APIENTRY WinMain(
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
+
+    CoInitialize(NULL);
 
     HWND hDlg;
     MSG msg;
@@ -79,6 +91,8 @@ int APIENTRY WinMain(
     }
 
     App::terminate();
+
+    CoUninitialize();
 
     return 0;
 }

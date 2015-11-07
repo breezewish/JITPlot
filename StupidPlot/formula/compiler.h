@@ -217,17 +217,6 @@ namespace StupidPlot
                 for (auto ins : lirins) ins.generate(offsets, pt);
                 exec->endWriteCode();
 
-                /*
-                auto ret = CompiledResultPtr(new CompiledResult());
-                ret->insgen = insgen;
-                ret->constantOffsets = constantOffsets;
-                ret->dynamicVarOffsets = variableOffsets;*/
-
-                for (auto instruction : lirins)
-                {
-                    Debug::Debug() << instruction >> Debug::writeln;
-                }
-
                 return exec;
             };
         };

@@ -18,7 +18,7 @@ namespace StupidPlot
             public:
                 int delta;
 
-                MouseWheelEvent(WPARAM wParam, LPARAM lParam, HWND hWnd) : MouseEvent(wParam, lParam)
+                MouseWheelEvent(HWND hWnd, WPARAM wParam, LPARAM lParam) : MouseEvent(wParam, lParam, MouseButton::NONE)
                 {
                     delta = GET_WHEEL_DELTA_WPARAM(wParam);
 

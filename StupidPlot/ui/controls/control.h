@@ -93,16 +93,23 @@ namespace StupidPlot
                         control->dispatchEvent(EventName::EVENT_GOT_FOCUS, EventPtr(new Event()));
                         break;
                     case WM_MOUSEWHEEL:
-                        control->dispatchEvent(EventName::EVENT_MOUSEWHEEL, EventPtr(new MouseWheelEvent(wParam, lParam, hWnd)));
+                        control->dispatchEvent(EventName::EVENT_MOUSEWHEEL, EventPtr(new MouseWheelEvent(hWnd, wParam, lParam)));
                         break;
                     case WM_LBUTTONDOWN:
-                        control->dispatchEvent(EventName::EVENT_MOUSEDOWN, EventPtr(new MouseEvent(wParam, lParam)));
+                        control->dispatchEvent(EventName::EVENT_MOUSEDOWN, EventPtr(new MouseEvent(wParam, lParam, Events::MouseButton::LEFT)));
                         break;
                     case WM_LBUTTONUP:
-                        control->dispatchEvent(EventName::EVENT_MOUSEUP, EventPtr(new MouseEvent(wParam, lParam)));
+                        control->dispatchEvent(EventName::EVENT_MOUSEUP, EventPtr(new MouseEvent(wParam, lParam, Events::MouseButton::LEFT)));
                         break;
                     case WM_MOUSEMOVE:
-                        control->dispatchEvent(EventName::EVENT_MOUSEMOVE, EventPtr(new MouseEvent(wParam, lParam)));
+                        // TODO
+                        control->dispatchEvent(EventName::EVENT_MOUSEMOVE, EventPtr(new MouseEvent(wParam, lParam, Events::MouseButton::NONE)));
+                        break;
+                    case WM_RBUTTONDOWN:
+                        control->dispatchEvent(EventName::EVENT_MOUSEDOWN, EventPtr(new MouseEvent(wParam, lParam, Events::MouseButton::RIGHT)));
+                        break;
+                    case WM_RBUTTONUP:
+                        control->dispatchEvent(EventName::EVENT_MOUSEUP, EventPtr(new MouseEvent(wParam, lParam, Events::MouseButton::RIGHT)));
                         break;
                     case WM_SIZE:
                         control->updateSize();

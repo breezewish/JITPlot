@@ -50,9 +50,11 @@ namespace StupidPlot
                 return this;
             }
 
-            inline Control * getControlById(int id)
+            inline Control * getControlById(int _id)
             {
-                return id2control[transformControlId(id)];
+                auto id = transformControlId(_id);
+                if (id < 0) return NULL;
+                return id2control[id];
             }
         };
 

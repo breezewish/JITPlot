@@ -8,6 +8,7 @@ namespace StupidPlot
     class App
     {
     public:
+        static bool hasInitialized();
         static void init(HWND _hWnd);
         static void terminate();
         static void updateSize();

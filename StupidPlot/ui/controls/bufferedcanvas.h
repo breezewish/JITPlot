@@ -129,8 +129,9 @@ namespace StupidPlot
                 {
                     if (oldBitmap != NULL)
                     {
-                        HGDIOBJ buf = SelectObject(memDC, oldBitmap);
-                        DeleteObject(buf);
+                        SelectObject(memDC, oldBitmap);
+                        DeleteObject(bitmap);
+                        bitmap = NULL;
                         oldBitmap = NULL;
                     }
                 }
@@ -141,8 +142,8 @@ namespace StupidPlot
                     canvasH = static_cast<int>(enlargeFactor * height);
 
                     destroyBuffer();
-                    HBITMAP buf = CreateCompatibleBitmap(hDC, canvasW, canvasH);
-                    oldBitmap = SelectObject(memDC, buf);
+                    bitmap = CreateCompatibleBitmap(hDC, canvasW, canvasH);
+                    oldBitmap = SelectObject(memDC, bitmap);
 
                     dispatchEvent(EventName::EVENT_CANVAS_REBUILD, EventPtr(new CanvasRebuildEvent(canvasW, canvasH)));
 
@@ -158,6 +159,7 @@ namespace StupidPlot
 
                 HDC             memDC = NULL;
                 HGDIOBJ         oldBitmap = NULL;
+                HBITMAP         bitmap;
 
                 int             vpX, vpY;
                 int             canvasW, canvasH;
