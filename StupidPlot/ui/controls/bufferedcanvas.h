@@ -6,6 +6,7 @@
 #include <memory>
 
 #include <ui/controls/control.h>
+#include <ui/controls/win32control.h>
 #include <ui/events/event.h>
 #include <ui/events/canvasmoveevent.h>
 #include <ui/events/canvasrebuildevent.h>
@@ -18,7 +19,7 @@ namespace StupidPlot
     {
         namespace Controls
         {
-            class BufferedCanvas : public Control
+            class BufferedCanvas : public Win32Control
             {
             protected:
                 int vpInitialX, vpInitialY;
@@ -72,7 +73,7 @@ namespace StupidPlot
 
                     if (!canvas->canMove) return;
 
-                    SetCapture(_control->hWnd);
+                    SetCapture(canvas->hWnd);
 
                     canvas->isMoving = true;
                     canvas->mouseInitialX = event->x;
@@ -170,7 +171,7 @@ namespace StupidPlot
 
                 bool            canMove = true;
 
-                BufferedCanvas(HWND _hWnd, int _id, double enlarge = 2.0) : Control(_hWnd, _id), enlargeFactor(enlarge)
+                BufferedCanvas(HWND _hWnd, int _id, double enlarge = 2.0) : Win32Control(_hWnd, _id), enlargeFactor(enlarge)
                 {
                     memDC = CreateCompatibleDC(hDC);
                     updateOrCreateBuffer();

@@ -26,7 +26,7 @@ namespace StupidPlot
                 }
 
                 // Window messages
-                inline BOOL handle(UINT uMsg, WPARAM wParam, LPARAM lParam)
+                inline BOOL handleWin32Message(UINT uMsg, WPARAM wParam, LPARAM lParam)
                 {
                     UNREFERENCED_PARAMETER(lParam);
 
@@ -35,7 +35,7 @@ namespace StupidPlot
                     case WM_COMMAND:
                         // get the source control
                         int id = LOWORD(wParam);
-                        Control * control = container->getControlById(id);
+                        Control * control = container->getWin32ControlById(id);
                         if (control == NULL) break;
 
                         // is mouse click?

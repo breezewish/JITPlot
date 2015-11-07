@@ -15,10 +15,10 @@ namespace StupidPlot
     {
         namespace Controls
         {
-            class Textbox : public Control
+            class Textbox : public Win32Control
             {
             public:
-                Textbox(HWND _hWnd, int _id) : Control(_hWnd, _id)
+                Textbox(HWND _hWnd, int _id) : Win32Control(_hWnd, _id)
                 {
                 }
 

@@ -69,12 +69,14 @@ STDMETHODIMP UICommandHandler::UpdateProperty(
     const PROPVARIANT* ppropvarCurrentValue,
     PROPVARIANT* ppropvarNewValue)
 {
-    UNREFERENCED_PARAMETER(nCmdID);
-    UNREFERENCED_PARAMETER(key);
-    UNREFERENCED_PARAMETER(ppropvarCurrentValue);
-    UNREFERENCED_PARAMETER(ppropvarNewValue);
-
-    return E_NOTIMPL;
+    if (StupidPlot::App::hasInitialized())
+    {
+        return StupidPlot::App::handleRibbonUpdateProperty(nCmdID, key, ppropvarCurrentValue, ppropvarNewValue);
+    }
+    else
+    {
+        return E_NOTIMPL;
+    }
 }
 
 STDMETHODIMP UICommandHandler::Execute(
@@ -84,11 +86,10 @@ STDMETHODIMP UICommandHandler::Execute(
     const PROPVARIANT* ppropvarValue,
     IUISimplePropertySet* pCommandExecutionProperties)
 {
-    UNREFERENCED_PARAMETER(pCommandExecutionProperties);
-    UNREFERENCED_PARAMETER(ppropvarValue);
-    UNREFERENCED_PARAMETER(key);
-    UNREFERENCED_PARAMETER(verb);
-    UNREFERENCED_PARAMETER(nCmdID);
+    if (StupidPlot::App::hasInitialized())
+    {
+        StupidPlot::App::handleRibbonExecute(nCmdID, verb, key, ppropvarValue, pCommandExecutionProperties);
+    }
 
     return S_OK;
 }

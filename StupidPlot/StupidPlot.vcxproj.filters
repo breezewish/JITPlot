@@ -203,6 +203,18 @@
     <ClInclude Include="uicommandhandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ui\events\ribbonupdatepropertyevent.h">
+      <Filter>头文件\ui\events</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\controls\win32control.h">
+      <Filter>头文件\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\controls\ribboncontrol.h">
+      <Filter>头文件\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\events\ribbonexecuteevent.h">
+      <Filter>头文件\ui\events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StupidPlot.rc">

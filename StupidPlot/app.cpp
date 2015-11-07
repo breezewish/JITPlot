@@ -1,12 +1,19 @@
+#pragma region Include
 #include <map>
 #include <string>
 #include <cmath>
 #include <limits>
 
+#include <UIRibbon.h>
+#include <UIRibbonPropertyHelpers.h>
+
 #include <app.h>
+#include <RibbonIDs.h>
 #include <resource.h>
 #include <throttler.h>
 #include <ui/controls/control.h>
+#include <ui/controls/win32control.h>
+#include <ui/controls/ribboncontrol.h>
 #include <ui/controls/checkbox.h>
 #include <ui/controls/textbox.h>
 #include <ui/controls/bufferedcanvas.h>
@@ -15,11 +22,14 @@
 #include <ui/events/event.h>
 #include <ui/events/canvasrebuildevent.h>
 #include <ui/events/eventmanager.h>
+#include <ui/events/ribbonupdatepropertyevent.h>
+#include <ui/events/ribbonexecuteevent.h>
 #include <plot/drawer.h>
 #include <plot/optionbag.h>
 #include <plot/animation.h>
 #include <formula/exp.h>
 #include <formula/expdrawer.h>
+#pragma endregion
 
 namespace StupidPlot
 {
@@ -34,10 +44,15 @@ namespace StupidPlot
     using namespace Plot;
     using namespace Formula;
 
+#pragma region Constants
+
     const double CANVAS_ENLARGE = 2.0;
     const double SCROLL_FACTOR = 240.0;
 
     const int HITTEST_RADIUS = 20;
+#pragma endregion
+
+#pragma region Variables
 
     map<wstring, double>    mathConstants;
 
@@ -53,36 +68,41 @@ namespace StupidPlot
     LayoutManagerPtr        lm;
     EventManagerPtr         em;
 
-    // ======== Controls ========
-    Control                 * grpInfo;
-    Control                 * lblInfoCursor;
-    Control                 * lblInfoCursorX;
-    Control                 * lblInfoCursorY;
-    Control                 * lblInfoFormula;
-    Control                 * lblInfoFormulaX;
-    Control                 * lblInfoFormulaY;
+    // ======== Win32 Controls ========
+    Win32Control            * grpInfo;
+    Win32Control            * lblInfoCursor;
+    Win32Control            * lblInfoCursorX;
+    Win32Control            * lblInfoCursorY;
+    Win32Control            * lblInfoFormula;
+    Win32Control            * lblInfoFormulaX;
+    Win32Control            * lblInfoFormulaY;
     Textbox                 * lblInfoCursorXValue;
     Textbox                 * lblInfoCursorYValue;
     Textbox                 * lblInfoFormulaXValue;
     Textbox                 * lblInfoFormulaYValue;
-    Control                 * grpCanvas;
+    Win32Control            * grpCanvas;
     Checkbox                * chkAntialias;
     Checkbox                * chkShowGrid;
     Checkbox                * chkShowAxis;
-    Control                 * lblGridInterval;
-    Control                 * lblAxisInterval;
+    Win32Control            * lblGridInterval;
+    Win32Control            * lblAxisInterval;
     Textbox                 * txtGridSize;
     Textbox                 * txtAxisSize;
     BufferedCanvas          * bmpCanvas;
-    Control                 * lblRange;
-    Control                 * lblRangeXFrom;
-    Control                 * lblRangeXTo;
-    Control                 * lblRangeYFrom;
-    Control                 * lblRangeYTo;
+    Win32Control            * lblRange;
+    Win32Control            * lblRangeXFrom;
+    Win32Control            * lblRangeXTo;
+    Win32Control            * lblRangeYFrom;
+    Win32Control            * lblRangeYTo;
     Textbox                 * txtRangeXFrom;
     Textbox                 * txtRangeXTo;
     Textbox                 * txtRangeYFrom;
     Textbox                 * txtRangeYTo;
+
+    // ======== Ribbon Controls ========
+    RibbonControl           * rcmdShowGrid;
+    RibbonControl           * rcmdShowAxis;
+    RibbonControl           * rcmdSave;
 
     // ======== Data Struct -> UI ========
     CallbackFunction        syncRangeFromOption;
@@ -117,93 +137,16 @@ namespace StupidPlot
     double                  currentHTX, currentHTY;
     CallbackFunction        updateCursorHitTest;
 
+#pragma endregion
+
     void setup();
+    void _updateCursorHitTest();
+    void _syncRangeFromOption();
+    void _syncGridFromOption();
+    void _syncAxisFromOption();
+    void _syncCursorPosition();
 
-    void saveAndApplyCursor(HCURSOR cursor)
-    {
-        hOldCursor = hCurrentCursor;
-        hCurrentCursor = cursor;
-        SetCursor(hCurrentCursor);
-    }
-
-    void restoreCursor()
-    {
-        hCurrentCursor = hOldCursor;
-        SetCursor(hCurrentCursor);
-    }
-
-    void _updateCursorHitTest()
-    {
-        // hit test cursor on each formula
-        int closestFormulaIdx = -1;
-        double closestDistance = (std::numeric_limits<double>::max)();
-
-        for (int i = currentCursorX - HITTEST_RADIUS / 4, imax = currentCursorX + HITTEST_RADIUS / 4; i < imax; ++i)
-        {
-            double formulaX = drawer->translateCanvasX(i);
-            double initial = Util::pow2(formulaX - currentCursorFormulaX);
-
-            for (size_t j = 0, jmax = options->expressions.size(); j < jmax; ++j)
-            {
-                double y = options->expressions[j]->expression->eval(formulaX);
-                double dis = initial + Util::pow2(y - currentCursorFormulaY);
-                if (dis < closestDistance)
-                {
-                    closestDistance = dis;
-                    closestFormulaIdx = j;
-                }
-            }
-        }
-
-        double expect = drawer->translateCanvasW(HITTEST_RADIUS) * drawer->translateCanvasH(HITTEST_RADIUS);
-        int result = closestDistance < expect ? closestFormulaIdx : -1;
-
-        if (result != drawer->hoverExpIdx)
-        {
-            drawer->hoverExpIdx = result;
-            bmpCanvas->dispatchRedraw();
-            saveAndApplyCursor((result == -1 ? hCursorCross : hCursorHand));
-        }
-    }
-
-    void _syncRangeFromOption()
-    {
-        txtRangeXFrom->setText(Util::to_string_with_precision(options->vpLeft, 5));
-        txtRangeXTo->setText(Util::to_string_with_precision(options->vpRight, 5));
-        txtRangeYFrom->setText(Util::to_string_with_precision(options->vpBottom, 5));
-        txtRangeYTo->setText(Util::to_string_with_precision(options->vpTop, 5));
-    }
-
-    void _syncGridFromOption()
-    {
-        chkShowGrid->setChecked(options->showGrid);
-        txtGridSize->setText(std::to_wstring(options->gridSpacing));
-    }
-
-    void _syncAxisFromOption()
-    {
-        chkShowAxis->setChecked(options->showAxis);
-        txtAxisSize->setText(std::to_wstring(options->axisTickInterval));
-    }
-
-    void _syncCursorPosition()
-    {
-        // cursor
-        lblInfoCursorXValue->setText(Util::to_string_with_precision(currentCursorFormulaX, 8));
-        lblInfoCursorYValue->setText(Util::to_string_with_precision(currentCursorFormulaY, 8));
-
-        // hot track
-        if (options->enableHotTrack)
-        {
-            lblInfoFormulaXValue->setText(Util::to_string_with_precision(currentHTX, 8));
-            lblInfoFormulaYValue->setText(Util::to_string_with_precision(currentHTY, 8));
-        }
-        else
-        {
-            lblInfoFormulaXValue->setText(L"--");
-            lblInfoFormulaYValue->setText(L"--");
-        }
-    }
+#pragma region Public Interface
 
     bool App::hasInitialized()
     {
@@ -233,69 +176,76 @@ namespace StupidPlot
         em = EventManagerPtr(new EventManager(container));
 
         bmpCanvas = new BufferedCanvas(hWnd, IDC_STATIC_CANVAS, CANVAS_ENLARGE);
-        grpInfo = new Control(hWnd, IDC_STATIC_GROUP_INFO);
-        lblInfoCursor = new Control(hWnd, IDC_STATIC_INFO_CURSOR);
-        lblInfoCursorX = new Control(hWnd, IDC_STATIC_INFO_CURSOR_X);
-        lblInfoCursorY = new Control(hWnd, IDC_STATIC_INFO_CURSOR_Y);
-        lblInfoFormula = new Control(hWnd, IDC_STATIC_INFO_FORMULA);
-        lblInfoFormulaX = new Control(hWnd, IDC_STATIC_INFO_FORMULA_X);
-        lblInfoFormulaY = new Control(hWnd, IDC_STATIC_INFO_FORMULA_Y);
+        grpInfo = new Win32Control(hWnd, IDC_STATIC_GROUP_INFO);
+        lblInfoCursor = new Win32Control(hWnd, IDC_STATIC_INFO_CURSOR);
+        lblInfoCursorX = new Win32Control(hWnd, IDC_STATIC_INFO_CURSOR_X);
+        lblInfoCursorY = new Win32Control(hWnd, IDC_STATIC_INFO_CURSOR_Y);
+        lblInfoFormula = new Win32Control(hWnd, IDC_STATIC_INFO_FORMULA);
+        lblInfoFormulaX = new Win32Control(hWnd, IDC_STATIC_INFO_FORMULA_X);
+        lblInfoFormulaY = new Win32Control(hWnd, IDC_STATIC_INFO_FORMULA_Y);
         lblInfoCursorXValue = new Textbox(hWnd, IDC_STATIC_INFO_CURSOR_X_VALUE);
         lblInfoCursorYValue = new Textbox(hWnd, IDC_STATIC_INFO_CURSOR_Y_VALUE);
         lblInfoFormulaXValue = new Textbox(hWnd, IDC_STATIC_INFO_FORMULA_X_VALUE);
         lblInfoFormulaYValue = new Textbox(hWnd, IDC_STATIC_INFO_FORMULA_Y_VALUE);
-        grpCanvas = new Control(hWnd, IDC_STATIC_GROUP_CANVAS);
+        grpCanvas = new Win32Control(hWnd, IDC_STATIC_GROUP_CANVAS);
         chkAntialias = new Checkbox(hWnd, IDC_CHECK_ANTIALIAS);
         chkShowGrid = new Checkbox(hWnd, IDC_CHECK_SHOW_GRID);
         chkShowAxis = new Checkbox(hWnd, IDC_CHECK_SHOW_AXIS);
         txtGridSize = new Textbox(hWnd, IDC_EDIT_GRID_SIZE);
         txtAxisSize = new Textbox(hWnd, IDC_EDIT_AXIS_SIZE);
-        lblGridInterval = new Control(hWnd, IDC_STATIC_GRID_INTERVAL);
-        lblAxisInterval = new Control(hWnd, IDC_STATIC_AXIS_INTERVAL);
-        lblRange = new Control(hWnd, IDC_STATIC_RANGE);
-        lblRangeXFrom = new Control(hWnd, IDC_STATIC_RANGE_X_FROM);
-        lblRangeXTo = new Control(hWnd, IDC_STATIC_RANGE_X_TO);
-        lblRangeYFrom = new Control(hWnd, IDC_STATIC_RANGE_Y_FROM);
-        lblRangeYTo = new Control(hWnd, IDC_STATIC_RANGE_Y_TO);
+        lblGridInterval = new Win32Control(hWnd, IDC_STATIC_GRID_INTERVAL);
+        lblAxisInterval = new Win32Control(hWnd, IDC_STATIC_AXIS_INTERVAL);
+        lblRange = new Win32Control(hWnd, IDC_STATIC_RANGE);
+        lblRangeXFrom = new Win32Control(hWnd, IDC_STATIC_RANGE_X_FROM);
+        lblRangeXTo = new Win32Control(hWnd, IDC_STATIC_RANGE_X_TO);
+        lblRangeYFrom = new Win32Control(hWnd, IDC_STATIC_RANGE_Y_FROM);
+        lblRangeYTo = new Win32Control(hWnd, IDC_STATIC_RANGE_Y_TO);
         txtRangeXFrom = new Textbox(hWnd, IDC_EDIT_X_FROM);
         txtRangeXTo = new Textbox(hWnd, IDC_EDIT_X_TO);
         txtRangeYFrom = new Textbox(hWnd, IDC_EDIT_Y_FROM);
         txtRangeYTo = new Textbox(hWnd, IDC_EDIT_Y_TO);
+
+        rcmdShowGrid = new RibbonControl(IDC_CMD_SHOW_GRID);
+        rcmdShowAxis = new RibbonControl(IDC_CMD_SHOW_AXIS);
+        rcmdSave = new RibbonControl(IDC_CMD_SAVE);
 
         chkAntialias->setChecked(true);
         chkShowGrid->setChecked(true);
         chkShowAxis->setChecked(true);
 
         container
-            ->addControl(bmpCanvas)
-            ->addControl(grpInfo)
-            ->addControl(lblInfoCursor)
-            ->addControl(lblInfoCursorX)
-            ->addControl(lblInfoCursorY)
-            ->addControl(lblInfoFormula)
-            ->addControl(lblInfoFormulaX)
-            ->addControl(lblInfoFormulaY)
-            ->addControl(lblInfoCursorXValue)
-            ->addControl(lblInfoCursorYValue)
-            ->addControl(lblInfoFormulaXValue)
-            ->addControl(lblInfoFormulaYValue)
-            ->addControl(grpCanvas)
-            ->addControl(chkAntialias)
-            ->addControl(chkShowGrid)
-            ->addControl(chkShowAxis)
-            ->addControl(txtGridSize)
-            ->addControl(txtAxisSize)
-            ->addControl(lblGridInterval)
-            ->addControl(lblAxisInterval)
-            ->addControl(lblRange)
-            ->addControl(lblRangeXFrom)
-            ->addControl(lblRangeXTo)
-            ->addControl(lblRangeYFrom)
-            ->addControl(lblRangeYTo)
-            ->addControl(txtRangeXFrom)
-            ->addControl(txtRangeXTo)
-            ->addControl(txtRangeYFrom)
-            ->addControl(txtRangeYTo);
+            ->addWin32Control(bmpCanvas)
+            ->addWin32Control(grpInfo)
+            ->addWin32Control(lblInfoCursor)
+            ->addWin32Control(lblInfoCursorX)
+            ->addWin32Control(lblInfoCursorY)
+            ->addWin32Control(lblInfoFormula)
+            ->addWin32Control(lblInfoFormulaX)
+            ->addWin32Control(lblInfoFormulaY)
+            ->addWin32Control(lblInfoCursorXValue)
+            ->addWin32Control(lblInfoCursorYValue)
+            ->addWin32Control(lblInfoFormulaXValue)
+            ->addWin32Control(lblInfoFormulaYValue)
+            ->addWin32Control(grpCanvas)
+            ->addWin32Control(chkAntialias)
+            ->addWin32Control(chkShowGrid)
+            ->addWin32Control(chkShowAxis)
+            ->addWin32Control(txtGridSize)
+            ->addWin32Control(txtAxisSize)
+            ->addWin32Control(lblGridInterval)
+            ->addWin32Control(lblAxisInterval)
+            ->addWin32Control(lblRange)
+            ->addWin32Control(lblRangeXFrom)
+            ->addWin32Control(lblRangeXTo)
+            ->addWin32Control(lblRangeYFrom)
+            ->addWin32Control(lblRangeYTo)
+            ->addWin32Control(txtRangeXFrom)
+            ->addWin32Control(txtRangeXTo)
+            ->addWin32Control(txtRangeYFrom)
+            ->addWin32Control(txtRangeYTo)
+            ->addRibbonControl(rcmdShowGrid)
+            ->addRibbonControl(rcmdShowAxis)
+            ->addRibbonControl(rcmdSave);
 
         lm
             ->enableMagnet(bmpCanvas, true, true, true, true)
@@ -366,6 +316,10 @@ namespace StupidPlot
         delete txtRangeYFrom;
         delete txtRangeYTo;
 
+        delete rcmdShowGrid;
+        delete rcmdShowAxis;
+        delete rcmdSave;
+
         // TODO: fix this hack
         // drawer destructor should be called before GdiplusShutdown
         drawer = NULL;
@@ -395,7 +349,54 @@ namespace StupidPlot
             }
         }
 
-        return em->handle(uMsg, wParam, lParam);
+        return em->handleWin32Message(uMsg, wParam, lParam);
+    }
+
+    HRESULT App::handleRibbonUpdateProperty(UINT nCmdID,
+        REFPROPERTYKEY key,
+        const PROPVARIANT* ppropvarCurrentValue,
+        PROPVARIANT* ppropvarNewValue)
+    {
+        if (ppropvarNewValue != NULL)
+        {
+            auto control = container->getRibbonControlById(nCmdID);
+            if (control != NULL)
+            {
+                control->dispatchEvent(EventName::EVENT_RIBBON_UPDATE_PROPERTY, EventPtr(new RibbonUpdatePropertyEvent(key, ppropvarCurrentValue, ppropvarNewValue)));
+                return S_OK;
+            }
+        }
+        return E_NOTIMPL;
+    }
+
+    void App::handleRibbonExecute(UINT nCmdID,
+        UI_EXECUTIONVERB verb,
+        const PROPERTYKEY* key,
+        const PROPVARIANT* ppropvarValue,
+        IUISimplePropertySet* pCommandExecutionProperties)
+    {
+        auto control = container->getRibbonControlById(nCmdID);
+        if (control != NULL)
+        {
+            control->dispatchEvent(EventName::EVENT_RIBBON_EXECUTE, EventPtr(new RibbonExecuteEvent(verb, key, ppropvarValue, pCommandExecutionProperties)));
+        }
+    }
+
+#pragma endregion
+
+#pragma region Helper Functions
+
+    void saveAndApplyCursor(HCURSOR cursor)
+    {
+        hOldCursor = hCurrentCursor;
+        hCurrentCursor = cursor;
+        SetCursor(hCurrentCursor);
+    }
+
+    void restoreCursor()
+    {
+        hCurrentCursor = hOldCursor;
+        SetCursor(hCurrentCursor);
     }
 
     inline void vpTakeShapshot()
@@ -420,8 +421,71 @@ namespace StupidPlot
         drawer->updateDrawingRange(bmpCanvas->canvasW, bmpCanvas->canvasH, bmpCanvas->vpX, bmpCanvas->vpY, bmpCanvas->width, bmpCanvas->height);
     }
 
-    // ========== Event handlers =============
+#pragma endregion
 
+#pragma region Event Handlers
+
+#pragma region Ribbon Handlers
+    inline void rcmdShowGrid_onExecute(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        PROPVARIANT var;
+        HRESULT hr = Ribbon::g_pFramework->GetUICommandProperty(IDC_CMD_SHOW_GRID, UI_PKEY_BooleanValue, &var);
+        if (FAILED(hr)) return;
+
+        BOOL boolValue;
+        hr = PropVariantToBoolean(var, &boolValue);
+        if (FAILED(hr)) return;
+
+        options->showGrid = (boolValue == TRUE);
+        syncGridFromOption();
+        bmpCanvas->dispatchRedraw();
+    }
+
+    inline void rcmdShowAxis_onExecute(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        PROPVARIANT var;
+        HRESULT hr = Ribbon::g_pFramework->GetUICommandProperty(IDC_CMD_SHOW_AXIS, UI_PKEY_BooleanValue, &var);
+        if (FAILED(hr)) return;
+
+        BOOL boolValue;
+        hr = PropVariantToBoolean(var, &boolValue);
+        if (FAILED(hr)) return;
+
+        options->showAxis = (boolValue == TRUE);
+        syncAxisFromOption();
+        bmpCanvas->dispatchRedraw();
+    }
+
+    inline void rcmdShowGrid_onUpdateProperty(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        auto event = std::dynamic_pointer_cast<RibbonUpdatePropertyEvent>(_event);
+
+        if (event->key == UI_PKEY_BooleanValue)
+        {
+            UIInitPropertyFromBoolean(UI_PKEY_BooleanValue, options->showGrid, event->newValue);
+        }
+    }
+
+    inline void rcmdShowAxis_onUpdateProperty(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        auto event = std::dynamic_pointer_cast<RibbonUpdatePropertyEvent>(_event);
+
+        if (event->key == UI_PKEY_BooleanValue)
+        {
+            UIInitPropertyFromBoolean(UI_PKEY_BooleanValue, options->showAxis, event->newValue);
+        }
+    }
+#pragma endregion
+
+#pragma region ControlPad Handlers
     inline void chkShowGrid_onClick(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
@@ -429,6 +493,7 @@ namespace StupidPlot
 
         txtGridSize->setEnabled(chkShowGrid->isChecked());
         options->showGrid = chkShowGrid->isChecked();
+        Ribbon::g_pFramework->InvalidateUICommand(IDC_CMD_SHOW_GRID, UI_INVALIDATIONS_PROPERTY, &UI_PKEY_BooleanValue);
         bmpCanvas->dispatchRedraw();
     }
 
@@ -448,6 +513,7 @@ namespace StupidPlot
 
         txtAxisSize->setEnabled(chkShowAxis->isChecked());
         options->showAxis = chkShowAxis->isChecked();
+        Ribbon::g_pFramework->InvalidateUICommand(IDC_CMD_SHOW_AXIS, UI_INVALIDATIONS_PROPERTY, &UI_PKEY_BooleanValue);
         bmpCanvas->dispatchRedraw();
     }
 
@@ -536,7 +602,9 @@ namespace StupidPlot
         drawer->setAntialias(chkAntialias->isChecked());
         bmpCanvas->dispatchRedraw();
     }
+#pragma endregion
 
+#pragma region Canvas handlers
     inline void bmpCanvas_onRedrawBuffer(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
@@ -758,6 +826,86 @@ namespace StupidPlot
             TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, hWnd, NULL);*/
         }
     }
+#pragma endregion
+
+#pragma endregion
+
+#pragma region Callback Function Implementations
+
+    void _updateCursorHitTest()
+    {
+        // hit test cursor on each formula
+        int closestFormulaIdx = -1;
+        double closestDistance = (std::numeric_limits<double>::max)();
+
+        for (int i = currentCursorX - HITTEST_RADIUS / 4, imax = currentCursorX + HITTEST_RADIUS / 4; i < imax; ++i)
+        {
+            double formulaX = drawer->translateCanvasX(i);
+            double initial = Util::pow2(formulaX - currentCursorFormulaX);
+
+            for (size_t j = 0, jmax = options->expressions.size(); j < jmax; ++j)
+            {
+                double y = options->expressions[j]->expression->eval(formulaX);
+                double dis = initial + Util::pow2(y - currentCursorFormulaY);
+                if (dis < closestDistance)
+                {
+                    closestDistance = dis;
+                    closestFormulaIdx = j;
+                }
+            }
+        }
+
+        double expect = drawer->translateCanvasW(HITTEST_RADIUS) * drawer->translateCanvasH(HITTEST_RADIUS);
+        int result = closestDistance < expect ? closestFormulaIdx : -1;
+
+        if (result != drawer->hoverExpIdx)
+        {
+            drawer->hoverExpIdx = result;
+            bmpCanvas->dispatchRedraw();
+            saveAndApplyCursor((result == -1 ? hCursorCross : hCursorHand));
+        }
+    }
+
+    void _syncRangeFromOption()
+    {
+        txtRangeXFrom->setText(Util::to_string_with_precision(options->vpLeft, 5));
+        txtRangeXTo->setText(Util::to_string_with_precision(options->vpRight, 5));
+        txtRangeYFrom->setText(Util::to_string_with_precision(options->vpBottom, 5));
+        txtRangeYTo->setText(Util::to_string_with_precision(options->vpTop, 5));
+    }
+
+    void _syncGridFromOption()
+    {
+        chkShowGrid->setChecked(options->showGrid);
+        txtGridSize->setText(std::to_wstring(options->gridSpacing));
+    }
+
+    void _syncAxisFromOption()
+    {
+        chkShowAxis->setChecked(options->showAxis);
+        txtAxisSize->setText(std::to_wstring(options->axisTickInterval));
+    }
+
+    void _syncCursorPosition()
+    {
+        // cursor
+        lblInfoCursorXValue->setText(Util::to_string_with_precision(currentCursorFormulaX, 8));
+        lblInfoCursorYValue->setText(Util::to_string_with_precision(currentCursorFormulaY, 8));
+
+        // hot track
+        if (options->enableHotTrack)
+        {
+            lblInfoFormulaXValue->setText(Util::to_string_with_precision(currentHTX, 8));
+            lblInfoFormulaYValue->setText(Util::to_string_with_precision(currentHTY, 8));
+        }
+        else
+        {
+            lblInfoFormulaXValue->setText(L"--");
+            lblInfoFormulaYValue->setText(L"--");
+        }
+    }
+
+#pragma endregion
 
     void setup()
     {
@@ -795,6 +943,11 @@ namespace StupidPlot
         txtRangeXTo->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeXTo_onLosingFocus);
         txtRangeYFrom->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeYFrom_onLosingFocus);
         txtRangeYTo->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeYTo_onLosingFocus);
+
+        rcmdShowGrid->addEventHandler(EventName::EVENT_RIBBON_UPDATE_PROPERTY, rcmdShowGrid_onUpdateProperty);
+        rcmdShowAxis->addEventHandler(EventName::EVENT_RIBBON_UPDATE_PROPERTY, rcmdShowAxis_onUpdateProperty);
+        rcmdShowGrid->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdShowGrid_onExecute);
+        rcmdShowAxis->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdShowAxis_onExecute);
 
         SetClassLong(bmpCanvas->hWnd, GCL_HCURSOR, NULL);
         bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_REBUILD, bmpCanvas_onCanvasRebuild);

@@ -33,6 +33,8 @@ namespace StupidPlot
                 EVENT_CANVAS_RESIZE,
                 EVENT_GOT_FOCUS,
                 EVENT_LOSING_FOCUS,
+                EVENT_RIBBON_UPDATE_PROPERTY,
+                EVENT_RIBBON_EXECUTE,
 
                 EVENT_LAST
             };
@@ -43,6 +45,7 @@ namespace StupidPlot
                 RAW,
                 PAINT,
                 GENERAL,
+                RIBBON,
             };
 
             class Event

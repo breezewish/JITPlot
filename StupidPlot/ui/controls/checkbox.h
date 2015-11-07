@@ -5,6 +5,7 @@
 #include <memory>
 
 #include <ui/controls/control.h>
+#include <ui/controls/win32control.h>
 
 namespace StupidPlot
 {
@@ -12,10 +13,10 @@ namespace StupidPlot
     {
         namespace Controls
         {
-            class Checkbox : public Control
+            class Checkbox : public Win32Control
             {
             public:
-                Checkbox(HWND _hWnd, int _id) : Control(_hWnd, _id)
+                Checkbox(HWND _hWnd, int _id) : Win32Control(_hWnd, _id)
                 {
                 }
 

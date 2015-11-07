@@ -75,7 +75,7 @@ namespace StupidPlot
                     EndDeferWindowPos(hDefer);
                 }
 
-                LayoutManager * enableMagnet(Control * control, BOOL mLeft = true, BOOL mTop = true, BOOL mRight = false, BOOL mBottom = false)
+                LayoutManager * enableMagnet(Win32Control * control, BOOL mLeft = true, BOOL mTop = true, BOOL mRight = false, BOOL mBottom = false)
                 {
                     LayoutElement * element = new LayoutElement(control);
                     element->setMagnet(mLeft, mTop, mRight, mBottom);

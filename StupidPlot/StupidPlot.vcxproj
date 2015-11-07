@@ -58,7 +58,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>gdiplus.lib;ComCtl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Propsys.lib;gdiplus.lib;ComCtl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'"</AdditionalManifestDependencies>
     </Link>
     <ResourceCompile>
@@ -74,12 +74,13 @@
       <SDLCheck>true</SDLCheck>
       <TreatWarningAsError>true</TreatWarningAsError>
       <AdditionalOptions>/Wv:18 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>gdiplus.lib;ComCtl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Propsys.lib;gdiplus.lib;ComCtl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'"</AdditionalManifestDependencies>
       <Profile>true</Profile>
     </Link>
@@ -129,6 +130,8 @@
     <ClInclude Include="ui\controls\bufferedcanvas.h" />
     <ClInclude Include="ui\controls\checkbox.h" />
     <ClInclude Include="ui\controls\control.h" />
+    <ClInclude Include="ui\controls\ribboncontrol.h" />
+    <ClInclude Include="ui\controls\win32control.h" />
     <ClInclude Include="ui\controls\textbox.h" />
     <ClInclude Include="ui\events\canvasmoveevent.h" />
     <ClInclude Include="ui\events\canvasrebuildevent.h" />
@@ -137,6 +140,8 @@
     <ClInclude Include="ui\events\mouseevent.h" />
     <ClInclude Include="ui\events\mousewheelevent.h" />
     <ClInclude Include="ui\events\rawevent.h" />
+    <ClInclude Include="ui\events\ribbonexecuteevent.h" />
+    <ClInclude Include="ui\events\ribbonupdatepropertyevent.h" />
     <ClInclude Include="ui\layout\layoutmanager.h" />
     <ClInclude Include="ui\layout\layoutelement.h" />
     <ClInclude Include="util.h" />

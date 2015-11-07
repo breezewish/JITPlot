@@ -1,5 +1,7 @@
 #pragma once
 
+#include <app.h>
+
 class UICommandHandler : public IUICommandHandler
 {
 public:
