@@ -224,4 +224,7 @@
   <ItemGroup>
     <CustomBuild Include="StupidPlotRibbonMarkup.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Debug\StupidPlotRibbonUI.bml" />
+  </ItemGroup>
 </Project>

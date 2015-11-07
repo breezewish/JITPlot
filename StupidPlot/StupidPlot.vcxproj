@@ -156,6 +156,9 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">StupidPlotRibbonUI.bml;StupidPlotRibbonUI.rc;RibbonIDs.h;%(Outputs)</Outputs>
     </CustomBuild>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Debug\StupidPlotRibbonUI.bml" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -477,15 +477,15 @@ namespace StupidPlot
     inline void rcmdShowGrid_onExecute(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
-        auto event = std::dynamic_pointer_cast<RibbonExecuteEvent>(_event);
-
-        if (event->verb != UI_EXECUTIONVERB_EXECUTE) return;
+        UNREFERENCED_PARAMETER(_event);
 
         PROPVARIANT var;
-        BOOL val;
+        HRESULT hr = Ribbon::g_pFramework->GetUICommandProperty(IDR_CMD_SHOW_GRID, UI_PKEY_BooleanValue, &var);
+        if (FAILED(hr)) return;
 
-        event->properties->GetValue(UI_PKEY_BooleanValue, &var);
-        PropVariantToBoolean(var, &val);
+        BOOL val;
+        hr = PropVariantToBoolean(var, &val);
+        if (FAILED(hr)) return;
 
         options->showGrid = (val == TRUE);
         syncGridFromOption();
@@ -495,18 +495,18 @@ namespace StupidPlot
     inline void rcmdShowAxis_onExecute(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
-        auto event = std::dynamic_pointer_cast<RibbonExecuteEvent>(_event);
-
-        if (event->verb != UI_EXECUTIONVERB_EXECUTE) return;
+        UNREFERENCED_PARAMETER(_event);
 
         PROPVARIANT var;
-        BOOL val;
+        HRESULT hr = Ribbon::g_pFramework->GetUICommandProperty(IDR_CMD_SHOW_AXIS, UI_PKEY_BooleanValue, &var);
+        if (FAILED(hr)) return;
 
-        event->properties->GetValue(UI_PKEY_BooleanValue, &var);
-        PropVariantToBoolean(var, &val);
+        BOOL val;
+        hr = PropVariantToBoolean(var, &val);
+        if (FAILED(hr)) return;
 
         options->showAxis = (val == TRUE);
-        syncAxisFromOption();
+        syncGridFromOption();
         bmpCanvas->dispatchRedraw();
     }
 
