@@ -50,16 +50,5 @@ namespace StupidPlot
                 g_pApplication = NULL;
             }
         }
-
-        static void showContextualUI(POINT & ptLocation)
-        {
-            UINT32 rh;
-            g_pRibbon->GetHeight(&rh);
-
-            IUIContextualUI * pContextualUI = NULL;
-            g_pFramework->GetView(IDC_CMD_CONTEXT_PLOT, IID_PPV_ARGS(&pContextualUI));
-            pContextualUI->ShowAtLocation(ptLocation.x, ptLocation.y + rh);
-            pContextualUI->Release();
-        }
     };
 }

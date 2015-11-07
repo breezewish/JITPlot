@@ -1,22 +1,29 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Application xmlns="http://schemas.microsoft.com/windows/2009/Ribbon">
   <Application.Commands>
-    <Command Name="cmdShowGrid" Symbol="IDC_CMD_SHOW_GRID">
+    <Command Name="cmdFormulaColor" Symbol="IDR_CMD_FORMULA_COLORPICKER">
+      <Command.LabelTitle>
+        <String>Formula Color</String>
+      </Command.LabelTitle>
+    </Command>
+    <Command Name="cmdShowGrid" Symbol="IDR_CMD_SHOW_GRID">
       <Command.LabelTitle>
         <String>Grid</String>
       </Command.LabelTitle>
     </Command>
-    <Command Name="cmdShowAxis" Symbol="IDC_CMD_SHOW_AXIS">
+    <Command Name="cmdShowAxis" Symbol="IDR_CMD_SHOW_AXIS">
       <Command.LabelTitle>
         <String>Axis and tick</String>
       </Command.LabelTitle>
     </Command>
-    <Command Name="cmdSave" Symbol="IDC_CMD_SAVE">
+    <Command Name="cmdSave" Symbol="IDR_CMD_SAVE">
       <Command.LabelTitle>
         <String>Save viewport...</String>
       </Command.LabelTitle>
     </Command>
-    <Command Name="cmdContextMapPlot" Symbol="IDC_CMD_CONTEXT_PLOT" />
+    <Command Name="cmdContextMapPlot" Symbol="IDR_CMD_CONTEXT_PLOT" />
+    <Command Name="cmdContextMapPlotWithFormula" Symbol="IDR_CMD_CONTEXT_PLOT_WITH_FORMULA" />
+    <Command Name="cmdContextMapFormula" Symbol="IDR_CMD_CONTEXT_FORMULA" />
     <Command Name="cmdApplicationMenu" />
     <Command Name="cmdQAT" />
     <Command Name="tabNotUsed" />
@@ -45,9 +52,28 @@
             <Button CommandName="cmdSave" />
           </MenuGroup>
         </ContextMenu>
+        <ContextMenu Name="ContextMenuPlotWithFormula">
+          <MenuGroup>
+            <DropDownColorPicker ColorTemplate="ThemeColors" IsAutomaticColorButtonVisible="false" IsNoColorButtonVisible="false" CommandName="cmdFormulaColor" />
+          </MenuGroup>
+          <MenuGroup>
+            <CheckBox CommandName="cmdShowGrid" />
+            <CheckBox CommandName="cmdShowAxis" />
+          </MenuGroup>
+          <MenuGroup>
+            <Button CommandName="cmdSave" />
+          </MenuGroup>
+        </ContextMenu>
+        <ContextMenu Name="ContextMenuFormula">
+          <MenuGroup>
+            <DropDownColorPicker ColorTemplate="ThemeColors" IsAutomaticColorButtonVisible="false" IsNoColorButtonVisible="false" CommandName="cmdFormulaColor" />
+          </MenuGroup>
+        </ContextMenu>
       </ContextPopup.ContextMenus>
       <ContextPopup.ContextMaps>
         <ContextMap CommandName="cmdContextMapPlot" ContextMenu="ContextMenuPlot" />
+        <ContextMap CommandName="cmdContextMapPlotWithFormula" ContextMenu="ContextMenuPlotWithFormula" />
+        <ContextMap CommandName="cmdContextMapFormula" ContextMenu="ContextMenuFormula" />
       </ContextPopup.ContextMaps>
     </ContextPopup>
   </Application.Views>

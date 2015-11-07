@@ -100,6 +100,7 @@ namespace StupidPlot
     Textbox                 * txtRangeYTo;
 
     // ======== Ribbon Controls ========
+    RibbonControl           * rcmdFormulaColor;
     RibbonControl           * rcmdShowGrid;
     RibbonControl           * rcmdShowAxis;
     RibbonControl           * rcmdSave;
@@ -136,6 +137,9 @@ namespace StupidPlot
     // ======== Formula Hot Track Position ========
     double                  currentHTX, currentHTY;
     CallbackFunction        updateCursorHitTest;
+
+    // ======== Context menu ========
+    int                     cmFormulaIdx;
 
 #pragma endregion
 
@@ -205,9 +209,10 @@ namespace StupidPlot
         txtRangeYFrom = new Textbox(hWnd, IDC_EDIT_Y_FROM);
         txtRangeYTo = new Textbox(hWnd, IDC_EDIT_Y_TO);
 
-        rcmdShowGrid = new RibbonControl(IDC_CMD_SHOW_GRID);
-        rcmdShowAxis = new RibbonControl(IDC_CMD_SHOW_AXIS);
-        rcmdSave = new RibbonControl(IDC_CMD_SAVE);
+        rcmdFormulaColor = new RibbonControl(IDR_CMD_FORMULA_COLORPICKER);
+        rcmdShowGrid = new RibbonControl(IDR_CMD_SHOW_GRID);
+        rcmdShowAxis = new RibbonControl(IDR_CMD_SHOW_AXIS);
+        rcmdSave = new RibbonControl(IDR_CMD_SAVE);
 
         chkAntialias->setChecked(true);
         chkShowGrid->setChecked(true);
@@ -243,6 +248,7 @@ namespace StupidPlot
             ->addWin32Control(txtRangeXTo)
             ->addWin32Control(txtRangeYFrom)
             ->addWin32Control(txtRangeYTo)
+            ->addRibbonControl(rcmdFormulaColor)
             ->addRibbonControl(rcmdShowGrid)
             ->addRibbonControl(rcmdShowAxis)
             ->addRibbonControl(rcmdSave);
@@ -316,6 +322,7 @@ namespace StupidPlot
         delete txtRangeYFrom;
         delete txtRangeYTo;
 
+        delete rcmdFormulaColor;
         delete rcmdShowGrid;
         delete rcmdShowAxis;
         delete rcmdSave;
@@ -426,20 +433,61 @@ namespace StupidPlot
 #pragma region Event Handlers
 
 #pragma region Ribbon Handlers
+
+    inline void rcmdFormulaColor_onUpdateProperty(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        auto event = std::dynamic_pointer_cast<RibbonUpdatePropertyEvent>(_event);
+
+        if (event->key == UI_PKEY_ColorType)
+        {
+            UIInitPropertyFromUInt32(event->key, UI_SWATCHCOLORTYPE_RGB, event->newValue);
+        }
+        else if (event->key == UI_PKEY_Color)
+        {
+            if (cmFormulaIdx >= 0 && cmFormulaIdx < static_cast<int>(options->expressions.size()))
+            {
+                UIInitPropertyFromUInt32(
+                    event->key,
+                    options->expressions[cmFormulaIdx]->color.ToCOLORREF(),
+                    event->newValue
+                    );
+            }
+        }
+    }
+
+    inline void rcmdFormulaColor_onExecute(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        auto event = std::dynamic_pointer_cast<RibbonExecuteEvent>(_event);
+
+        if (event->verb != UI_EXECUTIONVERB_EXECUTE) return;
+
+        if (cmFormulaIdx >= 0 && cmFormulaIdx < static_cast<int>(options->expressions.size()))
+        {
+            UINT color = 0;
+            PROPVARIANT var;
+            event->properties->GetValue(UI_PKEY_Color, &var);
+            UIPropertyToUInt32(UI_PKEY_Color, var, &color);
+            options->expressions[cmFormulaIdx]->color.SetFromCOLORREF(color);
+            bmpCanvas->dispatchRedraw();
+        }
+    }
+
     inline void rcmdShowGrid_onExecute(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
-        UNREFERENCED_PARAMETER(_event);
+        auto event = std::dynamic_pointer_cast<RibbonExecuteEvent>(_event);
+
+        if (event->verb != UI_EXECUTIONVERB_EXECUTE) return;
 
         PROPVARIANT var;
-        HRESULT hr = Ribbon::g_pFramework->GetUICommandProperty(IDC_CMD_SHOW_GRID, UI_PKEY_BooleanValue, &var);
-        if (FAILED(hr)) return;
+        BOOL val;
 
-        BOOL boolValue;
-        hr = PropVariantToBoolean(var, &boolValue);
-        if (FAILED(hr)) return;
+        event->properties->GetValue(UI_PKEY_BooleanValue, &var);
+        PropVariantToBoolean(var, &val);
 
-        options->showGrid = (boolValue == TRUE);
+        options->showGrid = (val == TRUE);
         syncGridFromOption();
         bmpCanvas->dispatchRedraw();
     }
@@ -447,17 +495,17 @@ namespace StupidPlot
     inline void rcmdShowAxis_onExecute(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
-        UNREFERENCED_PARAMETER(_event);
+        auto event = std::dynamic_pointer_cast<RibbonExecuteEvent>(_event);
+
+        if (event->verb != UI_EXECUTIONVERB_EXECUTE) return;
 
         PROPVARIANT var;
-        HRESULT hr = Ribbon::g_pFramework->GetUICommandProperty(IDC_CMD_SHOW_AXIS, UI_PKEY_BooleanValue, &var);
-        if (FAILED(hr)) return;
+        BOOL val;
 
-        BOOL boolValue;
-        hr = PropVariantToBoolean(var, &boolValue);
-        if (FAILED(hr)) return;
+        event->properties->GetValue(UI_PKEY_BooleanValue, &var);
+        PropVariantToBoolean(var, &val);
 
-        options->showAxis = (boolValue == TRUE);
+        options->showAxis = (val == TRUE);
         syncAxisFromOption();
         bmpCanvas->dispatchRedraw();
     }
@@ -493,7 +541,7 @@ namespace StupidPlot
 
         txtGridSize->setEnabled(chkShowGrid->isChecked());
         options->showGrid = chkShowGrid->isChecked();
-        Ribbon::g_pFramework->InvalidateUICommand(IDC_CMD_SHOW_GRID, UI_INVALIDATIONS_PROPERTY, &UI_PKEY_BooleanValue);
+        Ribbon::g_pFramework->InvalidateUICommand(IDR_CMD_SHOW_GRID, UI_INVALIDATIONS_PROPERTY, &UI_PKEY_BooleanValue);
         bmpCanvas->dispatchRedraw();
     }
 
@@ -513,7 +561,7 @@ namespace StupidPlot
 
         txtAxisSize->setEnabled(chkShowAxis->isChecked());
         options->showAxis = chkShowAxis->isChecked();
-        Ribbon::g_pFramework->InvalidateUICommand(IDC_CMD_SHOW_AXIS, UI_INVALIDATIONS_PROPERTY, &UI_PKEY_BooleanValue);
+        Ribbon::g_pFramework->InvalidateUICommand(IDR_CMD_SHOW_AXIS, UI_INVALIDATIONS_PROPERTY, &UI_PKEY_BooleanValue);
         bmpCanvas->dispatchRedraw();
     }
 
@@ -820,10 +868,19 @@ namespace StupidPlot
             pt.x = event->x;
             pt.y = event->y;
             ClientToScreen(hWnd, &pt);
-            Ribbon::showContextualUI(pt);
-            /*HMENU hMenu = LoadMenu(NULL, MAKEINTRESOURCE(IDR_MENU_PLOT));
-            hMenu = GetSubMenu(hMenu, 0);
-            TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, hWnd, NULL);*/
+
+            UINT32 rh;
+            Ribbon::g_pRibbon->GetHeight(&rh);
+
+            cmFormulaIdx = drawer->hoverExpIdx;
+
+            // invalidate color
+            Ribbon::g_pFramework->InvalidateUICommand(IDR_CMD_FORMULA_COLORPICKER, UI_INVALIDATIONS_PROPERTY, &UI_PKEY_Color);
+
+            IUIContextualUI * pContextualUI = NULL;
+            Ribbon::g_pFramework->GetView(cmFormulaIdx == -1 ? IDR_CMD_CONTEXT_PLOT : IDR_CMD_CONTEXT_PLOT_WITH_FORMULA, IID_PPV_ARGS(&pContextualUI));
+            pContextualUI->ShowAtLocation(pt.x, pt.y + rh);
+            pContextualUI->Release();
         }
     }
 #pragma endregion
@@ -944,6 +1001,8 @@ namespace StupidPlot
         txtRangeYFrom->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeYFrom_onLosingFocus);
         txtRangeYTo->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeYTo_onLosingFocus);
 
+        rcmdFormulaColor->addEventHandler(EventName::EVENT_RIBBON_UPDATE_PROPERTY, rcmdFormulaColor_onUpdateProperty);
+        rcmdFormulaColor->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdFormulaColor_onExecute);
         rcmdShowGrid->addEventHandler(EventName::EVENT_RIBBON_UPDATE_PROPERTY, rcmdShowGrid_onUpdateProperty);
         rcmdShowAxis->addEventHandler(EventName::EVENT_RIBBON_UPDATE_PROPERTY, rcmdShowAxis_onUpdateProperty);
         rcmdShowGrid->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdShowGrid_onExecute);
