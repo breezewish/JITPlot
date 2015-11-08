@@ -1,14 +1,12 @@
 # StupidPlot
 
-An Win32 application to draw plots. To compile the project, you need at least Visual Studio 2015 or any other compilers that support C++11 features.
+An Win32 application to draw plots. To compile the project, you need at least Visual Studio 2015 or other compilers that support C++11 features.
 
 ## Highlights
 
 ### Expression JIT Evaluation
 
-You can input expressions like `sqrt(5*sin(x+1))/1.5`. The expression will be compiled to **native x86 machine code** to achieve best performance ([JIT](https://en.wikipedia.org/wiki/Just-in-time_compilation)). To be more exact, arithmetic operations (`add`, `subtract`, `multiply`, `divide`) and square root (`sqrt`) are compiled to use Intel [SSE 2](https://en.wikipedia.org/wiki/Streaming_SIMD_Extensions) instructions, while trigonometric functions (`sin`, `cos`) are compiled to x87 floatpoint instructions.
-
-JIT compiler is not very well developed since it is my first time to create such thing.. I may refactor it to separate the MIR layer later.
+You can input expressions like `sqrt(5*sin(x+1))/1.5`. The expression will be compiled to **native x86 machine code** to achieve best performance ([JIT](https://en.wikipedia.org/wiki/Just-in-time_compilation)). To be more exact, arithmetic operations (`add`, `subtract`, `multiply`, `divide`, `negative`, `abs`) and square root (`sqrt`) are compiled to use Intel [SSE 2](https://en.wikipedia.org/wiki/Streaming_SIMD_Extensions) instructions, while trigonometric functions (`sin`, `cos`) and other functions (`log`, `pow`) are compiled into x87 floatpoint instructions.
 
 #### Parse
 
@@ -18,15 +16,27 @@ JIT compiler is not very well developed since it is my first time to create such
 
 #### Compile
 
-- `formula\jit\functions.h`: Function definitions like `sin`, `cos`, `add`.
+- `formula\functions.h`: LIR instructions definitions for functions like `sin`, `cos`, `add`, `subtract`.
 
-- `formula\jit\functiontable.h`: Function table and operator table. Map `+` operator to `add` function call.
+- `formula\lir.h`: Convert LIR instructions into assembly instructions.
 
-- `formula\jit\assembler.h`: Convert assembler codes into machine code.
+- `formula\assembler.h`: Convert assembly instructions into machine code.
 
 #### Evaluate
 
-- `formula\expression.h`: `VirtualAlloc`, `VirtualProtect` stuff... Execute machine code on x86 platform.
+- `formula\executable.h`: `VirtualAlloc`, `VirtualProtect` stuff... Execute machine code on x86 platform.
+
+### High Performance Plot Drawing
+
+I used several optimize techniques to boost the performance of drawing the plot. This is the foundation of smoothly dragging the plot or scaling the plot.
+
+JIT evaluation above is one of the techniques. Others are:
+
+- `formula\exp.h`: Range buffered expression evaluator
+
+- `formula\expdrawer.h`: SSE optimized coordinate system transformer
+
+- `ui\controls\bufferedcanvas.h`: Dragging-optimized canvas
 
 ### Auto Layout Library
 
@@ -38,27 +48,43 @@ The project contains a simple and stupid layout library, which is used to automa
 
 The project encapsuled Win32 API calls and messages so that developers can use event callback to handle the message of controls and use object oriented ways to change the properties (like text) of the control.
 
-- `ui\control\*`: Encapsuled control classes, buttons, edits, etc.
+- `ui\controls\*`: Encapsuled control classes, buttons, edits, etc.
 
-- `ui\event\*`: Encapsuled event classes, MouseEvents, KeyboardEvents, etc.
-
-- `ui\event\eventmanager.h`, `ui\control\control.h`: Turn messages into events.
+- `ui\events\*`: Encapsuled event classes, MouseEvents, KeyboardEvents, etc.
 
 ### GDI+/GDI Drawing
 
 You can use either GDI+ or GDI to draw plots. If you are using GDI+, you will get antialiased plot lines. If you are using GDI, you will get better performance when dragging or scrolling.
 
+- `plot\provider\gdiprovider.h`: GDI drawer
+
+- `plot\provider\gdiplusprovider.h`: GDI+ drawer
+
+### Smooth Scrolling
+
+You can scale the formula plot by scrolling. The canvas will be scaled smoothly by running an easing animation for the scaling.
+
+- `plot\animation.h`: Easing animation manager
+
+### User Interactive
+
+The plot is interactive. You can click the plot in the canvas to adjust options, such as plot color.
+
+- `app.h@_updateCursorHitTest`: Plot hit testing
+
+- `ribbon.h`: Ribbon context menu
+
+- `StupidPlotRibbonMarkup.xml`: Ribbon Framework UI definitions
+
 ## TODO
 
-- Control: Scroll resize
+- JIT: Support `arcsin`, `arccos`
 
-- JIT: Support more than 7 operands in XMM registers
+- UI: Support inputing multiple formula expressions
 
-- JIT: Support more functions like `log`, `arcsin`, `arccos`
+- Util: Export to png
 
-- JIT: Support custom functions
-
-- UI: A lot to do
+- Util: Import from csv
 
 ## Thanks To
 
