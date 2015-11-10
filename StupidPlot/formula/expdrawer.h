@@ -28,6 +28,9 @@ namespace StupidPlot
             ExpressionPtr       expression;
             Gdiplus::Color      color;
 
+            bool                isValid;
+            wstring             errorMessage;
+
             ExpDrawer(
                 const ExpressionPtr & exp,
                 Gdiplus::Color _color)
@@ -42,7 +45,17 @@ namespace StupidPlot
                 Gdiplus::Color _color
                 )
             {
-                expression = ExpressionPtr(new Expression(_exp, _constVars));
+                try
+                {
+                    expression = ExpressionPtr(new Expression(_exp, _constVars));
+                    isValid = true;
+                }
+                catch (std::runtime_error ex)
+                {
+                    errorMessage = Util::utf8_decode(ex.what());
+                    isValid = false;
+                }
+
                 color = _color;
             }
 

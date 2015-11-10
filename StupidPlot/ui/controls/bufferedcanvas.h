@@ -24,39 +24,33 @@ namespace StupidPlot
             protected:
                 int vpInitialX, vpInitialY;
 
-                static LRESULT CALLBACK ctrlProc(
-                    HWND hWnd,
-                    UINT uMsg,
-                    WPARAM wParam,
-                    LPARAM lParam,
-                    UINT_PTR uIdSubclass,
-                    DWORD_PTR dwRefData
-                    )
+                static LRESULT onMessage(Control * _control, const EventPtr & _event)
                 {
-                    UNREFERENCED_PARAMETER(uIdSubclass);
-                    UNREFERENCED_PARAMETER(dwRefData);
+                    auto event = std::dynamic_pointer_cast<RawEvent>(_event);
+                    UNREFERENCED_PARAMETER(_control);
 
-                    switch (uMsg)
+                    if (event->uMsg == WM_NCHITTEST)
                     {
-                    case WM_NCHITTEST:
                         return HTCLIENT;
                     }
 
-                    return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+                    return LRESULT_DEFAULT;
                 }
 
-                static void onPaint(Control * _control, const EventPtr & _event)
+                static LRESULT onPaint(Control * _control, const EventPtr & _event)
                 {
                     UNREFERENCED_PARAMETER(_event);
                     auto canvas = dynamic_cast<BufferedCanvas *>(_control);
 
                     PAINTSTRUCT ps;
-                    HDC hdc = BeginPaint(canvas->hWnd, &ps);
+                    HDC hdc = BeginPaint(canvas->hControl, &ps);
                     BitBlt(hdc, 0, 0, canvas->width, canvas->height, canvas->memDC, canvas->vpX, canvas->vpY, SRCCOPY);
-                    EndPaint(canvas->hWnd, &ps);
+                    EndPaint(canvas->hControl, &ps);
+
+                    return LRESULT_DEFAULT;
                 }
 
-                static void onResize(Control * _control, const EventPtr & _event)
+                static LRESULT onResize(Control * _control, const EventPtr & _event)
                 {
                     UNREFERENCED_PARAMETER(_event);
                     auto canvas = dynamic_cast<BufferedCanvas *>(_control);
@@ -64,16 +58,18 @@ namespace StupidPlot
                     canvas->updateOrCreateBuffer();
                     canvas->dispatchEvent(EventName::EVENT_CANVAS_RESIZE, EventPtr(new Event()));
                     canvas->dispatchRedraw();
+
+                    return LRESULT_DEFAULT;
                 }
 
-                static void onMouseDown(Control * _control, const EventPtr & _event)
+                static LRESULT onMouseDown(Control * _control, const EventPtr & _event)
                 {
                     auto canvas = dynamic_cast<BufferedCanvas *>(_control);
                     auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
 
-                    if (!canvas->canMove) return;
+                    if (!canvas->canMove) return LRESULT_DEFAULT;
 
-                    SetCapture(canvas->hWnd);
+                    SetCapture(canvas->hControl);
 
                     canvas->isMoving = true;
                     canvas->mouseInitialX = event->x;
@@ -81,9 +77,11 @@ namespace StupidPlot
                     canvas->vpInitialX = canvas->vpX;
                     canvas->vpInitialY = canvas->vpY;
                     canvas->dispatchEvent(EventName::EVENT_CANVAS_BEGINMOVE, EventPtr(new Event()));
+
+                    return LRESULT_DEFAULT;
                 }
 
-                static void onMouseUp(Control * _control, const EventPtr & _event)
+                static LRESULT onMouseUp(Control * _control, const EventPtr & _event)
                 {
                     auto canvas = dynamic_cast<BufferedCanvas *>(_control);
                     auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
@@ -91,20 +89,22 @@ namespace StupidPlot
                     ReleaseCapture();
 
                     canvas->isMoving = false;
-                    if (!canvas->canMove) return;
+                    if (!canvas->canMove) return LRESULT_DEFAULT;
 
                     canvas->dispatchEvent(EventName::EVENT_CANVAS_ENDMOVE, EventPtr(new Event()));
                     canvas->resetViewportPosition();
                     canvas->dispatchRedraw();
+
+                    return LRESULT_DEFAULT;
                 }
 
-                static void onMouseMove(Control * _control, const EventPtr & _event)
+                static LRESULT onMouseMove(Control * _control, const EventPtr & _event)
                 {
                     auto canvas = dynamic_cast<BufferedCanvas *>(_control);
                     auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
 
-                    if (!canvas->isMoving) return;
-                    if (!canvas->canMove) return;
+                    if (!canvas->isMoving) return LRESULT_DEFAULT;
+                    if (!canvas->canMove) return LRESULT_DEFAULT;
 
                     int dx = event->x - canvas->mouseInitialX;
                     int dy = event->y - canvas->mouseInitialY;
@@ -124,6 +124,8 @@ namespace StupidPlot
                         onMouseUp(_control, _event);
                         onMouseDown(_control, _event);
                     }
+
+                    return LRESULT_DEFAULT;
                 }
 
                 void destroyBuffer()
@@ -151,11 +153,6 @@ namespace StupidPlot
                     resetViewportPosition();
                 }
 
-                inline void initSubclass()
-                {
-                    SetWindowSubclass(hWnd, ctrlProc, 0, reinterpret_cast<DWORD_PTR>(this));
-                }
-
             public:
 
                 HDC             memDC = NULL;
@@ -171,13 +168,12 @@ namespace StupidPlot
 
                 bool            canMove = true;
 
-                BufferedCanvas(HWND _hWnd, int _id, double enlarge = 2.0) : Win32Control(_hWnd, _id), enlargeFactor(enlarge)
+                BufferedCanvas(HWND _hWindow, int _id, double enlarge = 2.0) : Win32Control(_hWindow, _id), enlargeFactor(enlarge)
                 {
                     memDC = CreateCompatibleDC(hDC);
                     updateOrCreateBuffer();
 
-                    initSubclass();
-
+                    addEventHandler(EventName::EVENT_MESSAGE, onMessage);
                     addEventHandler(EventName::EVENT_PAINT, onPaint);
                     addEventHandler(EventName::EVENT_MOUSEDOWN, onMouseDown);
                     addEventHandler(EventName::EVENT_MOUSEUP, onMouseUp);
@@ -193,7 +189,7 @@ namespace StupidPlot
 
                 void refresh()
                 {
-                    InvalidateRect(hWnd, NULL, false);
+                    InvalidateRect(hControl, NULL, false);
                 }
 
                 void dispatchRedraw()

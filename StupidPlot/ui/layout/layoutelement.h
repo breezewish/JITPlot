@@ -44,12 +44,12 @@ namespace StupidPlot
                         return false;
                     }
 
-                    HWND hWndParent = GetParent(control->hWnd);
+                    HWND hWndParent = GetParent(control->hControl);
                     POINT position = { 0, 0 };
-                    MapWindowPoints(control->hWnd, hWndParent, &position, 1);
+                    MapWindowPoints(control->hControl, hWndParent, &position, 1);
 
                     RECT rect;
-                    GetWindowRect(control->hWnd, &rect);
+                    GetWindowRect(control->hControl, &rect);
 
                     POINT _pos;
                     SIZE _size;
@@ -154,7 +154,7 @@ namespace StupidPlot
 
                     DeferWindowPos(
                         hDefer,
-                        control->hWnd,
+                        control->hControl,
                         NULL,
                         left + offset.x,
                         top + offset.y,

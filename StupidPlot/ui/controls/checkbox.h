@@ -16,20 +16,20 @@ namespace StupidPlot
             class Checkbox : public Win32Control
             {
             public:
-                Checkbox(HWND _hWnd, int _id) : Win32Control(_hWnd, _id)
+                Checkbox(HWND _hWindow, int _id) : Win32Control(_hWindow, _id)
                 {
                 }
 
                 bool isChecked()
                 {
-                    LRESULT checkStatus = SendMessageW(hWnd, BM_GETCHECK, 0, 0);
+                    LRESULT checkStatus = SendMessageW(hControl, BM_GETCHECK, 0, 0);
                     return (checkStatus == BST_CHECKED);
                 }
 
                 Checkbox * setChecked(bool checked)
                 {
                     WPARAM wParam = checked ? BST_CHECKED : BST_UNCHECKED;
-                    SendMessageW(hWnd, BM_SETCHECK, wParam, 0);
+                    SendMessageW(hControl, BM_SETCHECK, wParam, 0);
                     return this;
                 }
             };

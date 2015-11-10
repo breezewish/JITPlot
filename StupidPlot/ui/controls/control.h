@@ -27,33 +27,35 @@ namespace StupidPlot
 
             typedef std::shared_ptr<Control> ControlPtr;
 
-            typedef void(*EventCallback)(
+            typedef LRESULT(*EventCallback)(
                 Control * control,
                 const EventPtr & event
                 );
 
+            extern LRESULT LRESULT_DEFAULT;
+
             struct EventListeners
             {
-                int n;
-                EventCallback listeners[10];
+                vector<EventCallback> listeners;
 
                 EventListeners()
                 {
-                    n = 0;
                 }
 
                 void addListener(EventCallback listener)
                 {
-                    listeners[n] = listener;
-                    n++;
+                    listeners.push_back(listener);
                 }
 
-                inline void dispatch(Control * control, const EventPtr & ev)
+                inline LRESULT dispatch(Control * control, const EventPtr & ev)
                 {
-                    for (int i = 0; i < n; ++i)
+                    LRESULT retFinal = -1;
+                    for (auto listener : listeners)
                     {
-                        listeners[i](control, ev);
+                        LRESULT ret = listener(control, ev);
+                        if (ret != -1 && retFinal == -1) retFinal = ret;
                     }
+                    return retFinal;
                 }
             };
 
@@ -80,10 +82,9 @@ namespace StupidPlot
                     return this;
                 }
 
-                inline Control * dispatchEvent(EventName eventName, const EventPtr & event)
+                inline LRESULT dispatchEvent(EventName eventName, const EventPtr & event)
                 {
-                    handlers[static_cast<size_t>(eventName)].dispatch(this, event);
-                    return this;
+                    return handlers[static_cast<size_t>(eventName)].dispatch(this, event);
                 }
             };
         }

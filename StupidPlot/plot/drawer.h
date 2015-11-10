@@ -277,9 +277,9 @@ namespace StupidPlot
 
             inline void updateFormulaSize()
             {
-                for (auto formula : options->expressions)
+                for (auto exp : options->expressions)
                 {
-                    formula->setSize(clipWidth, clipHeight, canvasWidth, canvasHeight);
+                    if (exp->isValid) exp->setSize(clipWidth, clipHeight, canvasWidth, canvasHeight);
                 }
             }
 
@@ -365,8 +365,12 @@ namespace StupidPlot
                 // Draw formulas
                 for (size_t i = 0, imax = options->expressions.size(); i < imax; ++i)
                 {
-                    int width = (static_cast<int>(i) == hoverExpIdx ? 4 : 2);
-                    drawPlotLine(options->expressions[i], width);
+                    auto exp = options->expressions[i];
+                    if (exp->isValid)
+                    {
+                        int width = (static_cast<int>(i) == hoverExpIdx ? 4 : 2);
+                        drawPlotLine(exp, width);
+                    }
                 }
 
                 provider->endDraw();

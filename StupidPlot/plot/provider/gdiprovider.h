@@ -188,11 +188,13 @@ namespace StupidPlot
                 {
                     Provider::beginDraw(left, top, width, height, bgColor);
 
-                    HBRUSH background = CreateSolidBrush(bgColor.ToCOLORREF());
-                    HGDIOBJ oldBackground = SelectObject(hdc, background);
-                    Rectangle(hdc, left, top, width + left, height + top);
-                    SelectObject(hdc, oldBackground);
-                    DeleteObject(background);
+                    SetBkColor(hdc, bgColor.ToCOLORREF());
+                    RECT rect;
+                    rect.left = left;
+                    rect.top = top;
+                    rect.right = width + left;
+                    rect.bottom = height + top;
+                    ExtTextOutW(hdc, 0, 0, ETO_OPAQUE, &rect, NULL, 0, NULL);
                 }
 
                 virtual void endDraw()

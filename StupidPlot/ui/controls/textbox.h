@@ -6,6 +6,7 @@
 #include <memory>
 
 #include <ui/controls/control.h>
+#include <ui/controls/win32control.h>
 
 using std::wstring;
 
@@ -18,15 +19,15 @@ namespace StupidPlot
             class Textbox : public Win32Control
             {
             public:
-                Textbox(HWND _hWnd, int _id) : Win32Control(_hWnd, _id)
+                Textbox(HWND _hWindow, int _id) : Win32Control(_hWindow, _id)
                 {
                 }
 
                 wstring getText()
                 {
-                    int len = GetWindowTextLengthW(hWnd);
+                    int len = GetWindowTextLengthW(hControl);
                     WCHAR * buffer = new WCHAR[len + 1];
-                    SendMessageW(hWnd, WM_GETTEXT, static_cast<WPARAM>(len + 1), reinterpret_cast<LPARAM>(buffer));
+                    SendMessageW(hControl, WM_GETTEXT, static_cast<WPARAM>(len + 1), reinterpret_cast<LPARAM>(buffer));
                     wstring ret(buffer);
                     delete buffer;
                     return ret;
@@ -34,7 +35,7 @@ namespace StupidPlot
 
                 Textbox * setText(wstring s)
                 {
-                    SetWindowTextW(hWnd, s.c_str());
+                    SetWindowTextW(hControl, s.c_str());
                     return this;
                 }
             };

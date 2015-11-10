@@ -40,6 +40,12 @@
     <Filter Include="头文件\export">
       <UniqueIdentifier>{ea780e16-34de-44b8-a570-65ae3528eb75}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\ui">
+      <UniqueIdentifier>{d575c613-34d3-4a6d-83bc-599fee5d61fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\ui\controls">
+      <UniqueIdentifier>{6c26538f-5044-44b2-b94d-da8807fefc18}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winform.cpp">
@@ -74,6 +80,9 @@
     </ClCompile>
     <ClCompile Include="uicommandhandler.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\controls\control.cpp">
+      <Filter>源文件\ui\controls</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -215,16 +224,28 @@
     <ClInclude Include="ui\events\ribbonexecuteevent.h">
       <Filter>头文件\ui\events</Filter>
     </ClInclude>
+    <ClInclude Include="resource_ribbon.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\controls\listview.h">
+      <Filter>头文件\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\events\notifyevent.h">
+      <Filter>头文件\ui\events</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\events\listviewendeditevent.h">
+      <Filter>头文件\ui\events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StupidPlot.rc">
       <Filter>资源文件</Filter>
     </ResourceCompile>
+    <ResourceCompile Include="StupidPlotRibbonUI.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="StupidPlotRibbonMarkup.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Debug\StupidPlotRibbonUI.bml" />
   </ItemGroup>
 </Project>

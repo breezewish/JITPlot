@@ -1,6 +1,6 @@
 #pragma once
 
-#include <RibbonIDs.h>
+#include <resource_ribbon.h>
 
 class UIApplication : public IUIApplication
 {

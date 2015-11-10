@@ -49,7 +49,8 @@ namespace StupidPlot
 
                         break;
                     }
-                    return false;
+
+                    return FALSE;
                 }
             };
 

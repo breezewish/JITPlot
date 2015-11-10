@@ -15,12 +15,13 @@ namespace StupidPlot
         {
             enum class EventName : size_t
             {
+                EVENT_MESSAGE,
+                EVENT_NOTIFY,
                 EVENT_BUFFER_REDRAW,
                 EVENT_CLICK,
                 EVENT_PAINT,
                 EVENT_RESIZING,
                 EVENT_RESIZE,
-                EVENT_MESSAGE,
                 EVENT_MOUSEDOWN,
                 EVENT_MOUSEMOVE,
                 EVENT_MOUSEUP,
@@ -35,6 +36,7 @@ namespace StupidPlot
                 EVENT_LOSING_FOCUS,
                 EVENT_RIBBON_UPDATE_PROPERTY,
                 EVENT_RIBBON_EXECUTE,
+                EVENT_LISTVIEW_ENDEDIT,
 
                 EVENT_LAST
             };
@@ -43,8 +45,10 @@ namespace StupidPlot
             {
                 MOUSE,
                 RAW,
+                NOTIFY,
                 PAINT,
                 GENERAL,
+                LISTVIEW,
                 RIBBON,
             };
 

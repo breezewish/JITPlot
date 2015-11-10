@@ -25,28 +25,28 @@ BOOL CALLBACK PlotDialogProc(
     case WM_INITDIALOG:
         Ribbon::init(hDlg);
         App::init(hDlg);
-        return true;
+        return TRUE;
     case WM_SIZE:
     case WM_SIZING:
         if (App::hasInitialized())
         {
             App::updateSize();
-            return true;
+            return TRUE;
         }
         break;
     case WM_CLOSE:
         DestroyWindow(hDlg);
-        return true;
+        return TRUE;
     case WM_DESTROY:
         Ribbon::destroy();
         PostQuitMessage(0);
-        return true;
+        return TRUE;
     default:
-        App::handleEvent(message, wParam, lParam);
+        return App::handleEvent(message, wParam, lParam);
         break;
     }
 
-    return false;
+    return FALSE;
 }
 
 int APIENTRY WinMain(

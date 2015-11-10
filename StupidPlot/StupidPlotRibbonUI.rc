@@ -1,0 +1,33 @@
+// ******************************************************************************
+// * This is an automatically generated file containing the ribbon resource for *
+// * your application.                                                          *
+// ******************************************************************************
+
+#include ".\resource_ribbon.h"
+
+STRINGTABLE 
+BEGIN
+    IDR_CMD_FORMULA_COLORPICKER_LabelTitle_RESID L"Formula Color" /* LabelTitle IDR_CMD_FORMULA_COLORPICKER_LabelTitle_RESID: (null) */
+END
+
+STRINGTABLE 
+BEGIN
+    IDR_CMD_BACKGROUND_COLORPICKER_LabelTitle_RESID L"Background Color" /* LabelTitle IDR_CMD_BACKGROUND_COLORPICKER_LabelTitle_RESID: (null) */
+END
+
+STRINGTABLE 
+BEGIN
+    IDR_CMD_SHOW_GRID_LabelTitle_RESID L"Grid" /* LabelTitle IDR_CMD_SHOW_GRID_LabelTitle_RESID: (null) */
+END
+
+STRINGTABLE 
+BEGIN
+    IDR_CMD_SHOW_AXIS_LabelTitle_RESID L"Axis and tick" /* LabelTitle IDR_CMD_SHOW_AXIS_LabelTitle_RESID: (null) */
+END
+
+STRINGTABLE 
+BEGIN
+    IDR_CMD_SAVE_LabelTitle_RESID L"Save viewport..." /* LabelTitle IDR_CMD_SAVE_LabelTitle_RESID: (null) */
+END
+
+APPLICATION_RIBBON    UIFILE    "Debug\\../StupidPlotRibbonUI.bml"

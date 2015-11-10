@@ -58,7 +58,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Propsys.lib;gdiplus.lib;ComCtl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>UxTheme.lib;Propsys.lib;gdiplus.lib;ComCtl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'"</AdditionalManifestDependencies>
     </Link>
     <ResourceCompile>
@@ -80,7 +80,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Propsys.lib;gdiplus.lib;ComCtl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>UxTheme.lib;Propsys.lib;gdiplus.lib;ComCtl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalManifestDependencies>"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'"</AdditionalManifestDependencies>
       <Profile>true</Profile>
     </Link>
@@ -96,10 +96,12 @@
     <ClCompile Include="formula\types.cpp" />
     <ClCompile Include="ribbon.cpp" />
     <ClCompile Include="throttler.cpp" />
+    <ClCompile Include="ui\controls\control.cpp" />
     <ClCompile Include="winform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h" />
+    <ClInclude Include="resource_ribbon.h" />
     <ClInclude Include="uiapplication.h" />
     <ClInclude Include="uicommandhandler.h" />
     <ClInclude Include="export\bmpexporter.h" />
@@ -130,6 +132,7 @@
     <ClInclude Include="ui\controls\bufferedcanvas.h" />
     <ClInclude Include="ui\controls\checkbox.h" />
     <ClInclude Include="ui\controls\control.h" />
+    <ClInclude Include="ui\controls\listview.h" />
     <ClInclude Include="ui\controls\ribboncontrol.h" />
     <ClInclude Include="ui\controls\win32control.h" />
     <ClInclude Include="ui\controls\textbox.h" />
@@ -137,8 +140,10 @@
     <ClInclude Include="ui\events\canvasrebuildevent.h" />
     <ClInclude Include="ui\events\event.h" />
     <ClInclude Include="ui\events\eventmanager.h" />
+    <ClInclude Include="ui\events\listviewendeditevent.h" />
     <ClInclude Include="ui\events\mouseevent.h" />
     <ClInclude Include="ui\events\mousewheelevent.h" />
+    <ClInclude Include="ui\events\notifyevent.h" />
     <ClInclude Include="ui\events\rawevent.h" />
     <ClInclude Include="ui\events\ribbonexecuteevent.h" />
     <ClInclude Include="ui\events\ribbonupdatepropertyevent.h" />
@@ -148,16 +153,14 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StupidPlot.rc" />
+    <ResourceCompile Include="StupidPlotRibbonUI.rc" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="StupidPlotRibbonMarkup.xml">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">uicc.exe StupidPlotRibbonMarkup.xml $(IntDir)StupidPlotRibbonUI.bml /header:$(IntDir)RibbonIDs.h /res:$(IntDir)StupidPlotRibbonUI.rc</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building ribbon markup</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">StupidPlotRibbonUI.bml;StupidPlotRibbonUI.rc;RibbonIDs.h;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">uicc.exe StupidPlotRibbonMarkup.xml $(IntDir)../StupidPlotRibbonUI.bml /header:$(IntDir)../resource_ribbon.h /res:$(IntDir)../StupidPlotRibbonUI.rc</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building ribbon markup...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">StupidPlotRibbonUI.bml;StupidPlotRibbonUI.rc;resource_ribbon.h;%(Outputs)</Outputs>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Debug\StupidPlotRibbonUI.bml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

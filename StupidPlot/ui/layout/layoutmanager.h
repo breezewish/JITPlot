@@ -34,9 +34,9 @@ namespace StupidPlot
 
             public:
                 // Initialize a layout manager, fully occupy the window
-                LayoutManager(HWND _hWnd)
+                LayoutManager(HWND _hWindow)
                 {
-                    hWnd = _hWnd;
+                    hWnd = _hWindow;
                     updateSize();
                 }
 

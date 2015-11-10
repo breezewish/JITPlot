@@ -8,7 +8,7 @@
 #include <UIRibbonPropertyHelpers.h>
 
 #include <app.h>
-#include <RibbonIDs.h>
+#include <resource_ribbon.h>
 #include <resource.h>
 #include <throttler.h>
 #include <ui/controls/control.h>
@@ -17,9 +17,11 @@
 #include <ui/controls/checkbox.h>
 #include <ui/controls/textbox.h>
 #include <ui/controls/bufferedcanvas.h>
+#include <ui/controls/listview.h>
 #include <ui/container.h>
 #include <ui/layout/layoutmanager.h>
 #include <ui/events/event.h>
+#include <ui/events/notifyevent.h>
 #include <ui/events/canvasrebuildevent.h>
 #include <ui/events/eventmanager.h>
 #include <ui/events/ribbonupdatepropertyevent.h>
@@ -50,6 +52,17 @@ namespace StupidPlot
     const double SCROLL_FACTOR = 240.0;
 
     const int HITTEST_RADIUS = 20;
+
+    const vector<Gdiplus::Color> FORMULA_COLORS = {
+        Gdiplus::Color(0, 176, 244),
+        Gdiplus::Color(242, 95, 0),
+        Gdiplus::Color(0, 187, 81),
+        Gdiplus::Color(136, 90, 163),
+        Gdiplus::Color(73, 126, 192),
+        Gdiplus::Color(208, 0, 0),
+        Gdiplus::Color(255, 193, 0)
+    };
+
 #pragma endregion
 
 #pragma region Variables
@@ -98,6 +111,10 @@ namespace StupidPlot
     Textbox                 * txtRangeXTo;
     Textbox                 * txtRangeYFrom;
     Textbox                 * txtRangeYTo;
+    Win32Control            * grpPlot;
+    ListView                * lstFormulas;
+    Win32Control            * btnAdd;
+    Win32Control            * btnRemove;
 
     // ======== Ribbon Controls ========
     RibbonControl           * rcmdFormulaColor;
@@ -210,6 +227,10 @@ namespace StupidPlot
         txtRangeXTo = new Textbox(hWnd, IDC_EDIT_X_TO);
         txtRangeYFrom = new Textbox(hWnd, IDC_EDIT_Y_FROM);
         txtRangeYTo = new Textbox(hWnd, IDC_EDIT_Y_TO);
+        grpPlot = new Win32Control(hWnd, IDC_STATIC_GROUP_PLOT);
+        lstFormulas = new ListView(hWnd, IDC_LIST_FORMULAS);
+        btnAdd = new Win32Control(hWnd, IDC_BUTTON_ADD);
+        btnRemove = new Win32Control(hWnd, IDC_BUTTON_REMOVE);
 
         rcmdFormulaColor = new RibbonControl(IDR_CMD_FORMULA_COLORPICKER);
         rcmdBgColor = new RibbonControl(IDR_CMD_BACKGROUND_COLORPICKER);
@@ -220,6 +241,7 @@ namespace StupidPlot
         chkAntialias->setChecked(true);
         chkShowGrid->setChecked(true);
         chkShowAxis->setChecked(true);
+        btnRemove->setEnabled(false);
 
         container
             ->addWin32Control(bmpCanvas)
@@ -251,6 +273,10 @@ namespace StupidPlot
             ->addWin32Control(txtRangeXTo)
             ->addWin32Control(txtRangeYFrom)
             ->addWin32Control(txtRangeYTo)
+            ->addWin32Control(grpPlot)
+            ->addWin32Control(lstFormulas)
+            ->addWin32Control(btnAdd)
+            ->addWin32Control(btnRemove)
             ->addRibbonControl(rcmdFormulaColor)
             ->addRibbonControl(rcmdBgColor)
             ->addRibbonControl(rcmdShowGrid)
@@ -286,7 +312,11 @@ namespace StupidPlot
             ->enableMagnet(txtRangeXFrom, false, true, true, false)
             ->enableMagnet(txtRangeXTo, false, true, true, false)
             ->enableMagnet(txtRangeYFrom, false, true, true, false)
-            ->enableMagnet(txtRangeYTo, false, true, true, false);
+            ->enableMagnet(txtRangeYTo, false, true, true, false)
+            ->enableMagnet(grpPlot, false, true, true, true)
+            ->enableMagnet(lstFormulas, false, true, true, true)
+            ->enableMagnet(btnAdd, false, false, true, true)
+            ->enableMagnet(btnRemove, false, false, true, true);
 
         updateSize();
         setup();
@@ -325,6 +355,10 @@ namespace StupidPlot
         delete txtRangeXTo;
         delete txtRangeYFrom;
         delete txtRangeYTo;
+        delete grpPlot;
+        delete lstFormulas;
+        delete btnAdd;
+        delete btnRemove;
 
         delete rcmdFormulaColor;
         delete rcmdBgColor;
@@ -347,18 +381,35 @@ namespace StupidPlot
 
     BOOL App::handleEvent(UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
-        if (uMsg == WM_TIMER)
+        switch (uMsg)
         {
+        case WM_TIMER:
             if (wParam == IDT_TIMER_PLOT)
             {
                 animation->update();
-                return false;
+                return FALSE;
             }
             else if (throttler->canHandleTick(wParam))
             {
                 throttler->handleTick(wParam);
-                return false;
+                return FALSE;
             }
+            break;
+        case WM_NOTIFY:
+        {
+            auto nmh = *(reinterpret_cast<LPNMHDR>(lParam));
+            auto control = container->getWin32ControlById(nmh.idFrom);
+            if (control != NULL)
+            {
+                auto ret = control->dispatchEvent(EventName::EVENT_NOTIFY, EventPtr(new NotifyEvent(wParam, lParam)));
+                if (ret != LRESULT_DEFAULT)
+                {
+                    SetWindowLongW(hWnd, DWL_MSGRESULT, ret);
+                    return TRUE;
+                }
+            }
+            break;
+        }
         }
 
         return em->handleWin32Message(uMsg, wParam, lParam);
@@ -439,7 +490,7 @@ namespace StupidPlot
 
 #pragma region Ribbon Handlers
 
-    inline void rcmdFormulaColor_onUpdateProperty(Control * _control, const EventPtr & _event)
+    inline LRESULT rcmdFormulaColor_onUpdateProperty(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<RibbonUpdatePropertyEvent>(_event);
@@ -459,14 +510,16 @@ namespace StupidPlot
                     );
             }
         }
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void rcmdFormulaColor_onExecute(Control * _control, const EventPtr & _event)
+    inline LRESULT rcmdFormulaColor_onExecute(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<RibbonExecuteEvent>(_event);
 
-        if (event->verb != UI_EXECUTIONVERB_EXECUTE) return;
+        if (event->verb != UI_EXECUTIONVERB_EXECUTE) return LRESULT_DEFAULT;
 
         if (cmFormulaIdx >= 0 && cmFormulaIdx < static_cast<int>(options->expressions.size()))
         {
@@ -477,9 +530,11 @@ namespace StupidPlot
             options->expressions[cmFormulaIdx]->color.SetFromCOLORREF(color);
             bmpCanvas->dispatchRedraw();
         }
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void rcmdBgColor_onUpdateProperty(Control * _control, const EventPtr & _event)
+    inline LRESULT rcmdBgColor_onUpdateProperty(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<RibbonUpdatePropertyEvent>(_event);
@@ -496,14 +551,16 @@ namespace StupidPlot
                 event->newValue
                 );
         }
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void rcmdBgColor_onExecute(Control * _control, const EventPtr & _event)
+    inline LRESULT rcmdBgColor_onExecute(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<RibbonExecuteEvent>(_event);
 
-        if (event->verb != UI_EXECUTIONVERB_EXECUTE) return;
+        if (event->verb != UI_EXECUTIONVERB_EXECUTE) return LRESULT_DEFAULT;
 
         UINT color = 0;
         PROPVARIANT var;
@@ -511,45 +568,51 @@ namespace StupidPlot
         UIPropertyToUInt32(UI_PKEY_Color, var, &color);
         options->backgroundColor.SetFromCOLORREF(color);
         bmpCanvas->dispatchRedraw();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void rcmdShowGrid_onExecute(Control * _control, const EventPtr & _event)
+    inline LRESULT rcmdShowGrid_onExecute(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
         PROPVARIANT var;
         HRESULT hr = Ribbon::g_pFramework->GetUICommandProperty(IDR_CMD_SHOW_GRID, UI_PKEY_BooleanValue, &var);
-        if (FAILED(hr)) return;
+        if (FAILED(hr)) return LRESULT_DEFAULT;
 
         BOOL val;
         hr = PropVariantToBoolean(var, &val);
-        if (FAILED(hr)) return;
+        if (FAILED(hr)) return LRESULT_DEFAULT;
 
         options->showGrid = (val == TRUE);
         syncGridFromOption();
         bmpCanvas->dispatchRedraw();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void rcmdShowAxis_onExecute(Control * _control, const EventPtr & _event)
+    inline LRESULT rcmdShowAxis_onExecute(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
         PROPVARIANT var;
         HRESULT hr = Ribbon::g_pFramework->GetUICommandProperty(IDR_CMD_SHOW_AXIS, UI_PKEY_BooleanValue, &var);
-        if (FAILED(hr)) return;
+        if (FAILED(hr)) return LRESULT_DEFAULT;
 
         BOOL val;
         hr = PropVariantToBoolean(var, &val);
-        if (FAILED(hr)) return;
+        if (FAILED(hr)) return LRESULT_DEFAULT;
 
         options->showAxis = (val == TRUE);
         syncGridFromOption();
         bmpCanvas->dispatchRedraw();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void rcmdShowGrid_onUpdateProperty(Control * _control, const EventPtr & _event)
+    inline LRESULT rcmdShowGrid_onUpdateProperty(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<RibbonUpdatePropertyEvent>(_event);
@@ -558,9 +621,11 @@ namespace StupidPlot
         {
             UIInitPropertyFromBoolean(UI_PKEY_BooleanValue, options->showGrid, event->newValue);
         }
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void rcmdShowAxis_onUpdateProperty(Control * _control, const EventPtr & _event)
+    inline LRESULT rcmdShowAxis_onUpdateProperty(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<RibbonUpdatePropertyEvent>(_event);
@@ -569,11 +634,34 @@ namespace StupidPlot
         {
             UIInitPropertyFromBoolean(UI_PKEY_BooleanValue, options->showAxis, event->newValue);
         }
+
+        return LRESULT_DEFAULT;
     }
 #pragma endregion
 
 #pragma region ControlPad Handlers
-    inline void chkShowGrid_onClick(Control * _control, const EventPtr & _event)
+    inline LRESULT btnAdd_onClick(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        auto color = FORMULA_COLORS[options->expressions.size() % FORMULA_COLORS.size()];
+        options->expressions.push_back(ExpDrawerPtr(new ExpDrawer(L"", mathConstants, color)));
+        auto index = lstFormulas->insertRow(L"");
+        lstFormulas->beginEdit(index);
+
+        return LRESULT_DEFAULT;
+    }
+
+    inline LRESULT btnRemove_onClick(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        return LRESULT_DEFAULT;
+    }
+
+    inline LRESULT chkShowGrid_onClick(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
@@ -582,18 +670,22 @@ namespace StupidPlot
         options->showGrid = chkShowGrid->isChecked();
         Ribbon::g_pFramework->InvalidateUICommand(IDR_CMD_SHOW_GRID, UI_INVALIDATIONS_PROPERTY, &UI_PKEY_BooleanValue);
         bmpCanvas->dispatchRedraw();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void txtGridSize_onLosingFocus(Control * _control, const EventPtr & _event)
+    inline LRESULT txtGridSize_onLosingFocus(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
         options->gridSpacing = std::stoi(txtGridSize->getText());
         bmpCanvas->dispatchRedraw();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void chkShowAxis_onClick(Control * _control, const EventPtr & _event)
+    inline LRESULT chkShowAxis_onClick(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
@@ -602,18 +694,22 @@ namespace StupidPlot
         options->showAxis = chkShowAxis->isChecked();
         Ribbon::g_pFramework->InvalidateUICommand(IDR_CMD_SHOW_AXIS, UI_INVALIDATIONS_PROPERTY, &UI_PKEY_BooleanValue);
         bmpCanvas->dispatchRedraw();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void txtAxisSize_onLosingFocus(Control * _control, const EventPtr & _event)
+    inline LRESULT txtAxisSize_onLosingFocus(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
         options->axisTickInterval = std::stoi(txtAxisSize->getText());
         bmpCanvas->dispatchRedraw();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void txtRangeXFrom_onLosingFocus(Control * _control, const EventPtr & _event)
+    inline LRESULT txtRangeXFrom_onLosingFocus(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
@@ -622,15 +718,17 @@ namespace StupidPlot
         if (val >= options->vpRight)
         {
             _syncRangeFromOption();
-            return;
+            return LRESULT_DEFAULT;
         }
         options->vpLeft = val;
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
         _syncRangeFromOption();
         bmpCanvas->dispatchRedraw();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void txtRangeXTo_onLosingFocus(Control * _control, const EventPtr & _event)
+    inline LRESULT txtRangeXTo_onLosingFocus(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
@@ -639,15 +737,17 @@ namespace StupidPlot
         if (val <= options->vpLeft)
         {
             _syncRangeFromOption();
-            return;
+            return LRESULT_DEFAULT;
         }
         options->vpRight = val;
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
         _syncRangeFromOption();
         bmpCanvas->dispatchRedraw();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void txtRangeYFrom_onLosingFocus(Control * _control, const EventPtr & _event)
+    inline LRESULT txtRangeYFrom_onLosingFocus(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
@@ -656,15 +756,17 @@ namespace StupidPlot
         if (val >= options->vpTop)
         {
             _syncRangeFromOption();
-            return;
+            return LRESULT_DEFAULT;
         }
         options->vpBottom = val;
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
         _syncRangeFromOption();
         bmpCanvas->dispatchRedraw();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void txtRangeYTo_onLosingFocus(Control * _control, const EventPtr & _event)
+    inline LRESULT txtRangeYTo_onLosingFocus(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
@@ -673,29 +775,34 @@ namespace StupidPlot
         if (val <= options->vpBottom)
         {
             _syncRangeFromOption();
-            return;
+            return LRESULT_DEFAULT;
         }
         options->vpTop = val;
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
         _syncRangeFromOption();
         bmpCanvas->dispatchRedraw();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void chkAntialias_onClick(Control * _control, const EventPtr & _event)
+    inline LRESULT chkAntialias_onClick(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
         drawer->setAntialias(chkAntialias->isChecked());
         bmpCanvas->dispatchRedraw();
+
+        return LRESULT_DEFAULT;
     }
 #pragma endregion
 
 #pragma region Canvas handlers
-    inline void bmpCanvas_onRedrawBuffer(Control * _control, const EventPtr & _event)
+    inline LRESULT bmpCanvas_onRedrawBuffer(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
+
         // We need to make sure that vp x <-> formula left
         double dx = drawer->translateCanvasW(bmpCanvas->vpX);
         double dy = drawer->translateCanvasH(bmpCanvas->vpY);
@@ -712,26 +819,32 @@ namespace StupidPlot
         syncRangeFromOption();
         updateDrawerRange();
         drawer->drawPlot();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void bmpCanvas_onCanvasBeginMove(Control * _control, const EventPtr & _event)
+    inline LRESULT bmpCanvas_onCanvasBeginMove(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
         saveAndApplyCursor(hCursorDefault);
         vpTakeShapshot();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void bmpCanvas_onCanvasEndMove(Control * _control, const EventPtr & _event)
+    inline LRESULT bmpCanvas_onCanvasEndMove(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
         restoreCursor();
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void bmpCanvas_onCanvasMove(Control * _control, const EventPtr & _event)
+    inline LRESULT bmpCanvas_onCanvasMove(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<CanvasMoveEvent>(_event);
@@ -744,6 +857,8 @@ namespace StupidPlot
         options->vpTop += dy;
         options->vpBottom += dy;
         syncRangeFromOption();
+
+        return LRESULT_DEFAULT;
     }
 
     inline void updateHotTrackPosition()
@@ -754,7 +869,7 @@ namespace StupidPlot
         drawer->htCanvasY = static_cast<int>(drawer->translateFormulaY(currentHTY));
     }
 
-    inline void bmpCanvas_onMouseMove(Control * _control, const EventPtr & _event)
+    inline LRESULT bmpCanvas_onMouseMove(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
@@ -781,6 +896,8 @@ namespace StupidPlot
         }
 
         syncCursorPosition();
+
+        return LRESULT_DEFAULT;
     }
 
     void scaleReset()
@@ -865,7 +982,7 @@ namespace StupidPlot
         bmpCanvas_onScaleEnd();
     }
 
-    inline void bmpCanvas_onMouseWheel(Control * _control, const EventPtr & _event)
+    inline LRESULT bmpCanvas_onMouseWheel(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<MouseWheelEvent>(_event);
@@ -880,25 +997,31 @@ namespace StupidPlot
         }
 
         bmpCanvas_onScale(event);
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void bmpCanvas_onCanvasRebuild(Control * _control, const EventPtr & _event)
+    inline LRESULT bmpCanvas_onCanvasRebuild(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<CanvasRebuildEvent>(_event);
 
         drawer->rebuildBuffer(event->canvasWidth, event->canvasHeight);
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void bmpCanvas_onSetCursor(Control * _control, const EventPtr & _event)
+    inline LRESULT bmpCanvas_onSetCursor(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
         SetCursor(hCurrentCursor);
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void bmpCanvas_onMouseUp(Control * _control, const EventPtr & _event)
+    inline LRESULT bmpCanvas_onMouseUp(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
@@ -925,9 +1048,11 @@ namespace StupidPlot
             pContextualUI->ShowAtLocation(pt.x, pt.y + rh);
             pContextualUI->Release();
         }
+
+        return LRESULT_DEFAULT;
     }
 
-    inline void bmpCanvas_onMouseDown(Control * _control, const EventPtr & _event)
+    inline LRESULT bmpCanvas_onMouseDown(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
         auto event = std::dynamic_pointer_cast<MouseEvent>(_event);
@@ -954,6 +1079,8 @@ namespace StupidPlot
             pContextualUI->ShowAtLocation(pt.x, pt.y + rh);
             pContextualUI->Release();
         }
+
+        return LRESULT_DEFAULT;
     }
 #pragma endregion
 
@@ -1051,8 +1178,8 @@ namespace StupidPlot
         options = PlotOptionsPtr(new OptionBag());
         options->calculateOuterBoundaryInCenter(CANVAS_ENLARGE);
 
-        options->expressions.push_back(ExpDrawerPtr(new ExpDrawer(L"sin(x)", mathConstants, Color(255, 47, 197, 255))));
-        options->expressions.push_back(ExpDrawerPtr(new ExpDrawer(L"cos(x)", mathConstants, Color(255, 243, 104, 104))));
+        //options->expressions.push_back(ExpDrawerPtr(new ExpDrawer(L"sin(x)", mathConstants, Color(255, 47, 197, 255))));
+        //options->expressions.push_back(ExpDrawerPtr(new ExpDrawer(L"cos(x)", mathConstants, Color(255, 243, 104, 104))));
         //options->formulaObjects.push_back(ExpDrawerPtr(new ExpDrawer(L"x+1", mathConstants)));
 
         syncRangeFromOption();
@@ -1073,6 +1200,12 @@ namespace StupidPlot
         txtRangeYFrom->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeYFrom_onLosingFocus);
         txtRangeYTo->addEventHandler(EventName::EVENT_LOSING_FOCUS, txtRangeYTo_onLosingFocus);
 
+        lstFormulas->insertColumn(L"Expression", 180);
+        lstFormulas->insertRow(L"123");
+
+        btnAdd->addEventHandler(EventName::EVENT_CLICK, btnAdd_onClick);
+        btnRemove->addEventHandler(EventName::EVENT_CLICK, btnRemove_onClick);
+
         rcmdFormulaColor->addEventHandler(EventName::EVENT_RIBBON_UPDATE_PROPERTY, rcmdFormulaColor_onUpdateProperty);
         rcmdFormulaColor->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdFormulaColor_onExecute);
         rcmdBgColor->addEventHandler(EventName::EVENT_RIBBON_UPDATE_PROPERTY, rcmdBgColor_onUpdateProperty);
@@ -1082,7 +1215,7 @@ namespace StupidPlot
         rcmdShowGrid->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdShowGrid_onExecute);
         rcmdShowAxis->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdShowAxis_onExecute);
 
-        SetClassLong(bmpCanvas->hWnd, GCL_HCURSOR, NULL);
+        SetClassLong(bmpCanvas->hControl, GCL_HCURSOR, NULL);
         bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_REBUILD, bmpCanvas_onCanvasRebuild);
         bmpCanvas->addEventHandler(EventName::EVENT_BUFFER_REDRAW, bmpCanvas_onRedrawBuffer);
         bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_BEGINMOVE, bmpCanvas_onCanvasBeginMove);
