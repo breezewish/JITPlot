@@ -184,11 +184,11 @@ namespace StupidPlot
                     DeleteObject(pen);
                 }
 
-                virtual void beginDraw(int left, int top, int width, int height)
+                virtual void beginDraw(int left, int top, int width, int height, Gdiplus::Color bgColor)
                 {
-                    Provider::beginDraw(left, top, width, height);
+                    Provider::beginDraw(left, top, width, height, bgColor);
 
-                    HBRUSH background = CreateSolidBrush(RGB(255, 255, 255));
+                    HBRUSH background = CreateSolidBrush(bgColor.ToCOLORREF());
                     HGDIOBJ oldBackground = SelectObject(hdc, background);
                     Rectangle(hdc, left, top, width + left, height + top);
                     SelectObject(hdc, oldBackground);

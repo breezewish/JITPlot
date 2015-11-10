@@ -341,7 +341,7 @@ namespace StupidPlot
 
             inline void drawPlot()
             {
-                provider->beginDraw(clipLeft, clipTop, clipWidth, clipHeight);
+                provider->beginDraw(clipLeft, clipTop, clipWidth, clipHeight, options->backgroundColor);
 
                 // Draw grid lines
                 if (options->showGrid && options->gridSpacing > 0)

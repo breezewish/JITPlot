@@ -27,6 +27,7 @@ namespace StupidPlot
             // ======== General ========
             bool                    keepRatio = false;
             bool                    enableHotTrack = true;
+            Gdiplus::Color          backgroundColor;
 
             // ======== Grid ========
             bool                    showGrid = true;
@@ -49,6 +50,7 @@ namespace StupidPlot
                 drawTop = vpTop;
                 drawRight = vpRight;
                 drawBottom = vpBottom;
+                backgroundColor = Gdiplus::Color(255, 255, 255);
             }
 
             void calculateOuterBoundaryInCenter(double enlargeFactor)

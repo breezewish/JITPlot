@@ -101,6 +101,7 @@ namespace StupidPlot
 
     // ======== Ribbon Controls ========
     RibbonControl           * rcmdFormulaColor;
+    RibbonControl           * rcmdBgColor;
     RibbonControl           * rcmdShowGrid;
     RibbonControl           * rcmdShowAxis;
     RibbonControl           * rcmdSave;
@@ -211,6 +212,7 @@ namespace StupidPlot
         txtRangeYTo = new Textbox(hWnd, IDC_EDIT_Y_TO);
 
         rcmdFormulaColor = new RibbonControl(IDR_CMD_FORMULA_COLORPICKER);
+        rcmdBgColor = new RibbonControl(IDR_CMD_BACKGROUND_COLORPICKER);
         rcmdShowGrid = new RibbonControl(IDR_CMD_SHOW_GRID);
         rcmdShowAxis = new RibbonControl(IDR_CMD_SHOW_AXIS);
         rcmdSave = new RibbonControl(IDR_CMD_SAVE);
@@ -250,6 +252,7 @@ namespace StupidPlot
             ->addWin32Control(txtRangeYFrom)
             ->addWin32Control(txtRangeYTo)
             ->addRibbonControl(rcmdFormulaColor)
+            ->addRibbonControl(rcmdBgColor)
             ->addRibbonControl(rcmdShowGrid)
             ->addRibbonControl(rcmdShowAxis)
             ->addRibbonControl(rcmdSave);
@@ -324,6 +327,7 @@ namespace StupidPlot
         delete txtRangeYTo;
 
         delete rcmdFormulaColor;
+        delete rcmdBgColor;
         delete rcmdShowGrid;
         delete rcmdShowAxis;
         delete rcmdSave;
@@ -473,6 +477,40 @@ namespace StupidPlot
             options->expressions[cmFormulaIdx]->color.SetFromCOLORREF(color);
             bmpCanvas->dispatchRedraw();
         }
+    }
+
+    inline void rcmdBgColor_onUpdateProperty(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        auto event = std::dynamic_pointer_cast<RibbonUpdatePropertyEvent>(_event);
+
+        if (event->key == UI_PKEY_ColorType)
+        {
+            UIInitPropertyFromUInt32(event->key, UI_SWATCHCOLORTYPE_RGB, event->newValue);
+        }
+        else if (event->key == UI_PKEY_Color)
+        {
+            UIInitPropertyFromUInt32(
+                event->key,
+                options->backgroundColor.ToCOLORREF(),
+                event->newValue
+                );
+        }
+    }
+
+    inline void rcmdBgColor_onExecute(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        auto event = std::dynamic_pointer_cast<RibbonExecuteEvent>(_event);
+
+        if (event->verb != UI_EXECUTIONVERB_EXECUTE) return;
+
+        UINT color = 0;
+        PROPVARIANT var;
+        event->properties->GetValue(UI_PKEY_Color, &var);
+        UIPropertyToUInt32(UI_PKEY_Color, var, &color);
+        options->backgroundColor.SetFromCOLORREF(color);
+        bmpCanvas->dispatchRedraw();
     }
 
     inline void rcmdShowGrid_onExecute(Control * _control, const EventPtr & _event)
@@ -869,6 +907,7 @@ namespace StupidPlot
         if (!cmHasMouseMoved && event->button == MouseButton::LEFT && drawer->hoverExpIdx != -1)
         {
             cmFormulaIdx = drawer->hoverExpIdx;
+            drawer->activeExpIdx = cmFormulaIdx;
 
             POINT pt;
             pt.x = event->x;
@@ -1036,6 +1075,8 @@ namespace StupidPlot
 
         rcmdFormulaColor->addEventHandler(EventName::EVENT_RIBBON_UPDATE_PROPERTY, rcmdFormulaColor_onUpdateProperty);
         rcmdFormulaColor->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdFormulaColor_onExecute);
+        rcmdBgColor->addEventHandler(EventName::EVENT_RIBBON_UPDATE_PROPERTY, rcmdBgColor_onUpdateProperty);
+        rcmdBgColor->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdBgColor_onExecute);
         rcmdShowGrid->addEventHandler(EventName::EVENT_RIBBON_UPDATE_PROPERTY, rcmdShowGrid_onUpdateProperty);
         rcmdShowAxis->addEventHandler(EventName::EVENT_RIBBON_UPDATE_PROPERTY, rcmdShowAxis_onUpdateProperty);
         rcmdShowGrid->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdShowGrid_onExecute);

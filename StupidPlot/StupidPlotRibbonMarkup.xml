@@ -6,6 +6,11 @@
         <String>Formula Color</String>
       </Command.LabelTitle>
     </Command>
+    <Command Name="cmdBackgroundColor" Symbol="IDR_CMD_BACKGROUND_COLORPICKER">
+      <Command.LabelTitle>
+        <String>Background Color</String>
+      </Command.LabelTitle>
+    </Command>
     <Command Name="cmdShowGrid" Symbol="IDR_CMD_SHOW_GRID">
       <Command.LabelTitle>
         <String>Grid</String>
@@ -45,6 +50,9 @@
       <ContextPopup.ContextMenus>
         <ContextMenu Name="ContextMenuPlot">
           <MenuGroup>
+            <DropDownColorPicker ColorTemplate="ThemeColors" IsAutomaticColorButtonVisible="false" IsNoColorButtonVisible="false" CommandName="cmdBackgroundColor" />
+          </MenuGroup>
+          <MenuGroup>
             <CheckBox CommandName="cmdShowGrid" />
             <CheckBox CommandName="cmdShowAxis" />
           </MenuGroup>
@@ -55,6 +63,7 @@
         <ContextMenu Name="ContextMenuPlotWithFormula">
           <MenuGroup>
             <DropDownColorPicker ColorTemplate="ThemeColors" IsAutomaticColorButtonVisible="false" IsNoColorButtonVisible="false" CommandName="cmdFormulaColor" />
+            <DropDownColorPicker ColorTemplate="ThemeColors" IsAutomaticColorButtonVisible="false" IsNoColorButtonVisible="false" CommandName="cmdBackgroundColor" />
           </MenuGroup>
           <MenuGroup>
             <CheckBox CommandName="cmdShowGrid" />
@@ -67,6 +76,7 @@
         <ContextMenu Name="ContextMenuFormula">
           <MenuGroup>
             <DropDownColorPicker ColorTemplate="ThemeColors" IsAutomaticColorButtonVisible="false" IsNoColorButtonVisible="false" CommandName="cmdFormulaColor" />
+            <DropDownColorPicker ColorTemplate="ThemeColors" IsAutomaticColorButtonVisible="false" IsNoColorButtonVisible="false" CommandName="cmdBackgroundColor" />
           </MenuGroup>
         </ContextMenu>
       </ContextPopup.ContextMenus>

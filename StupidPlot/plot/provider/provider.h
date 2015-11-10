@@ -38,8 +38,10 @@ namespace StupidPlot
 
                 virtual void drawPlotLine(const shared_ptr<POINTF> & points, int length, Gdiplus::Color color, int width) = 0;
 
-                virtual void beginDraw(int left, int top, int width, int height)
+                virtual void beginDraw(int left, int top, int width, int height, Gdiplus::Color bgColor)
                 {
+                    UNREFERENCED_PARAMETER(bgColor);
+
                     canvasWidth = width;
                     canvasHeight = height;
                     canvasOffsetX = left;

@@ -169,13 +169,13 @@ namespace StupidPlot
                     }
                 }
 
-                virtual void beginDraw(int left, int top, int width, int height)
+                virtual void beginDraw(int left, int top, int width, int height, Gdiplus::Color bgColor)
                 {
-                    Provider::beginDraw(left, top, width, height);
+                    Provider::beginDraw(left, top, width, height, bgColor);
                     g = new Gdiplus::Graphics(hdc);
                     g->SetSmoothingMode(Gdiplus::SmoothingMode::SmoothingModeAntiAlias);
                     g->SetTextRenderingHint(Gdiplus::TextRenderingHint::TextRenderingHintClearTypeGridFit);
-                    g->Clear(Gdiplus::Color(255, 255, 255, 255));
+                    g->Clear(bgColor);
                 }
 
                 virtual void endDraw()
