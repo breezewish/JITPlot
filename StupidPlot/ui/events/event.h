@@ -36,6 +36,8 @@ namespace StupidPlot
                 EVENT_LOSING_FOCUS,
                 EVENT_RIBBON_UPDATE_PROPERTY,
                 EVENT_RIBBON_EXECUTE,
+                EVENT_CUSTOMDRAW,
+                EVENT_LISTVIEW_DBLCLICK,
                 EVENT_LISTVIEW_ENDEDIT,
 
                 EVENT_LAST
@@ -47,6 +49,7 @@ namespace StupidPlot
                 RAW,
                 NOTIFY,
                 PAINT,
+                CUSTOMDRAW,
                 GENERAL,
                 LISTVIEW,
                 RIBBON,

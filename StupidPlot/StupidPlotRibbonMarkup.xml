@@ -3,7 +3,17 @@
   <Application.Commands>
     <Command Name="cmdFormulaColor" Symbol="IDR_CMD_FORMULA_COLORPICKER">
       <Command.LabelTitle>
-        <String>Formula Color</String>
+        <String>Color</String>
+      </Command.LabelTitle>
+    </Command>
+    <Command Name="cmdEditFormula" Symbol="IDR_CMD_EDIT_FORMULA">
+      <Command.LabelTitle>
+        <String>Edit</String>
+      </Command.LabelTitle>
+    </Command>
+    <Command Name="cmdRemoveFormula" Symbol="IDR_CMD_REMOVE_FORMULA">
+      <Command.LabelTitle>
+        <String>Remove</String>
       </Command.LabelTitle>
     </Command>
     <Command Name="cmdBackgroundColor" Symbol="IDR_CMD_BACKGROUND_COLORPICKER">
@@ -63,9 +73,11 @@
         <ContextMenu Name="ContextMenuPlotWithFormula">
           <MenuGroup>
             <DropDownColorPicker ColorTemplate="ThemeColors" IsAutomaticColorButtonVisible="false" IsNoColorButtonVisible="false" CommandName="cmdFormulaColor" />
-            <DropDownColorPicker ColorTemplate="ThemeColors" IsAutomaticColorButtonVisible="false" IsNoColorButtonVisible="false" CommandName="cmdBackgroundColor" />
+            <Button CommandName="cmdEditFormula" />
+            <Button CommandName="cmdRemoveFormula" />
           </MenuGroup>
           <MenuGroup>
+            <DropDownColorPicker ColorTemplate="ThemeColors" IsAutomaticColorButtonVisible="false" IsNoColorButtonVisible="false" CommandName="cmdBackgroundColor" />
             <CheckBox CommandName="cmdShowGrid" />
             <CheckBox CommandName="cmdShowAxis" />
           </MenuGroup>
@@ -76,7 +88,8 @@
         <ContextMenu Name="ContextMenuFormula">
           <MenuGroup>
             <DropDownColorPicker ColorTemplate="ThemeColors" IsAutomaticColorButtonVisible="false" IsNoColorButtonVisible="false" CommandName="cmdFormulaColor" />
-            <DropDownColorPicker ColorTemplate="ThemeColors" IsAutomaticColorButtonVisible="false" IsNoColorButtonVisible="false" CommandName="cmdBackgroundColor" />
+            <Button CommandName="cmdEditFormula" />
+            <Button CommandName="cmdRemoveFormula" />
           </MenuGroup>
         </ContextMenu>
       </ContextPopup.ContextMenus>

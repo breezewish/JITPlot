@@ -4,6 +4,7 @@
 #include <string>
 #include <list>
 #include <cctype>
+#include <cwctype>
 #include <memory>
 #include <functional>
 
@@ -65,15 +66,15 @@ namespace StupidPlot
                     // number starting with "."
                     if (c == L'.')
                     {
-                        wstring number = extractMatch(in, std::isdigit, L".");
+                        wstring number = extractMatch(in, std::iswdigit, L".");
                         tokens.push_back(shared_ptr<Token>(new ConstantOperandToken(std::stod(number))));
                         continue;
                     }
 
                     // number which may contain fraction part
-                    if (std::isdigit(c))
+                    if (std::iswdigit(c))
                     {
-                        wstring number = extractMatch(in, std::isdigit, wstring(1, c));
+                        wstring number = extractMatch(in, std::iswdigit, wstring(1, c));
                         wchar_t dot = in.peek();
                         // contains fraction
                         if (dot != EOF && dot == L'.')
@@ -87,9 +88,9 @@ namespace StupidPlot
                     }
 
                     // identifier
-                    if (std::isalpha(c))
+                    if (std::iswalpha(c))
                     {
-                        wstring name = extractMatch(in, std::isalnum, wstring(1, c));
+                        wstring name = extractMatch(in, std::iswalnum, wstring(1, c));
                         tokens.push_back(shared_ptr<Token>(new VariableOperandToken(name)));
                         continue;
                     }

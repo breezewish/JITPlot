@@ -42,12 +42,12 @@ namespace StupidPlot
                 for (int i = 0; i < RIBBON_MAX_CONTROLS; ++i) id2RibbonControl[i] = NULL;
             }
 
-            inline size_t transformWin32ControlId(size_t id)
+            inline int transformWin32ControlId(int id)
             {
                 return id - WIN32_CONTROLS_ID_START;
             }
 
-            inline size_t transformRibbonControlId(size_t id)
+            inline int transformRibbonControlId(int id)
             {
                 return id - RIBBON_CONTROLS_ID_START;
             }

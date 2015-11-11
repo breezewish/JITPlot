@@ -138,6 +138,7 @@
     <ClInclude Include="ui\controls\textbox.h" />
     <ClInclude Include="ui\events\canvasmoveevent.h" />
     <ClInclude Include="ui\events\canvasrebuildevent.h" />
+    <ClInclude Include="ui\events\customdrawevent.h" />
     <ClInclude Include="ui\events\event.h" />
     <ClInclude Include="ui\events\eventmanager.h" />
     <ClInclude Include="ui\events\listviewendeditevent.h" />

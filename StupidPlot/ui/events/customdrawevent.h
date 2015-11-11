@@ -11,14 +11,14 @@ namespace StupidPlot
     {
         namespace Events
         {
-            class ListViewEndEditEvent : public Event
+            class CustomDrawEvent : public Event
             {
             public:
-                NMLVDISPINFOW * displayInfo;
+                NMLVCUSTOMDRAW * customDraw;
 
-                ListViewEndEditEvent(LPARAM lParam) : Event(EventType::LISTVIEW)
+                CustomDrawEvent(LPARAM lParam) : Event(EventType::CUSTOMDRAW)
                 {
-                    displayInfo = reinterpret_cast<NMLVDISPINFOW *>(lParam);
+                    customDraw = reinterpret_cast<NMLVCUSTOMDRAW *>(lParam);
                 }
             };
         }

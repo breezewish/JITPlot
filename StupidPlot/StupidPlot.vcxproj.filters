@@ -236,6 +236,9 @@
     <ClInclude Include="ui\events\listviewendeditevent.h">
       <Filter>头文件\ui\events</Filter>
     </ClInclude>
+    <ClInclude Include="ui\events\customdrawevent.h">
+      <Filter>头文件\ui\events</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StupidPlot.rc">

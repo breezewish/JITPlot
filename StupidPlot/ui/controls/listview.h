@@ -8,6 +8,7 @@
 
 #include <ui/events/notifyevent.h>
 #include <ui/events/listviewendeditevent.h>
+#include <ui/events/customdrawevent.h>
 #include <ui/controls/control.h>
 #include <ui/controls/win32control.h>
 
@@ -28,8 +29,9 @@ namespace StupidPlot
                     switch (event->nmh.code)
                     {
                     case LVN_ENDLABELEDIT:
-                        listview->dispatchEvent(EventName::EVENT_LISTVIEW_ENDEDIT, EventPtr(new ListViewEndEditEvent(event->lParam)));
-                        return TRUE;
+                        return listview->dispatchEvent(EventName::EVENT_LISTVIEW_ENDEDIT, EventPtr(new ListViewEndEditEvent(event->lParam)));
+                    case NM_CUSTOMDRAW:
+                        return listview->dispatchEvent(EventName::EVENT_CUSTOMDRAW, EventPtr(new CustomDrawEvent(event->lParam)));
                     }
 
                     return LRESULT_DEFAULT;
@@ -95,6 +97,33 @@ namespace StupidPlot
                 void cancelEdit()
                 {
                     ListView_EditLabel(hControl, -1);
+                }
+
+                void getRect(int index, RECT * rect, int code)
+                {
+                    ListView_GetItemRect(hControl, index, rect, code);
+                }
+
+                void setSelected(int index, bool selected)
+                {
+                    if (selected)
+                    {
+                        ListView_SetItemState(hControl, index, LVIS_SELECTED, LVIS_SELECTED);
+                    }
+                    else
+                    {
+                        ListView_SetItemState(hControl, index, 0, LVIS_SELECTED);
+                    }
+                }
+
+                int getSelectedIndex()
+                {
+                    return ListView_GetNextItem(hControl, -1, LVNI_SELECTED);
+                }
+
+                void deleteRow(int index)
+                {
+                    ListView_DeleteItem(hControl, index);
                 }
             };
 

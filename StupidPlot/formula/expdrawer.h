@@ -95,6 +95,7 @@ namespace StupidPlot
 
             vector<double> & evalAndTransform(double xMin, double xMax, double cMin, double cMax)
             {
+                if (!isValid) return transformBuffer;
                 auto formulaY = expression->eval(xMin, xMax, clipWidth);
                 memcpy(&transformBuffer[0], &formulaY[0], clipWidth * sizeof(double));
                 transformFormulaYToScreenY(cMin, cMax);

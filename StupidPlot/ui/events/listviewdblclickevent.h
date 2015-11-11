@@ -11,7 +11,7 @@ namespace StupidPlot
     {
         namespace Events
         {
-            class ListViewEndEditEvent : public Event
+            class ListViewDblClickEvent : public Event
             {
             public:
                 NMLVDISPINFOW * displayInfo;

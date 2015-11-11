@@ -130,7 +130,7 @@ namespace StupidPlot
             // ======== Hot Track ========
             int                     htCanvasX = -1;
             int                     htCanvasY = -1;
-            int                     activeExpIdx = 0;
+            int                     activeExpIdx = -1;
             int                     hoverExpIdx = -1;
 
             // ======== Memory Buffer ========
