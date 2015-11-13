@@ -711,6 +711,32 @@ namespace StupidPlot
         return LRESULT_DEFAULT;
     }
 
+    inline LRESULT rcmdSave_onExecute(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        WCHAR filename[MAX_PATH] = L"";
+
+        OPENFILENAMEW ofn;
+        ZeroMemory(&ofn, sizeof(ofn));
+        ofn.lStructSize = sizeof(ofn);
+        ofn.hwndOwner = hWnd;
+        ofn.hInstance = 0;
+        ofn.lpstrFilter = L"BMP (*.bmp)\0*.bmp\0JPEG (*.jpg)\0*.jpg\0PNG (*.png)\0*.png\0All\0*.*\0";
+        ofn.nFilterIndex = 3;
+        ofn.lpstrTitle = L"Export viewport";
+        ofn.lpstrFile = filename;
+        ofn.nMaxFile = MAX_PATH;
+        ofn.Flags = OFN_EXPLORER;
+        ofn.lpstrDefExt = L"png";
+
+        BOOL bResult = GetSaveFileNameW(&ofn);
+        Debug::Debug() << filename >> Debug::writeln;
+        if (!bResult) return LRESULT_DEFAULT;
+
+        return LRESULT_DEFAULT;
+    }
 #pragma endregion
 
 #pragma region ListView Handlers
@@ -1390,6 +1416,7 @@ namespace StupidPlot
         btnAdd->addEventHandler(EventName::EVENT_CLICK, btnAdd_onClick);
         btnRemove->addEventHandler(EventName::EVENT_CLICK, btnRemove_onClick);
 
+        // Ribbon menu item
         rcmdFormulaColor->addEventHandler(EventName::EVENT_RIBBON_UPDATE_PROPERTY, rcmdFormulaColor_onUpdateProperty);
         rcmdFormulaColor->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdFormulaColor_onExecute);
         rcmdBgColor->addEventHandler(EventName::EVENT_RIBBON_UPDATE_PROPERTY, rcmdBgColor_onUpdateProperty);
@@ -1400,6 +1427,7 @@ namespace StupidPlot
         rcmdShowAxis->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdShowAxis_onExecute);
         rcmdEditFormula->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdEditFormula_onExecute);
         rcmdRemoveFormula->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdRemoveFormula_onExecute);
+        rcmdSave->addEventHandler(EventName::EVENT_RIBBON_EXECUTE, rcmdSave_onExecute);
 
         SetClassLongW(bmpCanvas->hControl, GCL_HCURSOR, NULL);
         bmpCanvas->addEventHandler(EventName::EVENT_CANVAS_REBUILD, bmpCanvas_onCanvasRebuild);
