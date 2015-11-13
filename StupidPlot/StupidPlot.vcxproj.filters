@@ -46,6 +46,9 @@
     <Filter Include="源文件\ui\controls">
       <UniqueIdentifier>{6c26538f-5044-44b2-b94d-da8807fefc18}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\pointset">
+      <UniqueIdentifier>{69bd730b-a057-45de-aecb-2f398eb0ec7c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="winform.cpp">
@@ -232,6 +235,18 @@
     </ClInclude>
     <ClInclude Include="ui\events\customdrawevent.h">
       <Filter>头文件\ui\events</Filter>
+    </ClInclude>
+    <ClInclude Include="plot\graphic.h">
+      <Filter>头文件\plot</Filter>
+    </ClInclude>
+    <ClInclude Include="pointset\polylinedrawer.h">
+      <Filter>头文件\pointset</Filter>
+    </ClInclude>
+    <ClInclude Include="pointset\csvloader.h">
+      <Filter>头文件\pointset</Filter>
+    </ClInclude>
+    <ClInclude Include="plot\types.h">
+      <Filter>头文件\plot</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

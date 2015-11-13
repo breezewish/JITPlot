@@ -101,6 +101,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h" />
+    <ClInclude Include="plot\graphic.h" />
+    <ClInclude Include="plot\types.h" />
+    <ClInclude Include="pointset\csvloader.h" />
+    <ClInclude Include="pointset\polylinedrawer.h" />
     <ClInclude Include="resource_ribbon.h" />
     <ClInclude Include="uiapplication.h" />
     <ClInclude Include="uicommandhandler.h" />

@@ -9,6 +9,7 @@
 
 #include <formula/expdrawer.h>
 #include <plot/optionbag.h>
+#include <plot/types.h>
 #include <plot/provider/provider.h>
 #include <plot/provider/gdiprovider.h>
 #include <plot/provider/gdiplusprovider.h>
@@ -186,32 +187,37 @@ namespace StupidPlot
                 return canvasHeight - translateFormulaH(y - (options->drawBottom));
             }
 
-            inline void drawPlotLine(const ExpDrawerPtr & exp, int width)
+            inline void drawPlotLine(const GraphicPtr & exp, int width)
             {
-                int length = 0;
-                auto points = shared_ptr<Provider::POINTF>(new Provider::POINTF[clipWidth], array_deleter<Provider::POINTF>());
+                DoubleArr px, py;
+                int n;
 
-                vector<double> formulaPoints;
+                double cfLeft, cfRight;
 
                 if (clipEnabled)
                 {
-                    formulaPoints = exp->evalAndTransform(options->vpLeft, options->vpRight, options->drawBottom, options->drawTop);
+                    cfLeft = options->vpLeft;
+                    cfRight = options->vpRight;
                 }
                 else
                 {
-                    formulaPoints = exp->evalAndTransform(options->drawLeft, options->drawRight, options->drawBottom, options->drawTop);
+                    cfLeft = options->drawLeft;
+                    cfRight = options->drawRight;
                 }
 
-                auto pt = points.get();
+                exp->evalAndTransform(
+                    cfLeft,
+                    cfRight,
+                    options->drawLeft,
+                    options->drawRight,
+                    options->drawBottom,
+                    options->drawTop,
+                    n,
+                    px,
+                    py
+                    );
 
-                for (int i = clipLeft, max = clipLeft + clipWidth; i < max; ++i)
-                {
-                    pt[length].x = static_cast<float>(i);
-                    pt[length].y = static_cast<float>(formulaPoints[length]);
-                    length++;
-                }
-
-                provider->drawPlotLine(points, length, exp->color, width);
+                provider->drawPlotLine(px, py, n, exp->color, width);
             }
 
             inline void drawGridLine(int spacing, bool vertical, Gdiplus::Color color, bool infinite = true)
@@ -279,7 +285,7 @@ namespace StupidPlot
 
             inline void updateFormulaSize()
             {
-                for (auto exp : options->expressions)
+                for (auto exp : options->graphics)
                 {
                     if (exp->isValid) exp->setSize(clipWidth, clipHeight, canvasWidth, canvasHeight);
                 }
@@ -365,13 +371,13 @@ namespace StupidPlot
                 }
 
                 // Draw formulas
-                for (size_t i = 0, imax = options->expressions.size(); i < imax; ++i)
+                for (size_t i = 0, imax = options->graphics.size(); i < imax; ++i)
                 {
-                    auto exp = options->expressions[i];
-                    if (exp->isValid)
+                    auto g = options->graphics[i];
+                    if (g->isValid)
                     {
                         int width = (static_cast<int>(i) == hoverExpIdx ? 4 : 2);
-                        drawPlotLine(exp, width);
+                        drawPlotLine(g, width);
                     }
                 }
 

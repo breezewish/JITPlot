@@ -38,7 +38,7 @@ namespace StupidPlot
             double              evalInternal = 0;
             double              evalXMin = 0, evalXMax = 0;
             int                 evalN = 0;
-            vector<double>      evalCache;
+            vector<double>      evalCacheX, evalCacheY;
 
         public:
             Expression(
@@ -58,7 +58,13 @@ namespace StupidPlot
                 return executable->eval(x);
             }
 
-            vector<double> & eval(double xMin, double xMax, int n)
+            void eval(
+                double xMin,
+                double xMax,
+                int n,
+                const Plot::DoubleArr & x,
+                const Plot::DoubleArr & y
+                )
             {
                 double newInterval = (xMax - xMin) / n;
 
@@ -73,26 +79,30 @@ namespace StupidPlot
                     {
                         // move right
                         int offset = static_cast<int>(std::round((evalXMin - xMin) / newInterval));
-                        memcpy(&evalCache[offset], &evalCache[0], (n - offset) * sizeof(double));
+                        memcpy(&evalCacheX[offset], &evalCacheX[0], (n - offset) * sizeof(double));
+                        memcpy(&evalCacheY[offset], &evalCacheY[0], (n - offset) * sizeof(double));
                         // eval
-                        double x = xMin;
+                        double _x = xMin;
                         for (int i = 0; i < offset; ++i)
                         {
-                            evalCache[i] = eval(x);
-                            x += newInterval;
+                            evalCacheX[i] = _x;
+                            evalCacheY[i] = eval(_x);
+                            _x += newInterval;
                         }
                     }
                     else
                     {
                         // move left
                         int offset = static_cast<int>(std::round((xMax - evalXMax) / newInterval));
-                        memcpy(&evalCache[0], &evalCache[offset], (n - offset) * sizeof(double));
+                        memcpy(&evalCacheX[0], &evalCacheX[offset], (n - offset) * sizeof(double));
+                        memcpy(&evalCacheY[0], &evalCacheY[offset], (n - offset) * sizeof(double));
                         // eval
-                        double x = evalXMax + newInterval;
+                        double _x = evalXMax + newInterval;
                         for (int i = n - offset; i < n; ++i)
                         {
-                            evalCache[i] = eval(x);
-                            x += newInterval;
+                            evalCacheX[i] = _x;
+                            evalCacheY[i] = eval(_x);
+                            _x += newInterval;
                         }
                     }
                     evalXMin = xMin;
@@ -100,12 +110,14 @@ namespace StupidPlot
                 }
                 else
                 {
-                    evalCache.resize(n);
-                    double x = xMin;
+                    evalCacheX.resize(n);
+                    evalCacheY.resize(n);
+                    double _x = xMin;
                     for (int i = 0; i < n; ++i)
                     {
-                        evalCache[i] = eval(x);
-                        x += newInterval;
+                        evalCacheX[i] = _x;
+                        evalCacheY[i] = eval(_x);
+                        _x += newInterval;
                     }
                     evalXMin = xMin;
                     evalXMax = xMax;
@@ -113,7 +125,8 @@ namespace StupidPlot
                     evalN = n;
                 }
 
-                return evalCache;
+                memcpy(x.get(), evalCacheX.data(), n * sizeof(double));
+                memcpy(y.get(), evalCacheY.data(), n * sizeof(double));
             }
         };
 

@@ -6,16 +6,15 @@
 #include <windows.h>
 #include <gdiplus.h>
 
+#include <plot/graphic.h>
 #include <formula/expdrawer.h>
-
-using std::shared_ptr;
-using std::vector;
 
 namespace StupidPlot
 {
     namespace Plot
     {
-        using Formula::ExpDrawerPtr;
+        using std::shared_ptr;
+        using std::vector;
 
         class OptionBag
         {
@@ -38,7 +37,7 @@ namespace StupidPlot
             int                     axisTickInterval = 5;
 
             // ======== Expressions ========
-            vector<ExpDrawerPtr>    expressions;
+            vector<GraphicPtr>      graphics;
 
             OptionBag()
             {

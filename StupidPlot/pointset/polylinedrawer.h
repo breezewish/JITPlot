@@ -2,33 +2,30 @@
 
 #include <memory>
 #include <string>
-#include <intrin.h>
 
-#include <gdiplus.h>
-
+#include <util.h>
+#include <pointset/csvloader.h>
 #include <plot/graphic.h>
-#include <plot/types.h>
-#include <formula/exp.h>
 
 namespace StupidPlot
 {
-    namespace Formula
+    namespace Pointset
     {
-        class ExpDrawer : public Plot::Graphic
+        class PolylineDrawer : public Plot::Graphic
         {
         public:
-            ExpressionPtr       expression;
+            std::vector<double> _x;
+            std::vector<double> _y;
 
-            ExpDrawer(
-                std::wstring _exp,
-                std::map<std::wstring, double> & _constVars,
+            PolylineDrawer(
+                std::wstring csvfile,
                 Gdiplus::Color _color
                 )
-                : Plot::Graphic(Plot::GraphicType::FORMULA_EXPRESSION, _color)
+                : Plot::Graphic(Plot::GraphicType::POINTSET_POLYLINE, _color)
             {
                 try
                 {
-                    expression = ExpressionPtr(new Expression(_exp, _constVars));
+                    CSVLoader::load(csvfile, _x, _y);
                     isValid = true;
                 }
                 catch (std::runtime_error ex)
@@ -50,15 +47,16 @@ namespace StupidPlot
                 Plot::DoubleArr & y
                 )
             {
-                UNREFERENCED_PARAMETER(canvasLeft);
-                UNREFERENCED_PARAMETER(canvasRight);
+                UNREFERENCED_PARAMETER(xMin);
+                UNREFERENCED_PARAMETER(xMax);
 
                 if (!isValid) return false;
 
-                n = clipWidth;
+                n = _x.size();
                 x = std::shared_ptr<double>(new double[n], array_deleter<double>());
                 y = std::shared_ptr<double>(new double[n], array_deleter<double>());
-                expression->eval(xMin, xMax, n, x, y);
+                memcpy(x.get(), &_x[0], n * sizeof(double));
+                memcpy(y.get(), &_y[0], n * sizeof(double));
                 batchTransformX(canvasLeft, canvasRight, x.get(), n);
                 batchTransformY(canvasBottom, canvasTop, y.get(), n);
 

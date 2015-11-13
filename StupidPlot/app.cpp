@@ -30,10 +30,12 @@
 #include <ui/events/ribbonupdatepropertyevent.h>
 #include <ui/events/ribbonexecuteevent.h>
 #include <plot/drawer.h>
+#include <plot/graphic.h>
 #include <plot/optionbag.h>
 #include <plot/animation.h>
 #include <formula/exp.h>
 #include <formula/expdrawer.h>
+#include <pointset/polylinedrawer.h>
 #include <export/imageexporter.h>
 #pragma endregion
 
@@ -49,6 +51,7 @@ namespace StupidPlot
     using namespace Events;
     using namespace Plot;
     using namespace Formula;
+    using namespace Pointset;
     using namespace Export;
 
 #pragma region Constants
@@ -499,12 +502,12 @@ namespace StupidPlot
 
     inline void removeFormulaByIndex(int index)
     {
-        if (index >= 0 && index < static_cast<int>(options->expressions.size()))
+        if (index >= 0 && index < static_cast<int>(options->graphics.size()))
         {
-            options->expressions.erase(options->expressions.begin() + index);
+            options->graphics.erase(options->graphics.begin() + index);
             lstFormulas->deleteRow(index);
 
-            if (options->expressions.size() > 0)
+            if (options->graphics.size() > 0)
             {
                 cmFormulaIdx = 0;
                 drawer->activeExpIdx = 0;
@@ -556,11 +559,11 @@ namespace StupidPlot
         }
         else if (event->key == UI_PKEY_Color)
         {
-            if (cmFormulaIdx >= 0 && cmFormulaIdx < static_cast<int>(options->expressions.size()))
+            if (cmFormulaIdx >= 0 && cmFormulaIdx < static_cast<int>(options->graphics.size()))
             {
                 UIInitPropertyFromUInt32(
                     event->key,
-                    options->expressions[cmFormulaIdx]->color.ToCOLORREF(),
+                    options->graphics[cmFormulaIdx]->color.ToCOLORREF(),
                     event->newValue
                     );
             }
@@ -576,13 +579,13 @@ namespace StupidPlot
 
         if (event->verb != UI_EXECUTIONVERB_EXECUTE) return LRESULT_DEFAULT;
 
-        if (cmFormulaIdx >= 0 && cmFormulaIdx < static_cast<int>(options->expressions.size()))
+        if (cmFormulaIdx >= 0 && cmFormulaIdx < static_cast<int>(options->graphics.size()))
         {
             UINT color = 0;
             PROPVARIANT var;
             event->properties->GetValue(UI_PKEY_Color, &var);
             UIPropertyToUInt32(UI_PKEY_Color, var, &color);
-            options->expressions[cmFormulaIdx]->color.SetFromCOLORREF(color);
+            options->graphics[cmFormulaIdx]->color.SetFromCOLORREF(color);
             bmpCanvas->dispatchRedraw();
         }
 
@@ -785,19 +788,19 @@ namespace StupidPlot
         }
 
         auto idx = event->displayInfo->item.iItem;
-        auto exp = ExpDrawerPtr(new ExpDrawer(
+        auto gExp = GraphicPtr(new ExpDrawer(
             wstring(event->displayInfo->item.pszText),
             mathConstants,
-            options->expressions[idx]->color
+            options->graphics[idx]->color
             ));
 
-        options->expressions[idx] = exp;
+        options->graphics[idx] = gExp;
 
-        if (!exp->isValid)
+        if (!gExp->isValid)
         {
             MessageBoxW(
                 hWnd,
-                exp->errorMessage.c_str(),
+                gExp->errorMessage.c_str(),
                 L"StupidPlot",
                 MB_ICONWARNING
                 );
@@ -821,9 +824,9 @@ namespace StupidPlot
         case CDDS_ITEMPREPAINT:
         {
             int nItem = static_cast<int>(nmcd.dwItemSpec);
-            if (nItem >= 0 && nItem < static_cast<int>(options->expressions.size()))
+            if (nItem >= 0 && nItem < static_cast<int>(options->graphics.size()))
             {
-                if (!options->expressions[nItem]->isValid)
+                if (!options->graphics[nItem]->isValid)
                 {
                     event->customDraw->clrText = RGB(128, 128, 128);
                 }
@@ -833,13 +836,13 @@ namespace StupidPlot
         case CDDS_ITEMPOSTPAINT:
         {
             int nItem = static_cast<int>(nmcd.dwItemSpec);
-            if (nItem >= 0 && nItem < static_cast<int>(options->expressions.size()))
+            if (nItem >= 0 && nItem < static_cast<int>(options->graphics.size()))
             {
                 RECT rc;
                 lstFormulas->getRect(nItem, &rc, LVIR_ICON);
                 InflateRect(&rc, -3, -3);
 
-                HBRUSH brush = CreateSolidBrush(options->expressions[nItem]->color.ToCOLORREF());
+                HBRUSH brush = CreateSolidBrush(options->graphics[nItem]->color.ToCOLORREF());
                 FillRect(nmcd.hdc, &rc, brush);
                 DeleteObject(brush);
 
@@ -898,8 +901,8 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
-        auto color = FORMULA_COLORS[options->expressions.size() % FORMULA_COLORS.size()];
-        options->expressions.push_back(ExpDrawerPtr(new ExpDrawer(L"", mathConstants, color)));
+        auto color = FORMULA_COLORS[options->graphics.size() % FORMULA_COLORS.size()];
+        options->graphics.push_back(GraphicPtr(new ExpDrawer(L"", mathConstants, color)));
         auto index = lstFormulas->insertRow(L"");
         lstFormulas->setSelected(-1, false);
         lstFormulas->beginEdit(index);
@@ -1120,21 +1123,33 @@ namespace StupidPlot
 
     inline void updateHotTrackPosition()
     {
-        if (drawer->activeExpIdx >= static_cast<int>(options->expressions.size()))
+        if (drawer->activeExpIdx >= static_cast<int>(options->graphics.size()))
         {
             drawer->htCanvasX = -1;
             drawer->htCanvasY = -1;
             return;
         }
-        if (!options->expressions[drawer->activeExpIdx]->isValid)
+
+        auto g = options->graphics[drawer->activeExpIdx];
+
+        if (!g->isValid)
         {
             drawer->htCanvasX = -1;
             drawer->htCanvasY = -1;
             return;
         }
+        if (g->type != GraphicType::FORMULA_EXPRESSION)
+        {
+            drawer->htCanvasX = -1;
+            drawer->htCanvasY = -1;
+            return;
+        }
+
+        auto exp = std::dynamic_pointer_cast<ExpDrawer>(g);
+
         drawer->htCanvasX = currentCursorX;
         currentHTX = currentCursorFormulaX;
-        currentHTY = options->expressions[drawer->activeExpIdx]->expression->eval(currentHTX);
+        currentHTY = exp->expression->eval(currentHTX);
         drawer->htCanvasY = static_cast<int>(drawer->translateFormulaY(currentHTY));
     }
 
@@ -1155,7 +1170,7 @@ namespace StupidPlot
         // current plot position
         if (options->enableHotTrack
             && drawer->activeExpIdx >= 0
-            && drawer->activeExpIdx < static_cast<int>(options->expressions.size())
+            && drawer->activeExpIdx < static_cast<int>(options->graphics.size())
             )
         {
             updateHotTrackPosition();
@@ -1236,7 +1251,7 @@ namespace StupidPlot
 
         if (options->enableHotTrack
             && drawer->activeExpIdx >= 0
-            && drawer->activeExpIdx < static_cast<int>(options->expressions.size())
+            && drawer->activeExpIdx < static_cast<int>(options->graphics.size())
             )
         {
             updateHotTrackPosition();
@@ -1342,14 +1357,19 @@ namespace StupidPlot
             double formulaX = drawer->translateCanvasX(i);
             double initial = Util::pow2(formulaX - currentCursorFormulaX);
 
-            for (size_t j = 0, jmax = options->expressions.size(); j < jmax; ++j)
+            for (size_t j = 0, jmax = options->graphics.size(); j < jmax; ++j)
             {
-                double y = options->expressions[j]->expression->eval(formulaX);
-                double dis = initial + Util::pow2(y - currentCursorFormulaY);
-                if (dis < closestDistance)
+                auto g = options->graphics[j];
+                if (g->type == GraphicType::FORMULA_EXPRESSION)
                 {
-                    closestDistance = dis;
-                    closestFormulaIdx = j;
+                    auto exp = std::dynamic_pointer_cast<ExpDrawer>(g);
+                    double y = exp->expression->eval(formulaX);
+                    double dis = initial + Util::pow2(y - currentCursorFormulaY);
+                    if (dis < closestDistance)
+                    {
+                        closestDistance = dis;
+                        closestFormulaIdx = j;
+                    }
                 }
             }
         }

@@ -36,7 +36,7 @@ namespace StupidPlot
                 {
                 }
 
-                virtual void drawPlotLine(const shared_ptr<POINTF> & points, int length, Gdiplus::Color color, int width)
+                virtual void drawPlotLine(const DoubleArr & x, const DoubleArr & y, int length, Gdiplus::Color color, int width)
                 {
                     if (length == 0) return;
 
@@ -51,11 +51,12 @@ namespace StupidPlot
                     bool start = true;
                     bool breakPoint = false;
 
-                    auto pt = points.get();
+                    auto _x = x.get();
+                    auto _y = y.get();
 
-                    for (int i = 1; i < length; ++i)
+                    for (int i = 0; i < length; ++i)
                     {
-                        if (std::isnan(pt[i].y) || pt[i].y < ALLOWED_MIN_PX || pt[i].y > ALLOWED_MAX_PX)
+                        if (std::isnan(_y[i]) || _y[i] < ALLOWED_MIN_PX || _y[i] > ALLOWED_MAX_PX)
                         {
                             breakPoint = true;
                             start = true;
@@ -72,8 +73,8 @@ namespace StupidPlot
                             if (!breakPoint) start = false;
                         }
 
-                        buf[bufLen].X = pt[i].x;
-                        buf[bufLen].Y = pt[i].y;
+                        buf[bufLen].X = static_cast<float>(_x[i]);
+                        buf[bufLen].Y = static_cast<float>(_y[i]);
                         bufLen++;
                     }
 
