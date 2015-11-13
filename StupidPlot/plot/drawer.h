@@ -101,8 +101,9 @@ namespace StupidPlot
             {
                 if (oldBitmap != NULL)
                 {
-                    HGDIOBJ buf = SelectObject(memDC, oldBitmap);
-                    DeleteObject(buf);
+                    SelectObject(memDC, oldBitmap);
+                    DeleteObject(bitmap);
+                    bitmap = NULL;
                     oldBitmap = NULL;
                 }
             }
@@ -135,13 +136,14 @@ namespace StupidPlot
 
             // ======== Memory Buffer ========
             HDC                     memDC;
+            HBITMAP                 bitmap;
             HGDIOBJ                 oldBitmap;
 
             inline void rebuildBuffer(int width, int height)
             {
                 destroyBuffer();
-                HBITMAP buf = CreateCompatibleBitmap(hdc, width, height);
-                oldBitmap = SelectObject(memDC, buf);
+                bitmap = CreateCompatibleBitmap(hdc, width, height);
+                oldBitmap = SelectObject(memDC, bitmap);
             }
 
             inline double translateCanvasW(int w)

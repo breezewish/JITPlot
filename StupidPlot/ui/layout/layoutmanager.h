@@ -56,6 +56,8 @@ namespace StupidPlot
                     UINT32 ribbonHeight;
                     Ribbon::g_pRibbon->GetHeight(&ribbonHeight);
 
+                    if (rect.right - rect.left == 0) return;
+
                     size.cx = rect.right - rect.left;
                     size.cy = rect.bottom - rect.top - ribbonHeight;
                     offset.x = 0;

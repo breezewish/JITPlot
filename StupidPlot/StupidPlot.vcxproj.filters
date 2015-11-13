@@ -197,12 +197,6 @@
     <ClInclude Include="export\imageexporter.h">
       <Filter>头文件\export</Filter>
     </ClInclude>
-    <ClInclude Include="export\bmpexporter.h">
-      <Filter>头文件\export</Filter>
-    </ClInclude>
-    <ClInclude Include="export\pngexporter.h">
-      <Filter>头文件\export</Filter>
-    </ClInclude>
     <ClInclude Include="ribbon.h">
       <Filter>头文件</Filter>
     </ClInclude>

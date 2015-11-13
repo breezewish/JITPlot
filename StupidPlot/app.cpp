@@ -3,6 +3,7 @@
 #include <string>
 #include <cmath>
 #include <limits>
+#include <algorithm>
 
 #include <UIRibbon.h>
 #include <UIRibbonPropertyHelpers.h>
@@ -33,6 +34,7 @@
 #include <plot/animation.h>
 #include <formula/exp.h>
 #include <formula/expdrawer.h>
+#include <export/imageexporter.h>
 #pragma endregion
 
 namespace StupidPlot
@@ -47,6 +49,7 @@ namespace StupidPlot
     using namespace Events;
     using namespace Plot;
     using namespace Formula;
+    using namespace Export;
 
 #pragma region Constants
 
@@ -732,8 +735,39 @@ namespace StupidPlot
         ofn.lpstrDefExt = L"png";
 
         BOOL bResult = GetSaveFileNameW(&ofn);
-        Debug::Debug() << filename >> Debug::writeln;
-        if (!bResult) return LRESULT_DEFAULT;
+
+        if (bResult)
+        {
+            ImageFormat format;
+            wstring fn(filename);
+            wstring ext = fn.substr(fn.find_last_of(L".") + 1);
+            std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
+
+            if (ext.compare(L"bmp") == 0)
+            {
+                format = ImageFormat::BMP;
+            }
+            else if (ext.compare(L"jpg") || ext.compare(L"jpeg"))
+            {
+                format = ImageFormat::JPEG;
+            }
+            else
+            {
+                format = ImageFormat::PNG;
+            }
+
+            drawer->hoverExpIdx = -1;
+            drawer->drawPlot();
+            bool saveStatus = ImageExporter::save(drawer->bitmap, format, wstring(filename));
+            if (!saveStatus)
+            {
+                MessageBoxW(hWnd, L"Failed to write file.", L"StupidPlot", MB_ICONWARNING);
+            }
+            else
+            {
+                MessageBoxW(hWnd, L"Export successfully.", L"StupidPlot", MB_ICONINFORMATION);
+            }
+        }
 
         return LRESULT_DEFAULT;
     }
