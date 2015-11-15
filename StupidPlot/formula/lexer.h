@@ -80,7 +80,7 @@ namespace StupidPlot
                         if (dot != EOF && dot == L'.')
                         {
                             in.get(c);
-                            wstring fract = extractMatch(in, std::isdigit);
+                            wstring fract = extractMatch(in, std::iswdigit);
                             number += L"." + fract;
                         }
                         tokens.push_back(shared_ptr<Token>(new ConstantOperandToken(std::stod(number))));
