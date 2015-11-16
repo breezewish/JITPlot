@@ -38,7 +38,7 @@ namespace StupidPlot
                 EVENT_RIBBON_EXECUTE,
                 EVENT_CUSTOMDRAW,
                 EVENT_LISTVIEW_DBLCLICK,
-                EVENT_LISTVIEW_ENDEDIT,
+                EVENT_LISTVIEW_EDITLABEL,
 
                 EVENT_LAST
             };

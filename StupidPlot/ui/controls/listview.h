@@ -7,7 +7,7 @@
 #include <string>
 
 #include <ui/events/notifyevent.h>
-#include <ui/events/listviewendeditevent.h>
+#include <ui/events/listvieweditlabelevent.h>
 #include <ui/events/customdrawevent.h>
 #include <ui/controls/control.h>
 #include <ui/controls/win32control.h>
@@ -28,10 +28,27 @@ namespace StupidPlot
 
                     switch (event->nmh.code)
                     {
+                    case LVN_BEGINLABELEDIT:
+                        return listview->dispatchEvent(
+                            EventName::EVENT_LISTVIEW_EDITLABEL,
+                            EventPtr(new ListViewEditLabelEvent(
+                                LabelEditType::BEGIN_EDIT,
+                                event->lParam
+                                ))
+                            );
                     case LVN_ENDLABELEDIT:
-                        return listview->dispatchEvent(EventName::EVENT_LISTVIEW_ENDEDIT, EventPtr(new ListViewEndEditEvent(event->lParam)));
+                        return listview->dispatchEvent(
+                            EventName::EVENT_LISTVIEW_EDITLABEL,
+                            EventPtr(new ListViewEditLabelEvent(
+                                LabelEditType::END_EDIT,
+                                event->lParam
+                                ))
+                            );
                     case NM_CUSTOMDRAW:
-                        return listview->dispatchEvent(EventName::EVENT_CUSTOMDRAW, EventPtr(new CustomDrawEvent(event->lParam)));
+                        return listview->dispatchEvent(
+                            EventName::EVENT_CUSTOMDRAW,
+                            EventPtr(new CustomDrawEvent(event->lParam))
+                            );
                     }
 
                     return LRESULT_DEFAULT;
@@ -124,6 +141,11 @@ namespace StupidPlot
                 void deleteRow(int index)
                 {
                     ListView_DeleteItem(hControl, index);
+                }
+
+                void setText(int index, wstring text)
+                {
+                    ListView_SetItemText(hControl, index, 0, &text[0]);
                 }
             };
 

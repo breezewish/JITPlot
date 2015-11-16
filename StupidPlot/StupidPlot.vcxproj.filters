@@ -230,9 +230,6 @@
     <ClInclude Include="ui\events\notifyevent.h">
       <Filter>头文件\ui\events</Filter>
     </ClInclude>
-    <ClInclude Include="ui\events\listviewendeditevent.h">
-      <Filter>头文件\ui\events</Filter>
-    </ClInclude>
     <ClInclude Include="ui\events\customdrawevent.h">
       <Filter>头文件\ui\events</Filter>
     </ClInclude>
@@ -247,6 +244,9 @@
     </ClInclude>
     <ClInclude Include="plot\types.h">
       <Filter>头文件\plot</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\events\listvieweditlabelevent.h">
+      <Filter>头文件\ui\events</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

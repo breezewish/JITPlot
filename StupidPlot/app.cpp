@@ -25,7 +25,7 @@
 #include <ui/events/event.h>
 #include <ui/events/notifyevent.h>
 #include <ui/events/canvasrebuildevent.h>
-#include <ui/events/listviewendeditevent.h>
+#include <ui/events/listvieweditlabelevent.h>
 #include <ui/events/customdrawevent.h>
 #include <ui/events/eventmanager.h>
 #include <ui/events/ribbonupdatepropertyevent.h>
@@ -471,6 +471,89 @@ namespace StupidPlot
 
 #pragma region Helper Functions
 
+    wstring getBaseName(wstring path)
+    {
+        WCHAR * fn = PathFindFileNameW(path.c_str());
+        return wstring(fn);
+    }
+
+    wstring showOpenDialog()
+    {
+        WCHAR filename[MAX_PATH] = L"";
+
+        OPENFILENAMEW ofn;
+        ZeroMemory(&ofn, sizeof(ofn));
+        ofn.lStructSize = sizeof(ofn);
+        ofn.hwndOwner = hWnd;
+        ofn.hInstance = 0;
+        ofn.lpstrFilter = L"Comma-Separated Values (*.csv)\0*.csv\0";
+        ofn.nFilterIndex = 1;
+        ofn.lpstrTitle = L"Import";
+        ofn.lpstrFile = filename;
+        ofn.nMaxFile = MAX_PATH;
+        ofn.Flags = OFN_EXPLORER;
+        ofn.lpstrDefExt = L"csv";
+
+        BOOL bResult = GetOpenFileNameW(&ofn);
+
+        if (bResult)
+        {
+            return wstring(filename);
+        }
+        else
+        {
+            return L"";
+        }
+    }
+
+    wstring showSaveDialog()
+    {
+        WCHAR filename[MAX_PATH] = L"";
+
+        OPENFILENAMEW ofn;
+        ZeroMemory(&ofn, sizeof(ofn));
+        ofn.lStructSize = sizeof(ofn);
+        ofn.hwndOwner = hWnd;
+        ofn.hInstance = 0;
+        ofn.lpstrFilter = L"BMP (*.bmp)\0*.bmp\0JPEG (*.jpg)\0*.jpg\0PNG (*.png)\0*.png\0All\0*.*\0";
+        ofn.nFilterIndex = 3;
+        ofn.lpstrTitle = L"Export viewport";
+        ofn.lpstrFile = filename;
+        ofn.nMaxFile = MAX_PATH;
+        ofn.Flags = OFN_EXPLORER;
+        ofn.lpstrDefExt = L"png";
+
+        BOOL bResult = GetSaveFileNameW(&ofn);
+        if (bResult)
+        {
+            return wstring(filename);
+        }
+        else
+        {
+            return L"";
+        }
+    }
+
+    void editGraphic(int idx)
+    {
+        if (options->graphics[idx]->type == GraphicType::FORMULA_EXPRESSION)
+        {
+            lstFormulas->setSelected(-1, false);
+            lstFormulas->beginEdit(idx);
+        }
+        else
+        {
+            wstring fn = showOpenDialog();
+            if (fn.size() > 0)
+            {
+                auto color = options->graphics[idx]->color;
+                options->graphics[idx] = GraphicPtr(new PolylineDrawer(fn, color));
+                lstFormulas->setText(idx, getBaseName(fn));
+                bmpCanvas->dispatchRedraw();
+            }
+        }
+    }
+
     void saveAndApplyCursor(HCURSOR cursor)
     {
         hOldCursor = hCurrentCursor;
@@ -707,8 +790,7 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
-        lstFormulas->setSelected(-1, false);
-        lstFormulas->beginEdit(cmFormulaIdx);
+        editGraphic(cmFormulaIdx);
 
         return LRESULT_DEFAULT;
     }
@@ -728,27 +810,11 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
-        WCHAR filename[MAX_PATH] = L"";
+        wstring fn = showSaveDialog();
 
-        OPENFILENAMEW ofn;
-        ZeroMemory(&ofn, sizeof(ofn));
-        ofn.lStructSize = sizeof(ofn);
-        ofn.hwndOwner = hWnd;
-        ofn.hInstance = 0;
-        ofn.lpstrFilter = L"BMP (*.bmp)\0*.bmp\0JPEG (*.jpg)\0*.jpg\0PNG (*.png)\0*.png\0All\0*.*\0";
-        ofn.nFilterIndex = 3;
-        ofn.lpstrTitle = L"Export viewport";
-        ofn.lpstrFile = filename;
-        ofn.nMaxFile = MAX_PATH;
-        ofn.Flags = OFN_EXPLORER;
-        ofn.lpstrDefExt = L"png";
-
-        BOOL bResult = GetSaveFileNameW(&ofn);
-
-        if (bResult)
+        if (fn.size() > 0)
         {
             ImageFormat format;
-            wstring fn(filename);
             wstring ext = fn.substr(fn.find_last_of(L".") + 1);
             std::transform(ext.begin(), ext.end(), ext.begin(), ::towlower);
 
@@ -767,7 +833,7 @@ namespace StupidPlot
 
             drawer->hoverExpIdx = -1;
             drawer->drawPlot();
-            bool saveStatus = ImageExporter::save(drawer->bitmap, format, wstring(filename));
+            bool saveStatus = ImageExporter::save(drawer->bitmap, format, fn);
             if (!saveStatus)
             {
                 MessageBoxW(hWnd, L"Failed to write file.", L"StupidPlot", MB_ICONWARNING);
@@ -783,38 +849,49 @@ namespace StupidPlot
 #pragma endregion
 
 #pragma region ListView Handlers
-    inline LRESULT lstFormulas_onEndEdit(Control * _control, const EventPtr & _event)
+    inline LRESULT lstFormulas_onEditLabel(Control * _control, const EventPtr & _event)
     {
         UNREFERENCED_PARAMETER(_control);
-        auto event = std::dynamic_pointer_cast<ListViewEndEditEvent>(_event);
+        auto event = std::dynamic_pointer_cast<ListViewEditLabelEvent>(_event);
 
-        if (event->displayInfo->item.pszText == NULL)
+        if (event->type == LabelEditType::END_EDIT)
         {
-            return FALSE;
+            // end edit
+            if (event->displayInfo->item.pszText == NULL)
+            {
+                return FALSE;
+            }
+
+            auto idx = event->displayInfo->item.iItem;
+            auto gExp = GraphicPtr(new ExpDrawer(
+                wstring(event->displayInfo->item.pszText),
+                mathConstants,
+                options->graphics[idx]->color
+                ));
+
+            options->graphics[idx] = gExp;
+
+            if (!gExp->isValid)
+            {
+                MessageBoxW(
+                    hWnd,
+                    gExp->errorMessage.c_str(),
+                    L"StupidPlot",
+                    MB_ICONWARNING
+                    );
+            }
+
+            bmpCanvas->dispatchRedraw();
+
+            return TRUE;
         }
-
-        auto idx = event->displayInfo->item.iItem;
-        auto gExp = GraphicPtr(new ExpDrawer(
-            wstring(event->displayInfo->item.pszText),
-            mathConstants,
-            options->graphics[idx]->color
-            ));
-
-        options->graphics[idx] = gExp;
-
-        if (!gExp->isValid)
+        else
         {
-            MessageBoxW(
-                hWnd,
-                gExp->errorMessage.c_str(),
-                L"StupidPlot",
-                MB_ICONWARNING
-                );
+            // begin edit
+            auto idx = event->displayInfo->item.iItem;
+            // for polylines, don't allow edit labels
+            return (options->graphics[idx]->type != GraphicType::FORMULA_EXPRESSION);
         }
-
-        bmpCanvas->dispatchRedraw();
-
-        return TRUE;
     }
 
     inline LRESULT lstFormulas_onCustomDraw(Control * _control, const EventPtr & _event)
@@ -870,7 +947,7 @@ namespace StupidPlot
         case NM_DBLCLK:
         {
             auto item = reinterpret_cast<NMITEMACTIVATE *>(event->lParam);
-            lstFormulas->beginEdit(item->iItem);
+            editGraphic(item->iItem);
             break;
         }
         case LVN_ITEMCHANGED:
@@ -921,30 +998,12 @@ namespace StupidPlot
         UNREFERENCED_PARAMETER(_control);
         UNREFERENCED_PARAMETER(_event);
 
-        WCHAR filename[MAX_PATH] = L"";
-
-        OPENFILENAMEW ofn;
-        ZeroMemory(&ofn, sizeof(ofn));
-        ofn.lStructSize = sizeof(ofn);
-        ofn.hwndOwner = hWnd;
-        ofn.hInstance = 0;
-        ofn.lpstrFilter = L"Comma-Separated Values (*.csv)\0*.csv\0";
-        ofn.nFilterIndex = 1;
-        ofn.lpstrTitle = L"Import";
-        ofn.lpstrFile = filename;
-        ofn.nMaxFile = MAX_PATH;
-        ofn.Flags = OFN_EXPLORER;
-        ofn.lpstrDefExt = L"csv";
-
-        BOOL bResult = GetOpenFileNameW(&ofn);
-
-        if (bResult)
+        wstring fn = showOpenDialog();
+        if (fn.size() > 0)
         {
             auto color = FORMULA_COLORS[options->graphics.size() % FORMULA_COLORS.size()];
-            options->graphics.push_back(GraphicPtr(new PolylineDrawer(filename, color)));
-
-            WCHAR * fn = PathFindFileNameW(filename);
-            lstFormulas->insertRow(wstring(fn));
+            options->graphics.push_back(GraphicPtr(new PolylineDrawer(fn, color)));
+            lstFormulas->insertRow(getBaseName(fn));
             bmpCanvas->dispatchRedraw();
         }
 
@@ -1503,7 +1562,7 @@ namespace StupidPlot
         // Init list view with image list
         HIMAGELIST hImageList = ImageList_Create(16, 16, ILC_COLOR, 1, 0);
         ListView_SetImageList(lstFormulas->hControl, hImageList, LVSIL_SMALL);
-        lstFormulas->addEventHandler(EventName::EVENT_LISTVIEW_ENDEDIT, lstFormulas_onEndEdit);
+        lstFormulas->addEventHandler(EventName::EVENT_LISTVIEW_EDITLABEL, lstFormulas_onEditLabel);
         lstFormulas->addEventHandler(EventName::EVENT_CUSTOMDRAW, lstFormulas_onCustomDraw);
         lstFormulas->addEventHandler(EventName::EVENT_NOTIFY, lstFormulas_onNotify);
         lstFormulas->insertColumn(L"Expression", 180);

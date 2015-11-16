@@ -143,7 +143,7 @@
     <ClInclude Include="ui\events\customdrawevent.h" />
     <ClInclude Include="ui\events\event.h" />
     <ClInclude Include="ui\events\eventmanager.h" />
-    <ClInclude Include="ui\events\listviewendeditevent.h" />
+    <ClInclude Include="ui\events\listvieweditlabelevent.h" />
     <ClInclude Include="ui\events\mouseevent.h" />
     <ClInclude Include="ui\events\mousewheelevent.h" />
     <ClInclude Include="ui\events\notifyevent.h" />

@@ -11,12 +11,20 @@ namespace StupidPlot
     {
         namespace Events
         {
-            class ListViewEndEditEvent : public Event
+            enum class LabelEditType
+            {
+                BEGIN_EDIT,
+                END_EDIT
+            };
+
+            class ListViewEditLabelEvent : public Event
             {
             public:
                 NMLVDISPINFOW * displayInfo;
+                LabelEditType type;
 
-                ListViewEndEditEvent(LPARAM lParam) : Event(EventType::LISTVIEW)
+                ListViewEditLabelEvent(LabelEditType _type, LPARAM lParam)
+                    : Event(EventType::LISTVIEW), type(_type)
                 {
                     displayInfo = reinterpret_cast<NMLVDISPINFOW *>(lParam);
                 }

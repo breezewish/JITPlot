@@ -16,7 +16,6 @@ namespace StupidPlot
         {
             FORMULA_EXPRESSION,
             POINTSET_POLYLINE,
-            POINTSET_CURVE,         // not implemented
         };
 
         class Graphic
