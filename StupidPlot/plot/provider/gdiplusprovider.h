@@ -68,7 +68,7 @@ namespace StupidPlot
 
                         if (start)
                         {
-                            if (bufLen > 1) g->DrawCurve(&pen, buf, bufLen);
+                            if (bufLen > 1) g->DrawLines(&pen, buf, bufLen);
                             bufLen = 0;
                             if (!breakPoint) start = false;
                         }
@@ -78,7 +78,7 @@ namespace StupidPlot
                         bufLen++;
                     }
 
-                    if (bufLen > 1) g->DrawCurve(&pen, buf, bufLen);
+                    if (bufLen > 1) g->DrawLines(&pen, buf, bufLen);
 
                     delete[] buf;
                 }

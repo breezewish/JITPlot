@@ -60,7 +60,7 @@ namespace StupidPlot
                     auto _x = x.get();
                     auto _y = y.get();
 
-                    for (int i = 1; i < length; ++i)
+                    for (int i = 0; i < length; ++i)
                     {
                         if (std::isnan(_y[i]) || _y[i] < ALLOWED_MIN_PX || _y[i] > ALLOWED_MAX_PX)
                         {

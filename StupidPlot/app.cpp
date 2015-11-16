@@ -5,6 +5,7 @@
 #include <limits>
 #include <algorithm>
 
+#include <Shlwapi.h>
 #include <UIRibbon.h>
 #include <UIRibbonPropertyHelpers.h>
 
@@ -122,6 +123,7 @@ namespace StupidPlot
     Win32Control            * grpPlot;
     ListView                * lstFormulas;
     Win32Control            * btnAdd;
+    Win32Control            * btnAddFile;
     Win32Control            * btnRemove;
 
     // ======== Ribbon Controls ========
@@ -240,6 +242,7 @@ namespace StupidPlot
         grpPlot = new Win32Control(hWnd, IDC_STATIC_GROUP_PLOT);
         lstFormulas = new ListView(hWnd, IDC_LIST_FORMULAS);
         btnAdd = new Win32Control(hWnd, IDC_BUTTON_ADD);
+        btnAddFile = new Win32Control(hWnd, IDC_BUTTON_ADD_FILE);
         btnRemove = new Win32Control(hWnd, IDC_BUTTON_REMOVE);
 
         rcmdFormulaColor = new RibbonControl(IDR_CMD_FORMULA_COLORPICKER);
@@ -288,6 +291,7 @@ namespace StupidPlot
             ->addWin32Control(grpPlot)
             ->addWin32Control(lstFormulas)
             ->addWin32Control(btnAdd)
+            ->addWin32Control(btnAddFile)
             ->addWin32Control(btnRemove)
             ->addRibbonControl(rcmdFormulaColor)
             ->addRibbonControl(rcmdBgColor)
@@ -330,6 +334,7 @@ namespace StupidPlot
             ->enableMagnet(grpPlot, false, true, true, true)
             ->enableMagnet(lstFormulas, false, true, true, true)
             ->enableMagnet(btnAdd, false, false, true, true)
+            ->enableMagnet(btnAddFile, false, false, true, true)
             ->enableMagnet(btnRemove, false, false, true, true);
 
         updateSize();
@@ -372,6 +377,7 @@ namespace StupidPlot
         delete grpPlot;
         delete lstFormulas;
         delete btnAdd;
+        delete btnAddFile;
         delete btnRemove;
 
         delete rcmdFormulaColor;
@@ -906,6 +912,41 @@ namespace StupidPlot
         auto index = lstFormulas->insertRow(L"");
         lstFormulas->setSelected(-1, false);
         lstFormulas->beginEdit(index);
+
+        return LRESULT_DEFAULT;
+    }
+
+    inline LRESULT btnAddFile_onClick(Control * _control, const EventPtr & _event)
+    {
+        UNREFERENCED_PARAMETER(_control);
+        UNREFERENCED_PARAMETER(_event);
+
+        WCHAR filename[MAX_PATH] = L"";
+
+        OPENFILENAMEW ofn;
+        ZeroMemory(&ofn, sizeof(ofn));
+        ofn.lStructSize = sizeof(ofn);
+        ofn.hwndOwner = hWnd;
+        ofn.hInstance = 0;
+        ofn.lpstrFilter = L"Comma-Separated Values (*.csv)\0*.csv\0";
+        ofn.nFilterIndex = 1;
+        ofn.lpstrTitle = L"Import";
+        ofn.lpstrFile = filename;
+        ofn.nMaxFile = MAX_PATH;
+        ofn.Flags = OFN_EXPLORER;
+        ofn.lpstrDefExt = L"csv";
+
+        BOOL bResult = GetOpenFileNameW(&ofn);
+
+        if (bResult)
+        {
+            auto color = FORMULA_COLORS[options->graphics.size() % FORMULA_COLORS.size()];
+            options->graphics.push_back(GraphicPtr(new PolylineDrawer(filename, color)));
+
+            WCHAR * fn = PathFindFileNameW(filename);
+            lstFormulas->insertRow(wstring(fn));
+            bmpCanvas->dispatchRedraw();
+        }
 
         return LRESULT_DEFAULT;
     }
@@ -1468,6 +1509,7 @@ namespace StupidPlot
         lstFormulas->insertColumn(L"Expression", 180);
 
         btnAdd->addEventHandler(EventName::EVENT_CLICK, btnAdd_onClick);
+        btnAddFile->addEventHandler(Events::EventName::EVENT_CLICK, btnAddFile_onClick);
         btnRemove->addEventHandler(EventName::EVENT_CLICK, btnRemove_onClick);
 
         // Ribbon menu item

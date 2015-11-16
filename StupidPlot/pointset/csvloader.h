@@ -23,9 +23,15 @@ namespace StupidPlot
                 std::wstring line;
                 while (std::getline(fin, line))
                 {
-                    auto p = line.find_first_of(L',');
-                    x.push_back(std::stof(line.substr(0, p)));
-                    y.push_back(std::stof(line.substr(p + 1)));
+                    if (line.size() > 0)
+                    {
+                        auto p = line.find_first_of(L',');
+                        if (p != std::wstring::npos)
+                        {
+                            x.push_back(std::stof(line.substr(0, p)));
+                            y.push_back(std::stof(line.substr(p + 1)));
+                        }
+                    }
                 }
             }
         };
