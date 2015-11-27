@@ -93,6 +93,16 @@ namespace StupidPlot
             ins.push_back(LIRInstruction(LIROperation::MOV_XMM_ST0, LIROperand(opnd1)));
         }
 
+        void genTan(int & constLength, map<double, int> & constMap, LIRInstructionSet & ins, XMM opnd1)
+        {
+            UNREFERENCED_PARAMETER(constLength);
+            UNREFERENCED_PARAMETER(constMap);
+
+            ins.push_back(LIRInstruction(LIROperation::MOV_ST0_XMM, LIROperand(opnd1)));
+            ins.push_back(LIRInstruction(LIROperation::TAN_ST0));
+            ins.push_back(LIRInstruction(LIROperation::MOV_XMM_ST0, LIROperand(opnd1)));
+        }
+
         void genCos(int & constLength, map<double, int> & constMap, LIRInstructionSet & ins, XMM opnd1)
         {
             UNREFERENCED_PARAMETER(constLength);
@@ -148,6 +158,7 @@ namespace StupidPlot
             { L"sqrt", LIRGenerateFunction(genSqrt) },
             { L"sin", LIRGenerateFunction(genSin) },
             { L"cos", LIRGenerateFunction(genCos) },
+            { L"tan", LIRGenerateFunction(genTan) },
             { L"neg", LIRGenerateFunction(genNeg) },
             { L"abs", LIRGenerateFunction(genAbs) },
             { L"pow", LIRGenerateFunction(genPower) },

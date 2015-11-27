@@ -6,6 +6,8 @@
 #include <resource.h>
 #include <app.h>
 
+#include <util.h>
+
 using StupidPlot::App;
 using StupidPlot::Ribbon;
 
@@ -85,8 +87,20 @@ int APIENTRY WinMain(
         }
         if (!IsDialogMessageW(hDlg, &msg))
         {
-            TranslateMessage(&msg);
-            DispatchMessageW(&msg);
+            StupidPlot::Debug::Debug() << msg.message >> StupidPlot::Debug::writeln;
+            if (msg.message != WM_MOUSEWHEEL)
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+            else
+            {
+                POINT mouse;
+                GetCursorPos(&mouse);
+                msg.hwnd = WindowFromPoint(mouse);
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
         }
     }
 

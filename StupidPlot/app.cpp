@@ -120,7 +120,6 @@ namespace StupidPlot
     Textbox                 * txtRangeXTo;
     Textbox                 * txtRangeYFrom;
     Textbox                 * txtRangeYTo;
-    Win32Control            * grpPlot;
     ListView                * lstFormulas;
     Win32Control            * btnAdd;
     Win32Control            * btnAddFile;
@@ -239,7 +238,6 @@ namespace StupidPlot
         txtRangeXTo = new Textbox(hWnd, IDC_EDIT_X_TO);
         txtRangeYFrom = new Textbox(hWnd, IDC_EDIT_Y_FROM);
         txtRangeYTo = new Textbox(hWnd, IDC_EDIT_Y_TO);
-        grpPlot = new Win32Control(hWnd, IDC_STATIC_GROUP_PLOT);
         lstFormulas = new ListView(hWnd, IDC_LIST_FORMULAS);
         btnAdd = new Win32Control(hWnd, IDC_BUTTON_ADD);
         btnAddFile = new Win32Control(hWnd, IDC_BUTTON_ADD_FILE);
@@ -288,7 +286,6 @@ namespace StupidPlot
             ->addWin32Control(txtRangeXTo)
             ->addWin32Control(txtRangeYFrom)
             ->addWin32Control(txtRangeYTo)
-            ->addWin32Control(grpPlot)
             ->addWin32Control(lstFormulas)
             ->addWin32Control(btnAdd)
             ->addWin32Control(btnAddFile)
@@ -331,7 +328,6 @@ namespace StupidPlot
             ->enableMagnet(txtRangeXTo, false, true, true, false)
             ->enableMagnet(txtRangeYFrom, false, true, true, false)
             ->enableMagnet(txtRangeYTo, false, true, true, false)
-            ->enableMagnet(grpPlot, false, true, true, true)
             ->enableMagnet(lstFormulas, false, true, true, true)
             ->enableMagnet(btnAdd, false, false, true, true)
             ->enableMagnet(btnAddFile, false, false, true, true)
@@ -374,7 +370,6 @@ namespace StupidPlot
         delete txtRangeXTo;
         delete txtRangeYFrom;
         delete txtRangeYTo;
-        delete grpPlot;
         delete lstFormulas;
         delete btnAdd;
         delete btnAddFile;
@@ -1232,13 +1227,7 @@ namespace StupidPlot
 
         auto g = options->graphics[drawer->activeExpIdx];
 
-        if (!g->isValid)
-        {
-            drawer->htCanvasX = -1;
-            drawer->htCanvasY = -1;
-            return;
-        }
-        if (g->type != GraphicType::FORMULA_EXPRESSION)
+        if (g->type != GraphicType::FORMULA_EXPRESSION || !g->isValid)
         {
             drawer->htCanvasX = -1;
             drawer->htCanvasY = -1;
@@ -1460,7 +1449,7 @@ namespace StupidPlot
             for (size_t j = 0, jmax = options->graphics.size(); j < jmax; ++j)
             {
                 auto g = options->graphics[j];
-                if (g->type == GraphicType::FORMULA_EXPRESSION)
+                if (g->type == GraphicType::FORMULA_EXPRESSION && g->isValid)
                 {
                     auto exp = std::dynamic_pointer_cast<ExpDrawer>(g);
                     double y = exp->expression->eval(formulaX);
@@ -1529,6 +1518,8 @@ namespace StupidPlot
     void setup()
     {
         mathConstants[L"PI"] = std::atan(1) * 4;
+        mathConstants[L"e"] = 2.71828182845904523536028747135266250;
+        mathConstants[L"¹þ¹þ"] = 1.234;
 
         animation = AnimationPtr(new Animation(
             hWnd, IDT_TIMER_PLOT,

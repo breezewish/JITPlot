@@ -230,6 +230,13 @@ namespace StupidPlot
                 *buffer = byte(0xD9); buffer += 1;
                 *buffer = byte(0xFF); buffer += 1;
             }
+
+            static void FPTAN_ST0(PBYTE & buffer)
+            {
+                *buffer = byte(0xD9); buffer += 1;
+                *buffer = byte(0xF2); buffer += 1;
+            }
+
             static void FYL2X_ST0_ST1(PBYTE & buffer)
             {
                 *buffer = byte(0xD9); buffer += 1;

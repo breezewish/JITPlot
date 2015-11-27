@@ -31,6 +31,7 @@ namespace StupidPlot
             ANDNOT_XMM_XMM,
             SIN_ST0,
             COS_ST0,
+            TAN_ST0,
             POWER_ST0_ST1,
             MOV_ST0_1,
             LOG2_ST0_ST1,
@@ -178,6 +179,10 @@ namespace StupidPlot
                     break;
                 case LIROperation::COS_ST0:
                     Assembler::FCOS_ST0(buffer);
+                    break;
+                case LIROperation::TAN_ST0:
+                    Assembler::FPTAN_ST0(buffer);
+                    Assembler::FSTP_STX_ST0(buffer, 0);
                     break;
                 case LIROperation::POWER_ST0_ST1:
                     Assembler::FYL2X_ST0_ST1(buffer);

@@ -80,12 +80,6 @@ The plot is interactive. You can click the plot in the canvas to adjust options,
 
 - JIT: Support `arcsin`, `arccos`
 
-- UI: Support inputing multiple formula expressions
-
-- Util: Export to png
-
-- Util: Import from csv
-
 ## Thanks To
 
 - [FPU tutorial](www.ray.masmcode.com/tutorial/index.html)
